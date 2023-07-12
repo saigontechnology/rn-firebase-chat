@@ -39,13 +39,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/saigontechnology/React-Native",
+  "repository": "https://github.com/saigontechnology/rn-firebase-chat",
   "author": "BaoNH <bao.nguyenh@saigontechnology.com> (https://github.com/baonguyenhsts)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saigontechnology/React-Native/issues"
+    "url": "https://github.com/saigontechnology/rn-firebase-chat/issues"
   },
-  "homepage": "https://github.com/saigontechnology/React-Native#readme",
+  "homepage": "https://github.com/saigontechnology/rn-firebase-chat#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
