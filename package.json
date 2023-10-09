@@ -2,8 +2,7 @@
   "name": "rn-firebase-chat",
   "version": "0.1.0",
   "description": "test",
-  "main": "lib/commonjs/index",
-  "module": "lib/module/index",
+  "main": "src/index.ts",
   "types": "lib/typescript/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
@@ -40,24 +39,24 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/saigontechnology/React-Native",
+  "repository": "https://github.com/saigontechnology/rn-firebase-chat",
   "author": "BaoNH <bao.nguyenh@saigontechnology.com> (https://github.com/baonguyenhsts)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saigontechnology/React-Native/issues"
+    "url": "https://github.com/saigontechnology/rn-firebase-chat/issues"
   },
-  "homepage": "https://github.com/saigontechnology/React-Native#readme",
+  "homepage": "https://github.com/saigontechnology/rn-firebase-chat#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@evilmartians/lefthook": "^1.2.2",
     "@commitlint/config-conventional": "^17.0.2",
+    "@evilmartians/lefthook": "^1.2.2",
     "@react-native-community/eslint-config": "^3.0.2",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^28.1.2",
-    "@types/react": "~17.0.21",
-    "@types/react-native": "0.70.0",
+    "@types/react": "18.2.0",
+    "@types/react-native": "0.71.8",
     "commitlint": "^17.0.2",
     "del-cli": "^5.0.0",
     "eslint": "^8.4.1",
@@ -73,7 +72,8 @@
     "typescript": "^4.5.2"
   },
   "resolutions": {
-    "@types/react": "17.0.21"
+    "@types/react-native": "0.71.8",
+    "@types/react": "18.2.0"
   },
   "peerDependencies": {
     "react": "*",
@@ -128,7 +128,8 @@
           "trailingComma": "es5",
           "useTabs": false
         }
-      ]
+      ],
+      "@typescript-eslint/no-unused-vars": 1
     }
   },
   "eslintIgnore": [
@@ -155,5 +156,13 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@react-native-firebase/app": "^18.1.0",
+    "@react-native-firebase/firestore": "^18.1.0",
+    "@react-native-firebase/storage": "^18.1.0",
+    "randomcolor": "^0.6.2",
+    "react-native-aes-crypto": "^2.1.1",
+    "react-native-gifted-chat": "^2.4.0"
   }
 }

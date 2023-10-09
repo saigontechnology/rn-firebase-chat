@@ -1,3 +1,4 @@
-export function multiply(a: number, b: number): Promise<number> {
-  return Promise.resolve(a * b);
-}
+import { ChatProvider } from './Chat/ChatProvider';
+
+export default ChatProvider;
+export * from './Services/Firestore';
