@@ -8,7 +8,7 @@ interface UserProfileProps {
   name: string;
   status?: UserStatus;
   updated?: number;
-  conservations?: string[];
+  conversations?: string[];
 }
 
 export { UserProfileProps };

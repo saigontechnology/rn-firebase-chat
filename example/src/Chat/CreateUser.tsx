@@ -5,11 +5,13 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   checkUsernameExist,
   createUserProfile,
-  setUserData,
+  FirestoreServices,
 } from 'rn-firebase-chat';
 import {SwitchWithTitle} from '../Components/SwitchWithTitle';
 
-interface CreateUserProps extends NativeStackScreenProps<any> {}
+type CreateUserProps = NativeStackScreenProps<any>;
+
+const FirestoreServicesInstance = FirestoreServices.getInstance();
 
 export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
@@ -24,10 +26,15 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
     const memberId = memberIdRef.current;
 
     const navigateToChatScreen = () => {
-      setUserData(username, {
-        id: username,
-        name: displayName,
-      });
+      FirestoreServicesInstance.setData(
+        username,
+        {
+          id: username,
+          name: displayName,
+        },
+        'ffCnpqQW2HG6ghcajdYO',
+        enableEncrypt,
+      );
       navigation.navigate('ChatScreen', {
         userInfo: {
           id: username,
