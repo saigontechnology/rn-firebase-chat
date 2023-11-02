@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { Component } from 'react';
 import {
   KeyboardAvoidingView,
   StyleProp,
@@ -40,221 +40,220 @@ interface ChatScreenProps extends GiftedChatProps {
   typingTimeoutSeconds?: number;
 }
 
+interface ChatScreenStates {
+  messagesList: MessageProps[];
+  loadEarlier: boolean;
+  isLoadingEarlier: boolean;
+  isTyping: boolean;
+}
+
 let typingTimeout: ReturnType<typeof setTimeout>;
 
-export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
-  ({
-    userInfo,
-    memberId,
-    conversationInfo,
-    style,
-    renderLoadEarlier,
-    renderAvatar,
-    renderBubble,
-    renderMessage,
-    enableEncrypt,
-    enableTyping,
-    typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
-    renderInputToolbar,
-    ...props
-  }) => {
-    const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
-    // const [isShowPhotoGallery, setIsShowPhotoGallery] =
-    //   useState<boolean>(false);
-    const [loadEarlier, setLoadEarlier] = useState<boolean>(false);
-    const [isLoadingEarlier, setIsLoadingEarlier] = useState<boolean>(false);
-    const [isTyping, setIsTyping] = useState<boolean>(false);
+export class ChatProvider extends Component<ChatScreenProps, ChatScreenStates> {
+  conversationInfo;
+  totalMessages = 0;
+  receiveMessageRef;
+  userConversation;
+  constructor(props: ChatScreenProps) {
+    super(props);
+    this.state = {
+      messagesList: [],
+      loadEarlier: false,
+      isLoadingEarlier: false,
+      isTyping: false,
+    };
+    this.conversationInfo = props.conversationInfo;
+    this.receiveMessageRef = () => {};
+    this.userConversation = () => {};
+  }
 
-    const conversationRef = useRef<ConversationProps>(conversationInfo);
-    const messageRef = useRef<MessageProps[]>(messagesList);
-    messageRef.current = messagesList;
-    const totalMessages = useRef<number>(0);
-    const typingRef = useRef(isTyping);
-
-    // const customMessageView = (props: any) => {
-    //   return <CustomMessageView {...props} />;
-    // };
-
-    // const isCloseToTop = ({
-    //   layoutMeasurement,
-    //   contentOffset,
-    //   contentSize,
-    // }: any) => {
-    //   const paddingToTop = 80;
-    //   return (
-    //     contentSize.height - layoutMeasurement.height - paddingToTop <=
-    //     contentOffset.y
-    //   );
-    // };
-
-    const onLoadEarlier = useCallback(() => {
-      if (messagesList.length < totalMessages.current && !isLoadingEarlier) {
-        setTimeout(() => {
-          setIsLoadingEarlier(true);
-          setLoadEarlier(false);
-          getMoreMessage(conversationRef.current.id, enableEncrypt).then(
-            (data: MessageProps[]) => {
-              setIsLoadingEarlier(false);
-              setLoadEarlier(true);
-              if (data.length > 0) {
-                setMessagesList([...messagesList, ...data]);
-              }
-            }
-          );
-        }, 1000);
-      } else {
-        setLoadEarlier(false);
-      }
-    }, [enableEncrypt, isLoadingEarlier, messagesList]);
-
-    const onSend = useCallback(
-      async (messages: MessageProps) => {
-        if (!conversationRef.current?.id) {
-          conversationRef.current = (await createConversation(
-            userInfo.id,
-            memberId
-          )) as ConversationProps;
-        }
-        clearTimeout(typingTimeout);
-        setMessagesList((previousMessages) =>
-          GiftedChat.append(previousMessages, [messages])
-        );
-
-        const messageData = {
-          ...messages,
-        };
-        let file;
-
-        if (messages?.type?.includes('image')) {
-          file = {
-            type: 'image',
-            imageUrl: messages?.imageUrl,
-            // fileUrl: fileUrl,
-            // fileName: messages?.fileName,
-            // fileSize: messages?.fileSize,
-            extension: messages?.extension,
-          };
-        } else if (!!messages.type) {
-          file = {
-            type: 'image',
-            fileUrl: messages?.fileUrl,
-            // fileUrl: fileUrl,
-            // fileName: messages?.fileName,
-            // fileSize: messages?.fileSize,
-            extension: messages?.extension,
-          };
-        }
-
-        await sendMessage(
-          conversationRef.current.id,
-          messages.text,
-          conversationRef.current.members,
-          file,
-          enableEncrypt
-        );
-      },
-      [enableEncrypt, userInfo.id, memberId]
-    );
-
-    const changeUserConversationTyping = useCallback(
-      (value: boolean, callback?: () => void) => {
-        setUserConversationTyping(
-          conversationRef.current?.id,
-          userInfo.id,
-          value
-        ).then(callback);
-      },
-      [userInfo.id]
-    );
-
-    const onInputTextChanged = useCallback(
-      (text: string) => {
-        if (enableTyping) {
-          if (!text) {
-            changeUserConversationTyping(false);
-            clearTimeout(typingTimeout);
-          } else {
-            clearTimeout(typingTimeout);
-            changeUserConversationTyping(true, () => {
-              typingTimeout = setTimeout(() => {
-                changeUserConversationTyping(false, () => {
-                  clearTimeout(typingTimeout);
-                });
-              }, typingTimeoutSeconds);
-            });
-          }
-        }
-      },
-      [enableTyping, changeUserConversationTyping, typingTimeoutSeconds]
-    );
-
-    useEffect(() => {
-      if (conversationInfo?.id) {
-        countAllMessages(conversationInfo?.id).then((total) => {
-          totalMessages.current = total;
+  onLoadEarlier = () => {
+    const { enableEncrypt } = this.props;
+    const { isLoadingEarlier, messagesList } = this.state;
+    if (messagesList.length < this.totalMessages && !isLoadingEarlier) {
+      setTimeout(() => {
+        this.setState({
+          isLoadingEarlier: true,
+          loadEarlier: false,
         });
-        getMessageHistory(conversationInfo?.id, enableEncrypt).then(
-          (res: any) => {
-            changeReadMessage(conversationRef.current.id);
-            setLoadEarlier(true);
-            setMessagesList(res);
-          }
-        );
-      }
-    }, [conversationInfo?.id, enableEncrypt]);
-
-    useEffect(() => {
-      let receiveMessageRef: () => void;
-      let userConversation: () => void;
-      receiveMessageRef = receiveMessageListener(
-        conversationRef.current.id,
-        (message: MessageProps) => {
-          if (message.senderId !== userInfo.id) {
-            if (enableEncrypt) {
-              formatEncryptedMessageData(message, userInfo.name).then(
-                (formattedMessages: any) => {
-                  setMessagesList([formattedMessages, ...messageRef.current]);
-                  changeReadMessage(conversationRef.current.id);
-                }
-              );
-            } else {
-              const formatMessage = formatMessageData(message, userInfo.name);
-              const mergeMessageList = [
-                formatMessage,
-                ...messageRef.current,
-              ] as MessageProps[];
-              setMessagesList(mergeMessageList);
-              changeReadMessage(conversationRef.current.id);
+        getMoreMessage(this.conversationInfo.id, enableEncrypt).then(
+          (data: MessageProps[]) => {
+            this.setState({
+              isLoadingEarlier: false,
+              loadEarlier: true,
+            });
+            if (data.length > 0) {
+              this.setState({
+                messagesList: [...messagesList, ...data],
+              });
             }
           }
-        }
-      );
-      // //Build for chat 1-1
-      userConversation = userConversationListener(
-        conversationRef.current?.id,
-        (newConversation) => {
-          conversationRef.current = newConversation as ConversationProps;
-          typingRef.current = newConversation?.typing?.[memberId];
-          setIsTyping(typingRef.current);
-        }
-      );
+        );
+      }, 1000);
+    } else {
+      this.setState({
+        loadEarlier: false,
+      });
+    }
+  };
 
-      return () => {
-        if (receiveMessageRef) {
-          receiveMessageRef();
-        }
-        if (userConversation) {
-          userConversation();
-        }
+  onSend = async (messages: MessageProps) => {
+    const { enableEncrypt, memberId, userInfo } = this.props;
+    if (!this.conversationInfo?.id) {
+      this.conversationInfo = (await createConversation(
+        userInfo.id,
+        memberId
+      )) as ConversationProps;
+    }
+    clearTimeout(typingTimeout);
+    this.setState((prevStates) => ({
+      messagesList: GiftedChat.append(prevStates.messagesList, [messages]),
+    }));
+
+    let file;
+
+    if (messages?.type?.includes('image')) {
+      file = {
+        type: 'image',
+        imageUrl: messages?.imageUrl,
+        // fileUrl: fileUrl,
+        // fileName: messages?.fileName,
+        // fileSize: messages?.fileSize,
+        extension: messages?.extension,
       };
-    }, [userInfo.id, loadEarlier, memberId, enableEncrypt, userInfo.name]);
+    } else if (messages.type) {
+      file = {
+        type: 'image',
+        fileUrl: messages?.fileUrl,
+        // fileUrl: fileUrl,
+        // fileName: messages?.fileName,
+        // fileSize: messages?.fileSize,
+        extension: messages?.extension,
+      };
+    }
 
+    await sendMessage(
+      this.conversationInfo.id,
+      messages.text,
+      this.conversationInfo.members,
+      file,
+      enableEncrypt
+    );
+  };
+
+  changeUserConversationTyping = (value: boolean, callback?: () => void) => {
+    const { userInfo } = this.props;
+    setUserConversationTyping(
+      this.conversationInfo?.id,
+      userInfo.id,
+      value
+    ).then(callback);
+  };
+
+  onInputTextChanged = (text: string) => {
+    const { enableTyping, typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS } =
+      this.props;
+    if (enableTyping) {
+      if (!text) {
+        this.changeUserConversationTyping(false);
+        clearTimeout(typingTimeout);
+      } else {
+        clearTimeout(typingTimeout);
+        this.changeUserConversationTyping(true, () => {
+          typingTimeout = setTimeout(() => {
+            this.changeUserConversationTyping(false, () => {
+              clearTimeout(typingTimeout);
+            });
+          }, typingTimeoutSeconds);
+        });
+      }
+    }
+  };
+
+  componentDidMount() {
+    const { enableEncrypt, memberId, userInfo } = this.props;
+    if (this.conversationInfo?.id) {
+      countAllMessages(this.conversationInfo?.id).then((total) => {
+        this.totalMessages = total;
+      });
+      getMessageHistory(this.conversationInfo?.id, enableEncrypt).then(
+        (res: any) => {
+          changeReadMessage(this.conversationInfo.id);
+          this.setState({
+            loadEarlier: true,
+            messagesList: res,
+          });
+        }
+      );
+    }
+
+    this.receiveMessageRef = receiveMessageListener(
+      this.conversationInfo.id,
+      (message: MessageProps) => {
+        if (message.senderId !== userInfo.id) {
+          if (enableEncrypt) {
+            formatEncryptedMessageData(message, userInfo.name).then(
+              (formattedMessages: any) => {
+                this.setState((prevStates) => ({
+                  messagesList: [formattedMessages, ...prevStates.messagesList],
+                }));
+                changeReadMessage(this.conversationInfo.id);
+              }
+            );
+          } else {
+            const formatMessage = formatMessageData(message, userInfo.name);
+            this.setState((prevStates) => ({
+              messagesList: [
+                formatMessage as MessageProps,
+                ...prevStates.messagesList,
+              ],
+            }));
+            changeReadMessage(this.conversationInfo.id);
+          }
+        }
+      }
+    );
+
+    // //Build for chat 1-1
+    this.userConversation = userConversationListener(
+      this.conversationInfo?.id,
+      (newConversation) => {
+        this.conversationInfo = newConversation as ConversationProps;
+        this.setState({
+          isTyping: newConversation?.typing?.[memberId],
+        });
+      }
+    );
+  }
+
+  componentWillUnmount() {
+    if (this.receiveMessageRef) {
+      this.receiveMessageRef();
+    }
+    if (this.userConversation) {
+      this.userConversation();
+    }
+  }
+
+  render() {
+    const {
+      style,
+      enableTyping,
+      userInfo,
+      renderAvatar,
+      renderBubble,
+      renderInputToolbar,
+      renderLoadEarlier,
+      renderMessage,
+    } = this.props;
+    const { isLoadingEarlier, isTyping, loadEarlier, messagesList } =
+      this.state;
     return (
       <View style={[styles.container, style]}>
         <KeyboardAvoidingView style={styles.container}>
           <GiftedChat
             messages={messagesList}
-            onSend={(messages) => onSend(messages[0] as MessageProps)}
+            onSend={(messages) => this.onSend(messages[0] as MessageProps)}
             user={{
               _id: userInfo.id,
               name: userInfo.name,
@@ -264,7 +263,6 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             keyboardShouldPersistTaps={'always'}
             // renderCustomView={customMessageView}
             renderInputToolbar={renderInputToolbar}
-            // renderBubble={renderBubble}
             // listViewProps={{
             //   scrollEventThrottle: 5000,
             //   onScroll: ({nativeEvent}: any) => {
@@ -275,16 +273,16 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             // }}
             infiniteScroll
             loadEarlier={loadEarlier}
-            onLoadEarlier={onLoadEarlier}
+            onLoadEarlier={this.onLoadEarlier}
             isLoadingEarlier={isLoadingEarlier}
             renderLoadEarlier={renderLoadEarlier}
             renderBubble={renderBubble}
             renderAvatar={renderAvatar}
             renderMessage={renderMessage}
-            onInputTextChanged={onInputTextChanged}
+            onInputTextChanged={this.onInputTextChanged}
             isTyping={enableTyping && isTyping}
             renderChatFooter={() => <TypingIndicator />}
-            {...props}
+            {...this.props}
           />
         </KeyboardAvoidingView>
         {/*{isShowPhotoGallery && (*/}
@@ -300,7 +298,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       </View>
     );
   }
-);
+}
 
 const styles = StyleSheet.create({
   container: {
