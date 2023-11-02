@@ -5,11 +5,13 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   checkUsernameExist,
   createUserProfile,
-  setUserData,
+  FirestoreServices,
 } from 'rn-firebase-chat';
 import {SwitchWithTitle} from '../Components/SwitchWithTitle';
 
-interface CreateUserProps extends NativeStackScreenProps<any> {}
+type CreateUserProps = NativeStackScreenProps<any>;
+
+const FirestoreServicesInstance = FirestoreServices.getInstance();
 
 export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
@@ -19,26 +21,24 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const memberIdRef = useRef<string>('456');
 
   const onStartChat = useCallback(() => {
-    const username = usernameRef.current;
+    const userId = usernameRef.current;
     const displayName = displayNameRef.current;
     const memberId = memberIdRef.current;
 
     const navigateToChatScreen = () => {
-      setUserData(username, {
-        id: username,
-        name: displayName,
+      FirestoreServicesInstance.setChatData({
+        userId,
+        userInfo: {
+          id: userId,
+          name: displayName,
+        },
+        enableEncrypt,
+        memberId,
       });
       navigation.navigate('ChatScreen', {
         userInfo: {
-          id: username,
+          id: userId,
           name: displayName,
-        },
-        conversationInfo: {
-          id: 'ffCnpqQW2HG6ghcajdYO',
-          members: {
-            ['123']: 'users/123',
-            ['456']: 'users/456',
-          },
         },
         memberId,
         enableEncrypt,
@@ -46,9 +46,9 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
       });
     };
 
-    checkUsernameExist(username).then(isExist => {
+    checkUsernameExist(userId).then(isExist => {
       if (!isExist) {
-        createUserProfile(username, displayName).then(() => {
+        createUserProfile(userId, displayName).then(() => {
           navigateToChatScreen();
         });
       } else {
