@@ -8,6 +8,17 @@ RN Firebase Chat
 npm install rn-firebase-chat
 ```
 
+## Installation
+
+- Using [npm](https://www.npmjs.com/#getting-started):
+```sh
+npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat --save
+```
+- Using [Yarn](https://yarnpkg.com/):
+```sh
+yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat
+```
+
 ## Usage
 
 ## Contributing
