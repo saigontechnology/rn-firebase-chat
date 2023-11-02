@@ -3,7 +3,7 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {ActivityIndicator, StyleSheet} from 'react-native';
 import type {InputToolbarProps} from 'react-native-gifted-chat';
-import ChatProvider from 'rn-firebase-chat';
+import {ChatProvider} from 'rn-firebase-chat';
 import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models';
 
 import AvatarName from '../Components/AvatarName';
