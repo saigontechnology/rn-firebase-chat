@@ -50,7 +50,7 @@ export class FirestoreServices {
     return instance;
   };
 
-  setData = (
+  setChatData = (
     userId: string,
     data: { name: string; id: string },
     conversationId: string,
