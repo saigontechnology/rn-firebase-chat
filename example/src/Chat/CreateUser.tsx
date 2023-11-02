@@ -21,31 +21,24 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const memberIdRef = useRef<string>('456');
 
   const onStartChat = useCallback(() => {
-    const username = usernameRef.current;
+    const userId = usernameRef.current;
     const displayName = displayNameRef.current;
     const memberId = memberIdRef.current;
 
     const navigateToChatScreen = () => {
-      FirestoreServicesInstance.setChatData(
-        username,
-        {
-          id: username,
+      FirestoreServicesInstance.setChatData({
+        userId,
+        userInfo: {
+          id: userId,
           name: displayName,
         },
-        'ffCnpqQW2HG6ghcajdYO',
         enableEncrypt,
-      );
+        memberId,
+      });
       navigation.navigate('ChatScreen', {
         userInfo: {
-          id: username,
+          id: userId,
           name: displayName,
-        },
-        conversationInfo: {
-          id: 'ffCnpqQW2HG6ghcajdYO',
-          members: {
-            ['123']: 'users/123',
-            ['456']: 'users/456',
-          },
         },
         memberId,
         enableEncrypt,
@@ -53,9 +46,9 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
       });
     };
 
-    checkUsernameExist(username).then(isExist => {
+    checkUsernameExist(userId).then(isExist => {
       if (!isExist) {
-        createUserProfile(username, displayName).then(() => {
+        createUserProfile(userId, displayName).then(() => {
           navigateToChatScreen();
         });
       } else {
