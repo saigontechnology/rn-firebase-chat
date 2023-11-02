@@ -3,7 +3,7 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 
-import { uploadFileToFirebase } from '../Firebase/storage';
+import { uploadFileToFirebase } from '../Firebase';
 import {
   encryptData,
   formatEncryptedMessageData,
