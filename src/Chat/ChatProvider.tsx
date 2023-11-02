@@ -63,22 +63,6 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
     const totalMessages = useRef<number>(0);
     const typingRef = useRef(isTyping);
 
-    // const customMessageView = (props: any) => {
-    //   return <CustomMessageView {...props} />;
-    // };
-
-    // const isCloseToTop = ({
-    //   layoutMeasurement,
-    //   contentOffset,
-    //   contentSize,
-    // }: any) => {
-    //   const paddingToTop = 80;
-    //   return (
-    //     contentSize.height - layoutMeasurement.height - paddingToTop <=
-    //     contentOffset.y
-    //   );
-    // };
-
     const onLoadEarlier = useCallback(() => {
       if (messagesList.length < totalMessages.current && !isLoadingEarlier) {
         setTimeout(() => {
@@ -89,8 +73,10 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             (data: MessageProps[]) => {
               setIsLoadingEarlier(false);
               setLoadEarlier(true);
-              if (data && data.length > 0) {
-                setMessagesList([...messagesList, ...(data || [])]);
+              if (data && data?.length) {
+                setMessagesList((prevState) => {
+                  return prevState.concat(...data);
+                });
               }
             }
           );
@@ -111,26 +97,33 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       );
 
       let file;
-
-      if (messages?.type?.includes('image')) {
-        file = {
-          type: 'image',
-          imageUrl: messages?.imageUrl,
-          // fileUrl: fileUrl,
-          // fileName: messages?.fileName,
-          // fileSize: messages?.fileSize,
-          extension: messages?.extension,
-        };
-      } else if (messages.type) {
-        file = {
-          type: 'image',
-          fileUrl: messages?.fileUrl,
-          // fileUrl: fileUrl,
-          // fileName: messages?.fileName,
-          // fileSize: messages?.fileSize,
-          extension: messages?.extension,
-        };
+      const messageType = messages?.type;
+      if (messageType) {
+        switch (messageType) {
+          case 'image':
+            file = {
+              type: 'image',
+              imageUrl: messages?.imageUrl,
+              extension: messages?.extension,
+            };
+            break;
+          default:
+            file = {
+              type: 'file',
+              fileUrl: messages?.fileUrl,
+              extension: messages?.extension,
+            };
+            break;
+        }
       }
+      //file = {
+      //           type: 'image',
+      //           imageUrl: messages?.imageUrl,
+      //           // fileUrl: fileUrl,
+      //           // fileName: messages?.fileName,
+      //           // fileSize: messages?.fileSize,
+      //           extension: messages?.extension,
+      //         };
       await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
 
