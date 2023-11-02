@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { GiftedChat, GiftedChatProps } from 'react-native-gifted-chat';
 import { FirestoreServices } from '../Services/Firestore';
-import { createConversation } from '../Services/Firestore/conversation';
 // import CustomMessageView from './Component/CustomMessageView';
 import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
@@ -33,7 +32,7 @@ interface ChatScreenProps extends GiftedChatProps {
 
 let typingTimeout: ReturnType<typeof setTimeout>;
 
-const FirestoreServicesInstance = FirestoreServices.getInstance({});
+const FirestoreServicesInstance = FirestoreServices.getInstance();
 
 export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
   ({
@@ -101,47 +100,39 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       }
     }, [isLoadingEarlier, messagesList]);
 
-    const onSend = useCallback(
-      async (messages: MessageProps) => {
-        if (!conversationRef.current?.id) {
-          conversationRef.current = (await createConversation(
-            userInfo.id,
-            memberId
-          )) as ConversationProps;
-        }
-        clearTimeout(typingTimeout);
-        setMessagesList((previousMessages) =>
-          GiftedChat.append(previousMessages, [messages])
-        );
+    const onSend = useCallback(async (messages: MessageProps) => {
+      if (!conversationRef.current?.id) {
+        conversationRef.current =
+          (await FirestoreServicesInstance.createConversation()) as ConversationProps;
+      }
+      clearTimeout(typingTimeout);
+      setMessagesList((previousMessages) =>
+        GiftedChat.append(previousMessages, [messages])
+      );
 
-        const messageData = {
-          ...messages,
+      let file;
+
+      if (messages?.type?.includes('image')) {
+        file = {
+          type: 'image',
+          imageUrl: messages?.imageUrl,
+          // fileUrl: fileUrl,
+          // fileName: messages?.fileName,
+          // fileSize: messages?.fileSize,
+          extension: messages?.extension,
         };
-        let file;
-
-        if (messages?.type?.includes('image')) {
-          file = {
-            type: 'image',
-            imageUrl: messages?.imageUrl,
-            // fileUrl: fileUrl,
-            // fileName: messages?.fileName,
-            // fileSize: messages?.fileSize,
-            extension: messages?.extension,
-          };
-        } else if (messages.type) {
-          file = {
-            type: 'image',
-            fileUrl: messages?.fileUrl,
-            // fileUrl: fileUrl,
-            // fileName: messages?.fileName,
-            // fileSize: messages?.fileSize,
-            extension: messages?.extension,
-          };
-        }
-        await FirestoreServicesInstance.sendMessage(messages.text, file);
-      },
-      [userInfo.id, memberId]
-    );
+      } else if (messages.type) {
+        file = {
+          type: 'image',
+          fileUrl: messages?.fileUrl,
+          // fileUrl: fileUrl,
+          // fileName: messages?.fileName,
+          // fileSize: messages?.fileSize,
+          extension: messages?.extension,
+        };
+      }
+      await FirestoreServicesInstance.sendMessage(messages.text, file);
+    }, []);
 
     const changeUserConversationTyping = useCallback(
       (value: boolean, callback?: () => void) => {

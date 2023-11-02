@@ -14,10 +14,11 @@ import {
   type MessageProps,
   type UserProfileProps,
 } from '../../interfaces';
-import { uploadFileToFirebase } from '../Firebase/storage';
+import { uploadFileToFirebase } from '../Firebase';
 
 interface FirestoreProps {
-  userId?: string;
+  userId: string;
+  memberId: string;
   userInfo?: UserProfileProps;
   conversationId?: string;
   enableEncrypt?: boolean;
@@ -26,38 +27,36 @@ interface FirestoreProps {
 let instance: FirestoreServices | undefined;
 
 export class FirestoreServices {
-  userId;
-  userInfo;
-  conversationId;
-  enableEncrypt;
+  userId: string | undefined;
+  memberId: string | undefined;
+  userInfo: UserProfileProps | undefined;
+  conversationId: string | undefined;
+  enableEncrypt: boolean | undefined;
 
   messageCursor:
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor(props: FirestoreProps) {
-    this.userId = props.userId;
-    this.userInfo = props.userInfo;
-    this.conversationId = props.conversationId;
-    this.enableEncrypt = props.enableEncrypt;
-  }
+  constructor() {}
 
-  static getInstance = (props: FirestoreProps) => {
+  static getInstance = () => {
     if (instance) {
       return instance;
     }
-    instance = new FirestoreServices(props);
+    instance = new FirestoreServices();
     return instance;
   };
 
-  setChatData = (
-    userId: string,
-    data: { name: string; id: string },
-    conversationId: string,
-    enableEncrypt: boolean
-  ) => {
+  setChatData = ({
+    userId,
+    memberId,
+    userInfo,
+    conversationId,
+    enableEncrypt,
+  }: FirestoreProps) => {
     this.userId = userId.toString();
-    this.userInfo = { ...this.userInfo, ...data };
+    this.memberId = memberId.toString();
+    this.userInfo = userInfo;
     this.conversationId = conversationId;
     this.enableEncrypt = enableEncrypt;
   };
@@ -77,10 +76,10 @@ export class FirestoreServices {
       status: 'pending',
       senderId: this.userId,
       created: created,
-      text: message || '',
+      text: message,
       ...file,
     };
-    await this.updateLatestMessageInChannel(message || '');
+    await this.updateLatestMessageInChannel(message);
 
     if (file) {
       const task = uploadFileToFirebase(
@@ -120,23 +119,23 @@ export class FirestoreServices {
         .catch(() => {
           console.log('chat', 'err');
         });
-    } else {
-      firestore()
-        .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-        .add(messageData)
-        .then((snapShot) => {
-          snapShot
-            .update({
-              status: 'sent',
-            })
-            .then();
-        })
-        .catch((err) => {
-          console.log('chat', err);
-        });
+      return;
     }
+    firestore()
+      .collection<MessageProps>(
+        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+      )
+      .add(messageData)
+      .then((snapShot) => {
+        snapShot
+          .update({
+            status: 'sent',
+          })
+          .then();
+      })
+      .catch((err) => {
+        console.log('chat', err);
+      });
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -155,58 +154,56 @@ export class FirestoreServices {
     let conversationRef = firestore()
       .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
       .doc(this.conversationId);
-    return firestore().runTransaction((transaction) => {
-      return transaction.get(conversationRef).then((doc) => {
-        const unRead = doc?.data()?.unRead ?? {};
-        if (!doc.exists) {
-          conversationRef
-            .update({
-              latestMessage: latestMessageData,
-              unRead: Object.fromEntries(
-                Object.entries(unRead).map(([memberId]) => {
-                  if (memberId === this.userId) {
-                    return [memberId, 0];
-                  } else {
-                    return [memberId, 1];
-                  }
-                })
-              ),
+    return firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(conversationRef);
+      const unRead = doc?.data()?.unRead ?? {};
+      if (doc.exists) {
+        transaction.update(conversationRef, {
+          latestMessage: latestMessageData,
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead?.[memberId] ?? 0) + 1];
+              }
             })
-            .then();
-        } else {
-          transaction.update(conversationRef, {
-            latestMessage: latestMessageData,
-            unRead: Object.fromEntries(
-              Object.entries(unRead).map(([memberId]) => {
-                if (memberId === this.userId) {
-                  return [memberId, 0];
-                } else {
-                  return [memberId, (unRead?.[memberId] ?? 0) + 1];
-                }
-              })
-            ),
-          });
-        }
-      });
+          ),
+        });
+        return;
+      }
+      conversationRef
+        .update({
+          latestMessage: latestMessageData,
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, 1];
+              }
+            })
+          ),
+        })
+        .then();
     });
   };
 
   changeReadMessage = () => {
-    if (!this.userId) {
-      return;
-    }
-    firestore()
-      .collection(`${FireStoreCollection.conversations}`)
-      .doc(this.conversationId)
-      .set(
-        {
-          unRead: {
-            [this.userId]: 0,
+    if (this.userId) {
+      firestore()
+        .collection(`${FireStoreCollection.conversations}`)
+        .doc(this.conversationId)
+        .set(
+          {
+            unRead: {
+              [this.userId]: 0,
+            },
           },
-        },
-        { merge: true }
-      )
-      .then();
+          { merge: true }
+        )
+        .then();
+    }
   };
 
   getMessageHistory = () => {
@@ -323,39 +320,102 @@ export class FirestoreServices {
 
   countAllMessages = () => {
     return new Promise<number>((resolve) => {
-      if (!this.conversationId) {
-        return resolve(0);
+      if (this.conversationId) {
+        firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .count()
+          .get()
+          .then((snapshot) => {
+            resolve(snapshot.data().count);
+          });
+        return;
       }
-      firestore()
-        .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-        .count()
-        .get()
-        .then((snapshot) => {
-          resolve(snapshot.data().count);
-        });
+      resolve(0);
     });
   };
 
   setUserConversationTyping = (isTyping: boolean) => {
-    if (!this.userId) {
-      return new Promise<void>((resolve) => {
-        resolve();
-      });
-    }
-    return firestore()
-      .collection(`${FireStoreCollection.conversations}`)
-      .doc(this.conversationId)
-      .set(
-        {
-          typing: {
-            [this.userId]: isTyping,
+    if (this.userId) {
+      return firestore()
+        .collection(`${FireStoreCollection.conversations}`)
+        .doc(this.conversationId)
+        .set(
+          {
+            typing: {
+              [this.userId]: isTyping,
+            },
           },
-        },
-        {
+          {
+            merge: true,
+          }
+        );
+    }
+    return new Promise<void>((resolve) => {
+      resolve();
+    });
+  };
+
+  createConversation = async () => {
+    const userId = this.userId as string;
+    const memberId = this.memberId as string;
+
+    const conversationData = {
+      members: {
+        [userId]: firestore().doc(`${FireStoreCollection.users}/${userId}`),
+        [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
+      },
+    };
+
+    const conversationRef = await firestore()
+      .collection<Partial<ConversationProps>>(
+        `${FireStoreCollection.conversations}`
+      )
+      .add(conversationData);
+
+    const userConversationData: Partial<ConversationProps> = {
+      id: conversationRef.id,
+      updated: new Date().valueOf(),
+      unRead: {
+        [userId]: 0,
+        [memberId]: 0,
+      },
+      members: conversationData.members,
+    };
+
+    await Promise.all([
+      //Update info of the conversation
+      firestore()
+        .collection<Partial<ConversationProps>>(
+          `${FireStoreCollection.conversations}`
+        )
+        .doc(conversationRef.id)
+        .set(userConversationData, {
           merge: true,
-        }
-      );
+        }),
+      //Add the conversation id to the info of the user
+      [userId, memberId].map((id) => {
+        const userRef = firestore()
+          .collection(`${FireStoreCollection.users}`)
+          .doc(id);
+        return firestore().runTransaction(async (transaction) => {
+          const doc = await transaction.get<Partial<UserProfileProps>>(userRef);
+          const conversations = doc?.data()?.conversations ?? [];
+          if (doc.exists) {
+            transaction.update(userRef, {
+              conversations: conversations.concat(conversationRef.id),
+            });
+            return;
+          }
+          await userRef.update({
+            conversations: conversations.concat(conversationRef.id),
+          });
+        });
+      }),
+    ]);
+
+    this.conversationId = conversationRef.id;
+    return { ...conversationData, id: conversationRef.id };
   };
 }
