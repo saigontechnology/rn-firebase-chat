@@ -1,6 +1,6 @@
 {
   "name": "rn-firebase-chat",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "test",
   "main": "src/index.ts",
   "types": "lib/typescript/index.d.ts",
