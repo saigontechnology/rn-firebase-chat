@@ -1735,23 +1735,23 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-plugin/-/eslint-plugin-1.3.0.tgz#9e558170c106bbafaa1ef502bd8e6d4651012bf9"
   integrity sha512-+zDZ20NUnSWghj7Ku5aFphMzuM9JulqCW+aPXT6IfIXFbb8tzYTTOSeRFOtuekJ99ibW2fUCSsjuKNlwDIbHFg==
 
-"@react-native-firebase/app@^18.1.0":
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-18.1.0.tgz#35b21dc8003026542b2b545ee924d367302dd9fc"
-  integrity sha512-GZSlkNjSZlyB6I2t/5MmD9uDvnteyPOzvYNshaffS/hzRK6LL+3xYTnxqwPl6Kntm8z28FdaQM06OIlkPGQ3+g==
+"@react-native-firebase/app@^18.6.1":
+  version "18.6.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-18.6.1.tgz#9dd741b9b4e0493a7fa037c7e5717ba0c53086e4"
+  integrity sha512-lqINQLLTCmBSeln/cSPfvuJNQuwsPY9n6QyxSRRCTjyZdEPI3EY2df7isOCp8BwuxqYmkR9YhTNw2yFI72th+w==
   dependencies:
-    opencollective-postinstall "^2.0.1"
+    opencollective-postinstall "^2.0.3"
     superstruct "^0.6.2"
 
-"@react-native-firebase/firestore@^18.1.0":
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/firestore/-/firestore-18.1.0.tgz#d47f634c370565816a9520b3c041ba0bbdec98ee"
-  integrity sha512-Bgpuig7FBnd7wlQvElgZVhsai3wCwxiXE4IkNOehU1pNwShntZK+KEk8d3wAuxnwt10ZUWB9YpQYjkreB1GSCw==
+"@react-native-firebase/firestore@^18.6.1":
+  version "18.6.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/firestore/-/firestore-18.6.1.tgz#7517e5c8f23a18cbfc2ae9925e3c5a19c6291bac"
+  integrity sha512-D3jGxNUMJg2D4CF7bdsXGfBAvs1F1XPOJMSqWJNFZnS/3voxiNclqrm4yxIn9ptFAsJHmXqMUHDA0vASxhZDWA==
 
-"@react-native-firebase/storage@^18.1.0":
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/storage/-/storage-18.1.0.tgz#42a839d2144e37cb0a65e6beeb11dd43b6a0e5ba"
-  integrity sha512-3LqITfn3b6xOFT5XFHomPNZBOm2cJIFK3tmpJPbadV21c9bbordTB3JA1RL4DT6Xx9UvD2R51sPG4DPFmySplw==
+"@react-native-firebase/storage@^18.6.1":
+  version "18.6.1"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/storage/-/storage-18.6.1.tgz#2a63f77ab2201012df29d23aaea4cb8a9945be60"
+  integrity sha512-/MWn8EZ0OBqlE+B6XiwUdZYMCoPuh7oWxvw9GStBB4d5FUNt9jAkqSYDsfEGUjGSLjJ9iLBTyjK1PfXcH7EdZw==
 
 "@react-native/assets@1.0.0":
   version "1.0.0"
@@ -5727,7 +5727,7 @@ open@^6.2.0:
   dependencies:
     is-wsl "^1.1.0"
 
-opencollective-postinstall@^2.0.1:
+opencollective-postinstall@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz#7a0fff978f6dbfa4d006238fbac98ed4198c3259"
   integrity sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==
