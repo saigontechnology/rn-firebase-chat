@@ -5,18 +5,23 @@ import React, {useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
 import {PressAbleIcon} from '../../Components';
+import * as ImagePicker from 'react-native-image-picker';
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
   togglePhotoGallery: (value: boolean) => void;
 }
 
+const byteToMB = 1048576;
+const IMAGE_TYPE = 'image';
+
 const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   isShowPhotoGallery,
   togglePhotoGallery,
   ...props
 }) => {
-  const [, setIsShowImagePicker] = useState(false);
+  // const [, setIsShowImagePicker] = useState(false);
+  const [image, setImage] = useState({});
 
   const {onSend, text} = props;
   /**************************
@@ -32,30 +37,27 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
-  // const showDocumentPicker = async () => {
-  //   // try {
-  //   //   const res = await DocumentPicker.pick({
-  //   //     type: [DocumentPicker.types.allFiles],
-  //   //   })
-  //   //   //file size < 5Mb
-  //   //   if (!res.size || res.uri.includes('storage/document'))
-  //   //     return Toast.info('Can not send file from drive.')
-  //   //   if (res.size > 5 * 1024 * 1024) {
-  //   //     Alert.alert('', 'File size must less than 5Mb')
-  //   //   } else {
-  //   //     const documentUri = await getPathForFirebaseStorage(res.uri)
-  //   //     const messageData: any = {type: res.type, fileUrl: documentUri, fileName: res.name, size: res.size}
-  //   //     if (res.type.includes('image')) messageData.imageUrl = 'file://' + documentUri
-  //   //     onSend(messageData)
-  //   //   }
-  //   // } catch (err) {
-  //   //   if (DocumentPicker.isCancel(err)) {
-  //   //     // User cancelled the picker, exit any dialogs or menus and move on
-  //   //   } else {
-  //   //     throw err
-  //   //   }
-  //   // }
-  // };
+  const showDocumentPicker = async () => {
+    try {
+      try {
+        console.log(text);
+        ImagePicker.launchImageLibrary(
+          {
+            mediaType: 'photo',
+            includeBase64: false,
+            includeExtra: true,
+          },
+          (res: ImagePicker.ImagePickerResponse) => {
+            const {assets} = res;
+            if (assets && assets?.length > 0) {
+              const {fileName, fileSize, type, uri} = assets[0];
+              onSend?.({fileName, fileSize, imageUrl: uri, type}, true);
+            }
+          },
+        );
+      } catch (error) {}
+    } catch (err) {}
+  };
   return (
     <View style={styles.container}>
       <PressAbleIcon
@@ -68,6 +70,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       <PressAbleIcon
         onPress={() => {
           togglePhotoGallery(!isShowPhotoGallery);
+          showDocumentPicker();
         }}
         style={{
           marginHorizontal: 12,
@@ -91,7 +94,9 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           style={{
             marginHorizontal: 12,
           }}
-          onPress={() => onSend?.({text: text}, true)}
+          onPress={() => {
+            onSend?.({text: text}, true);
+          }}
           size={28}
           icon={require('../../Assets/send.png')}
         />

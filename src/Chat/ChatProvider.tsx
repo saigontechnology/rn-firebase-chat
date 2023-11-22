@@ -20,6 +20,10 @@ interface IUserInfo {
   name: string;
 }
 
+interface image {
+  type: string;
+}
+
 interface ChatScreenProps extends GiftedChatProps {
   userInfo: IUserInfo;
   conversationInfo: ConversationProps;
@@ -33,7 +37,7 @@ interface ChatScreenProps extends GiftedChatProps {
 let typingTimeout: ReturnType<typeof setTimeout>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
-
+const imageCase = 'image';
 export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
   ({
     userInfo,
@@ -124,6 +128,10 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       //           // fileSize: messages?.fileSize,
       //           extension: messages?.extension,
       //         };
+      console.log('====================================');
+      console.log(JSON.stringify(messages), '------');
+      console.log(JSON.stringify(file), '------');
+      console.log('====================================');
       await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
 

@@ -6,7 +6,7 @@ import {
   checkUsernameExist,
   createUserProfile,
   FirestoreServices,
-} from 'rn-firebase-chat';
+} from '../../../src';
 import {SwitchWithTitle} from '../Components/SwitchWithTitle';
 
 type CreateUserProps = NativeStackScreenProps<any>;
@@ -35,6 +35,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         enableEncrypt,
         memberId,
       });
+
       navigation.navigate('ChatScreen', {
         userInfo: {
           id: userId,
@@ -44,6 +45,17 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         enableEncrypt,
         enableTyping,
       });
+      // FirestoreServicesInstance.createConversation().then(() => {
+      //   navigation.navigate('ChatScreen', {
+      //     userInfo: {
+      //       id: userId,
+      //       name: displayName,
+      //     },
+      //     memberId,
+      //     enableEncrypt,
+      //     enableTyping,
+      //   });
+      // });
     };
 
     checkUsernameExist(userId).then(isExist => {

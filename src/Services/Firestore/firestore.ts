@@ -57,7 +57,7 @@ export class FirestoreServices {
     this.userId = userId.toString();
     this.memberId = memberId.toString();
     this.userInfo = userInfo;
-    this.conversationId = conversationId;
+    this.conversationId = 'gua2IsXVxieGU4IRwmdW';
     this.enableEncrypt = enableEncrypt;
   };
 
@@ -414,8 +414,9 @@ export class FirestoreServices {
         });
       }),
     ]);
-
     this.conversationId = conversationRef.id;
     return { ...conversationData, id: conversationRef.id };
   };
+
+  getListConversation = async () => {};
 }
