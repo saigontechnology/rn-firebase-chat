@@ -46,12 +46,13 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
             mediaType: 'photo',
             includeBase64: false,
             includeExtra: true,
+            quality: 1,
           },
           (res: ImagePicker.ImagePickerResponse) => {
             const {assets} = res;
             if (assets && assets?.length > 0) {
-              const {fileName, fileSize, type, uri} = assets[0];
-              onSend?.({fileName, fileSize, imageUrl: uri, type}, true);
+              const {type, uri} = assets[0];
+              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
             }
           },
         );

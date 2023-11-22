@@ -20,10 +20,6 @@ interface IUserInfo {
   name: string;
 }
 
-interface image {
-  type: string;
-}
-
 interface ChatScreenProps extends GiftedChatProps {
   userInfo: IUserInfo;
   conversationInfo: ConversationProps;
@@ -37,7 +33,6 @@ interface ChatScreenProps extends GiftedChatProps {
 let typingTimeout: ReturnType<typeof setTimeout>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
-const imageCase = 'image';
 export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
   ({
     userInfo,
@@ -102,6 +97,8 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
       let file;
       const messageType = messages?.type;
+      console.log(messages);
+
       if (messageType) {
         switch (messageType) {
           case 'image':
@@ -120,19 +117,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             break;
         }
       }
-      //file = {
-      //           type: 'image',
-      //           imageUrl: messages?.imageUrl,
-      //           // fileUrl: fileUrl,
-      //           // fileName: messages?.fileName,
-      //           // fileSize: messages?.fileSize,
-      //           extension: messages?.extension,
-      //         };
-      console.log('====================================');
-      console.log(JSON.stringify(messages), '------');
-      console.log(JSON.stringify(file), '------');
-      console.log('====================================');
-      await FirestoreServicesInstance.sendMessage(messages.text, file);
+      await FirestoreServicesInstance.sendMessage(messages.text ?? '', file);
     }, []);
 
     const changeUserConversationTyping = useCallback(

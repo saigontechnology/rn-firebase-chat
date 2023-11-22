@@ -57,85 +57,93 @@ export class FirestoreServices {
     this.userId = userId.toString();
     this.memberId = memberId.toString();
     this.userInfo = userInfo;
-    this.conversationId = 'gua2IsXVxieGU4IRwmdW';
+    this.conversationId = conversationId ?? 'gua2IsXVxieGU4IRwmdW';
     this.enableEncrypt = enableEncrypt;
   };
 
   sendMessage = async (text: string, file?: any) => {
-    if (!this.conversationId) {
-      return;
-    }
-    let message = text;
-    if (this.enableEncrypt) {
-      const key = await generateKey('Arnold', 'salt', 5000, 256);
-      message = await encryptData(text, key);
-    }
-    const created = new Date().valueOf();
-    const messageData = {
-      readBy: {},
-      status: 'pending',
-      senderId: this.userId,
-      created: created,
-      text: message,
-      ...file,
-    };
-    await this.updateLatestMessageInChannel(message);
+    try {
+      if (!this.conversationId) {
+        return;
+      }
+      let message = text;
+      if (this.enableEncrypt) {
+        const key = await generateKey('Arnold', 'salt', 5000, 256);
+        message = await encryptData(text, key);
+      }
+      const created = new Date().valueOf();
+      const messageData = {
+        readBy: {},
+        status: 'pending',
+        senderId: this.userId,
+        created: created,
+        text: message,
+        ...file,
+      };
+      await this.updateLatestMessageInChannel(message);
 
-    if (file) {
-      const task = uploadFileToFirebase(
-        file.imageUrl,
-        file.extension,
-        this.conversationId
-      );
-      task
-        .then(
-          (res) => {
-            storage()
-              .ref(res.metadata.fullPath)
-              .getDownloadURL()
-              .then((imageUrl) => {
-                firestore()
-                  .collection<MessageProps>(
-                    `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-                  )
-                  .add(messageData)
-                  .then((snapShot) => {
-                    snapShot
-                      .update({
-                        imageUrl,
-                        status: 'sent',
-                      })
-                      .then();
-                  })
-                  .catch((err) => {
-                    console.log('chat', err);
-                  });
-              });
-          },
-          (err) => {
-            console.log('reject', err);
-          }
-        )
-        .catch(() => {
-          console.log('chat', 'err');
-        });
-      return;
+      console.log(file);
+
+      if (file) {
+        const task = uploadFileToFirebase(
+          file.imageUrl,
+          file.extension,
+          this.conversationId
+        );
+        console.log(task);
+        task
+          .then(
+            (res) => {
+              storage()
+                .ref(res.metadata.fullPath)
+                .getDownloadURL()
+                .then((imageUrl) => {
+                  firestore()
+                    .collection<MessageProps>(
+                      `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+                    )
+                    .add(messageData)
+                    .then((snapShot) => {
+                      snapShot
+                        .update({
+                          imageUrl,
+                          status: 'sent',
+                        })
+                        .then();
+                    })
+                    .catch((err) => {
+                      console.log('-----------------', err);
+                    });
+                });
+            },
+            (err) => {
+              console.log('reject', err);
+            }
+          )
+          .catch(() => {
+            console.log('chat', 'err');
+          });
+        return;
+      }
+    } catch (error) {
+      console.log(error, '----?');
     }
-    firestore()
-      .collection<MessageProps>(
-        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-      )
-      .add(messageData)
-      .then((snapShot) => {
-        snapShot
-          .update({
-            status: 'sent',
-          })
-          .then();
-      })
-      .catch((err) => {
-        console.log('chat', err);
-      });
+
+    // firestore()
+    //   .collection<MessageProps>(
+    //     `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+    //   )
+    //   .add(messageData)
+    //   .then((snapShot) => {
+    //     snapShot
+    //       .update({
+    //         status: 'sent',
+    //       })
+    //       .then();
+    //   })
+    //   .catch((err) => {
+    //     console.log('chat', err);
+    //   });
   };
 
   updateLatestMessageInChannel = (message: string) => {
