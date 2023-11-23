@@ -40,7 +40,6 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   const showDocumentPicker = async () => {
     try {
       try {
-        console.log(text);
         ImagePicker.launchImageLibrary(
           {
             mediaType: 'photo',

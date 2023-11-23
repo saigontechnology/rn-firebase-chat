@@ -57,7 +57,7 @@ export class FirestoreServices {
     this.userId = userId.toString();
     this.memberId = memberId.toString();
     this.userInfo = userInfo;
-    this.conversationId = conversationId ?? 'gua2IsXVxieGU4IRwmdW';
+    this.conversationId = 'uzRBs8qWxYmDd2hwktmH';
     this.enableEncrypt = enableEncrypt;
   };
 
@@ -67,83 +67,62 @@ export class FirestoreServices {
         return;
       }
       let message = text;
-      if (this.enableEncrypt) {
-        const key = await generateKey('Arnold', 'salt', 5000, 256);
-        message = await encryptData(text, key);
-      }
-      const created = new Date().valueOf();
       const messageData = {
         readBy: {},
         status: 'pending',
         senderId: this.userId,
-        created: created,
-        text: message,
         ...file,
       };
-      await this.updateLatestMessageInChannel(message);
-
-      console.log(file);
+      if (message) {
+        if (this.enableEncrypt) {
+          const key = await generateKey('Arnold', 'salt', 5000, 256);
+          message = await encryptData(text, key);
+        }
+        const created = new Date().valueOf();
+        messageData.created = created;
+        messageData.text = message;
+        await this.updateLatestMessageInChannel(message);
+        firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData)
+          .then((snapShot) => {
+            snapShot
+              .update({
+                status: 'sent',
+              })
+              .then();
+          })
+          .catch((err) => {});
+      }
 
       if (file) {
-        const task = uploadFileToFirebase(
+        uploadFileToFirebase(
           file.imageUrl,
           file.extension,
           this.conversationId
-        );
-        console.log(task);
-        task
-          .then(
-            (res) => {
-              storage()
-                .ref(res.metadata.fullPath)
-                .getDownloadURL()
-                .then((imageUrl) => {
-                  firestore()
-                    .collection<MessageProps>(
-                      `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-                    )
-                    .add(messageData)
-                    .then((snapShot) => {
-                      snapShot
-                        .update({
-                          imageUrl,
-                          status: 'sent',
-                        })
-                        .then();
-                    })
-                    .catch((err) => {
-                      console.log('-----------------', err);
-                    });
-                });
-            },
-            (err) => {
-              console.log('reject', err);
-            }
-          )
-          .catch(() => {
-            console.log('chat', 'err');
-          });
-        return;
+        ).then((res) => {
+          storage()
+            .ref(res.metadata.fullPath)
+            .getDownloadURL()
+            .then((imageUrl) => {
+              firestore()
+                .collection<MessageProps>(
+                  `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+                )
+                .add(messageData)
+                .then((snapShot) => {
+                  snapShot.update({
+                    imageUrl,
+                    status: 'sent',
+                  });
+                })
+                .catch((err) => {});
+            });
+        });
       }
-    } catch (error) {
-      console.log(error, '----?');
-    }
-
-    // firestore()
-    //   .collection<MessageProps>(
-    //     `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-    //   )
-    //   .add(messageData)
-    //   .then((snapShot) => {
-    //     snapShot
-    //       .update({
-    //         status: 'sent',
-    //       })
-    //       .then();
-    //   })
-    //   .catch((err) => {
-    //     console.log('chat', err);
-    //   });
+    } catch (error) {}
   };
 
   updateLatestMessageInChannel = (message: string) => {

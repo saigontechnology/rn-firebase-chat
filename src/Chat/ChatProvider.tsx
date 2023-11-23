@@ -117,7 +117,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             break;
         }
       }
-      await FirestoreServicesInstance.sendMessage(messages.text ?? '', file);
+      await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
 
     const changeUserConversationTyping = useCallback(
@@ -166,36 +166,38 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
     useEffect(() => {
       let receiveMessageRef: () => void;
       let userConversation: () => void;
-      receiveMessageRef = FirestoreServicesInstance.receiveMessageListener(
-        (message: MessageProps) => {
-          if (message.senderId !== userInfo.id) {
-            if (enableEncrypt) {
-              formatEncryptedMessageData(message, userInfo.name).then(
-                (formattedMessages: any) => {
-                  setMessagesList([formattedMessages, ...messageRef.current]);
-                  FirestoreServicesInstance.changeReadMessage();
-                }
-              );
-            } else {
-              const formatMessage = formatMessageData(message, userInfo.name);
-              const mergeMessageList = [
-                formatMessage,
-                ...messageRef.current,
-              ] as MessageProps[];
-              setMessagesList(mergeMessageList);
-              FirestoreServicesInstance.changeReadMessage();
+      try {
+        receiveMessageRef = FirestoreServicesInstance.receiveMessageListener(
+          (message: MessageProps) => {
+            if (message.senderId !== userInfo.id) {
+              if (enableEncrypt) {
+                formatEncryptedMessageData(message, userInfo.name).then(
+                  (formattedMessages: any) => {
+                    setMessagesList([formattedMessages, ...messageRef.current]);
+                    FirestoreServicesInstance.changeReadMessage();
+                  }
+                );
+              } else {
+                const formatMessage = formatMessageData(message, userInfo.name);
+                const mergeMessageList = [
+                  formatMessage,
+                  ...messageRef.current,
+                ] as MessageProps[];
+                setMessagesList(mergeMessageList);
+                FirestoreServicesInstance.changeReadMessage();
+              }
             }
           }
-        }
-      );
-      // //Build for chat 1-1
-      userConversation = FirestoreServicesInstance.userConversationListener(
-        (newConversation) => {
-          conversationRef.current = newConversation as ConversationProps;
-          typingRef.current = newConversation?.typing?.[memberId];
-          setIsTyping(typingRef.current);
-        }
-      );
+        );
+        // //Build for chat 1-1
+        userConversation = FirestoreServicesInstance.userConversationListener(
+          (newConversation) => {
+            conversationRef.current = newConversation as ConversationProps;
+            typingRef.current = newConversation?.typing?.[memberId];
+            setIsTyping(typingRef.current);
+          }
+        );
+      } catch (error) {}
 
       return () => {
         if (receiveMessageRef) {
