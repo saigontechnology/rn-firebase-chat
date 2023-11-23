@@ -1,21 +1,10 @@
 import React, {useState} from 'react';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
+import {ActivityIndicator, Image, Pressable, StyleSheet} from 'react-native';
 import {Bubble, type InputToolbarProps} from 'react-native-gifted-chat';
 import {ChatProvider} from '../../../src';
-import type {
-  IMessage as IGiftedChatMessage,
-  IMessage,
-} from 'react-native-gifted-chat/lib/Models';
+import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models';
 import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import AvatarName from '../Components/AvatarName';
@@ -73,13 +62,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
             );
           }
         }}
-        renderTime={() => {
-          if (imageUrl) {
-            return <></>;
-          }
-        }}
         wrapperStyle={{
           left: styles.left,
+          right: {
+            padding: 0,
+            // margin: 0,
+          },
         }}
       />
     );
@@ -99,25 +87,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
         }}
         renderBubble={renderBubble}
         renderAvatar={() => <AvatarName fullName={'React Native'} />}
-        renderMessageImage={() => (
-          <View
-            style={{width: 100, height: 100, backgroundColor: 'red'}}></View>
-        )}
-        // renderMessage={props => {
-        //   const {renderAvatar, ...res} = props;
-        //   return (
-        //     <Message
-        //       imageStyle={{
-        //         left: {
-        //           width: 30,
-        //           height: 30,
-        //         },
-        //       }}
-        //       renderAvatar={() => <AvatarName fullName={'React Native'} />}
-        //       {...res}
-        //     />
-        //   );
-        // }}
         renderInputToolbar={renderInputToolbar}
       />
     </SafeAreaView>
@@ -128,7 +97,7 @@ const styles = StyleSheet.create({
   loadEarlier: {
     marginVertical: 20,
   },
-  image: {width: 80, height: 80},
+  image: {width: 150, height: 150},
   left: {
     backgroundColor: 'gray',
     marginVertical: 0,
