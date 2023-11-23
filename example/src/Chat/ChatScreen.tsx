@@ -5,16 +5,22 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
+  StyleProp,
   StyleSheet,
   View,
+  ViewStyle,
 } from 'react-native';
 import {Bubble, type InputToolbarProps} from 'react-native-gifted-chat';
 import {ChatProvider} from '../../../src';
-import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models';
+import type {
+  IMessage as IGiftedChatMessage,
+  IMessage,
+} from 'react-native-gifted-chat/lib/Models';
 import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
+import {MessageProps} from '../../../src/interfaces';
 
 interface ChatScreenProps extends NativeStackScreenProps<any> {}
 
@@ -46,12 +52,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
     RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile));
   };
 
-  const renderBubble = props => {
+  const renderBubble = (props: Bubble<MessageProps>['props']) => {
     const imageUrl = props.currentMessage?.imageUrl;
+
     return (
       <Bubble
         {...props}
-        renderCustomView={props => {
+        renderCustomView={() => {
           if (imageUrl) {
             return (
               <Pressable
@@ -66,7 +73,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
             );
           }
         }}
-        renderTime={props => {
+        renderTime={() => {
           if (imageUrl) {
             return <></>;
           }
