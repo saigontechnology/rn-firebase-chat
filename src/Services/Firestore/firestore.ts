@@ -37,7 +37,7 @@ export class FirestoreServices {
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor() {}
+  constructor() { }
 
   static getInstance = () => {
     if (instance) {
@@ -57,7 +57,7 @@ export class FirestoreServices {
     this.userId = userId.toString();
     this.memberId = memberId.toString();
     this.userInfo = userInfo;
-    this.conversationId = 'uzRBs8qWxYmDd2hwktmH';
+    this.conversationId = conversationId;
     this.enableEncrypt = enableEncrypt;
   };
 
@@ -94,7 +94,7 @@ export class FirestoreServices {
               })
               .then();
           })
-          .catch((err) => {});
+          .catch((err) => { });
       }
 
       if (file) {
@@ -118,11 +118,11 @@ export class FirestoreServices {
                     status: 'sent',
                   });
                 })
-                .catch((err) => {});
+                .catch((err) => { });
             });
         });
       }
-    } catch (error) {}
+    } catch (error) { }
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -405,5 +405,27 @@ export class FirestoreServices {
     return { ...conversationData, id: conversationRef.id };
   };
 
-  getListConversation = async () => {};
+  getConservation = async (userId: string, memberId: string) => {
+    let conversationId = '';
+    await firestore()
+      .collection(`${FireStoreCollection.conversations}`)
+      .get()
+      .then((e) => {
+        e.docs.map((r) => {
+          const data = r.data();
+          let listUser = [];
+          try {
+            listUser = Object.keys(data?.members);
+            if (
+              listUser.includes(userId.toString()) &&
+              listUser.includes(memberId.toString())
+            ) {
+              conversationId = data.id;
+              return data.id;
+            }
+          } catch (error) { }
+        });
+      });
+    return conversationId;
+  };
 }

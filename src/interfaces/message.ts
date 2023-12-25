@@ -24,7 +24,7 @@ interface MessageProps extends BaseEntity, IMessage {
   };
   status?: MessageStatus;
   imageUrl?: string;
-  type?: 'file' | 'image';
+  type?: 'file' | 'image' | 'video';
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;

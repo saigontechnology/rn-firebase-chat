@@ -97,13 +97,19 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
       let file;
       const messageType = messages?.type;
-      console.log(messages);
 
       if (messageType) {
         switch (messageType) {
           case 'image':
             file = {
               type: 'image',
+              imageUrl: messages?.imageUrl,
+              extension: messages?.extension,
+            };
+            break;
+          case 'video':
+            file = {
+              type: 'video',
               imageUrl: messages?.imageUrl,
               extension: messages?.extension,
             };
@@ -152,12 +158,13 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
     useEffect(() => {
       if (conversationInfo?.id) {
+        setLoadEarlier(true);
         FirestoreServicesInstance.countAllMessages().then((total) => {
           totalMessages.current = total;
         });
         FirestoreServicesInstance.getMessageHistory().then((res) => {
           FirestoreServicesInstance.changeReadMessage();
-          setLoadEarlier(true);
+          setLoadEarlier(false);
           setMessagesList(res);
         });
       }
@@ -197,7 +204,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             setIsTyping(typingRef.current);
           }
         );
-      } catch (error) {}
+      } catch (error) { }
 
       return () => {
         if (receiveMessageRef) {

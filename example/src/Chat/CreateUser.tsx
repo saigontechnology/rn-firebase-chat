@@ -1,108 +1,107 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import {
   checkUsernameExist,
   createUserProfile,
   FirestoreServices,
 } from '../../../src';
-import {SwitchWithTitle} from '../Components/SwitchWithTitle';
+import { SwitchWithTitle } from '../Components/SwitchWithTitle';
 
 type CreateUserProps = NativeStackScreenProps<any>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
 
-export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
+export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
   const [enableTyping, setEnableTyping] = useState<boolean>(false);
   const usernameRef = useRef<string>('123');
   const displayNameRef = useRef<string>('');
   const memberIdRef = useRef<string>('456');
 
-  const onStartChat = useCallback(() => {
+  const onStartChat = useCallback(async () => {
     const userId = usernameRef.current;
     const displayName = displayNameRef.current;
     const memberId = memberIdRef.current;
 
-    const navigateToChatScreen = () => {
-      FirestoreServicesInstance.setChatData({
+    const navigateToChatScreen = async () => {
+      let conversationId = '';
+      conversationId = await FirestoreServicesInstance.getConservation(
         userId,
-        userInfo: {
-          id: userId,
-          name: displayName,
-        },
-        enableEncrypt,
         memberId,
-      });
-
-      navigation.navigate('ChatScreen', {
-        userInfo: {
-          id: userId,
-          name: displayName,
-        },
-        memberId,
-        enableEncrypt,
-        enableTyping,
-      });
-      // FirestoreServicesInstance.createConversation().then(() => {
-      //   navigation.navigate('ChatScreen', {
-      //     userInfo: {
-      //       id: userId,
-      //       name: displayName,
-      //     },
-      //     memberId,
-      //     enableEncrypt,
-      //     enableTyping,
-      //   });
-      // });
-    };
-
-    checkUsernameExist(userId).then(isExist => {
-      if (!isExist) {
-        createUserProfile(userId, displayName).then(() => {
-          navigateToChatScreen();
+      );
+      if (conversationId) {
+        FirestoreServicesInstance.setChatData({
+          userId,
+          userInfo: {
+            id: userId,
+            name: displayName,
+          },
+          enableEncrypt,
+          conversationId: conversationId,
+          memberId,
+        });
+        navigation.navigate('ChatScreen', {
+          userInfo: {
+            id: userId,
+            name: displayName,
+          },
+          memberId,
+          enableEncrypt,
+          conversationInfo: {
+            id: conversationId,
+            members: {
+              [userId]: `users/${userId}`,
+              [memberId]: `users/${memberId}`,
+            },
+          },
+          enableTyping,
         });
       } else {
-        navigateToChatScreen();
+        FirestoreServicesInstance.setChatData({
+          userId,
+          userInfo: {
+            id: userId,
+            name: displayName,
+          },
+          enableEncrypt,
+          memberId,
+        });
+        const newId = await FirestoreServicesInstance.createConversation()
+      
+        navigation.navigate('ChatScreen', {
+          userInfo: {
+            id: userId,
+            name: displayName,
+          },
+          memberId,
+          enableEncrypt,
+          conversationInfo: {
+            id: newId.id,
+            members: {
+              [userId]: `users/${userId}`,
+              [memberId]: `users/${memberId}`,
+            },
+          },
+          enableTyping,
+        });
       }
-    });
-    // signInAnonymous(
-    //   user => {
-    //     console.log('CreateUser', user);
-    //     createUserProfile(user.user.uid, username).then(() => {
-    //       navigation.navigate('ConversationsScreen');
-    //     });
-    //   },
-    //   error => {
-    //     console.error(error);
-    //   },
-    // ).then();
-    //
-    // .then(async user => {
-    //
-    // })
-    // .catch(error => {
-    //   if (error.code === 'auth/operation-not-allowed') {
-    //     console.log('Enable anonymous in your firebase console.');
-    //   }
-    //
-    //   console.error(error);
-    // });
-  }, [navigation, enableEncrypt, enableTyping]);
+    };
 
-  // const navigateToChatScreen = useCallback(
-  //   (username: string, displayName: string, memberId: string) => {
-  //     navigation.navigate('ChatScreen', {
-  //       userInfo: {
-  //         id: username,
-  //         name: displayName,
-  //       },
-  //       memberId,
-  //     });
-  //   },
-  //   [navigation],
-  // );
+    const checkUserExist = await checkUsernameExist(userId)
+    const checkMemberExist = await checkUsernameExist(memberId)
+    if (!checkMemberExist) {
+      Alert.alert('Member dont exist')
+    }
+    if (!checkUserExist && checkMemberExist) {
+      await createUserProfile(userId, displayName).then(() => {
+        navigateToChatScreen();
+      })
+    } else if (checkUserExist && checkMemberExist) {
+      navigateToChatScreen();
+    }
+  }, [navigation, enableEncrypt, enableTyping]);
 
   return (
     <View style={styles.container}>
