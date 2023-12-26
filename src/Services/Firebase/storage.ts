@@ -3,7 +3,7 @@ import storage from '@react-native-firebase/storage';
 const uploadFileToFirebase = (path: string, mime: string, location: string) => {
   const comps = mime.split('/');
   let fileName = '';
-  if (mime === 'video') {
+  if (mime.includes('video')) {
     let name = path.split('/');
     fileName = `${location}/${name[name.length - 1]}`;
   } else {

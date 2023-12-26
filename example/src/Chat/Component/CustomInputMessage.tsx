@@ -1,10 +1,10 @@
 /**
  * Created by NL on 06/04/21.
  */
-import React, {useState} from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
-import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
-import {PressAbleIcon} from '../../Components';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Composer, InputToolbarProps, SendProps } from 'react-native-gifted-chat';
+import { PressAbleIcon } from '../../Components';
 import * as ImagePicker from 'react-native-image-picker';
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
@@ -23,7 +23,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   // const [, setIsShowImagePicker] = useState(false);
   const [image, setImage] = useState({});
 
-  const {onSend, text} = props;
+  const { onSend, text } = props;
   /**************************
    ======== Lifecycle =======
    **************************/
@@ -42,21 +42,25 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       try {
         ImagePicker.launchImageLibrary(
           {
-            mediaType: 'photo',
+            mediaType: 'mixed',
             includeBase64: false,
             includeExtra: true,
             quality: 1,
           },
           (res: ImagePicker.ImagePickerResponse) => {
-            const {assets} = res;
+            const { assets } = res;
             if (assets && assets?.length > 0) {
-              const {type, uri} = assets[0];
-              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
+              const { type, uri } = assets[0];
+              if (type?.includes('video')) {
+                onSend?.({ imageUrl: uri, extension: type, type: 'video' }, true);
+              } else if (type?.includes('image')) {
+                onSend?.({ imageUrl: uri, extension: type, type: 'image' }, true);
+              }
             }
           },
         );
-      } catch (error) {}
-    } catch (err) {}
+      } catch (error) { }
+    } catch (err) { }
   };
   return (
     <View style={styles.container}>
@@ -95,13 +99,13 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
             marginHorizontal: 12,
           }}
           onPress={() => {
-            onSend?.({text: text}, true);
+            onSend?.({ text: text }, true);
           }}
           size={28}
           icon={require('../../Assets/send.png')}
         />
       ) : (
-        <View style={{flexDirection: 'row'}}>
+        <View style={{ flexDirection: 'row' }}>
           {/*<VectorIconButton*/}
           {/*  onPress={() => {*/}
           {/*    showDocumentPicker();*/}

@@ -103,10 +103,14 @@ export class FirestoreServices {
           file.extension,
           this.conversationId
         ).then((res) => {
+
           storage()
             .ref(res.metadata.fullPath)
             .getDownloadURL()
             .then((imageUrl) => {
+              const created = new Date().valueOf();
+              messageData.created = created;
+              messageData.text = '';
               firestore()
                 .collection<MessageProps>(
                   `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
@@ -118,7 +122,9 @@ export class FirestoreServices {
                     status: 'sent',
                   });
                 })
-                .catch((err) => { });
+                .catch((err) => {
+                  console.log(err)
+                });
             });
         });
       }
