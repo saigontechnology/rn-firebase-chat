@@ -12,7 +12,7 @@ import { FirestoreServices } from '../Services/Firestore';
 import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 // import { PhotoGalleryView } from './Component/PhotoGalleryView';
-import { TYPING_TIMEOUT_SECONDS } from './constanst';
+import { FILE_TYPE, IMAGE_TYPE, TYPING_TIMEOUT_SECONDS, VIDEO_TYPE } from './constanst';
 import type { ConversationProps, MessageProps } from '../interfaces';
 
 interface IUserInfo {
@@ -72,7 +72,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             (data: MessageProps[]) => {
               setIsLoadingEarlier(false);
               setLoadEarlier(true);
-              if (data && data?.length) {
+              if (data?.length) {
                 setMessagesList((prevState) => {
                   return prevState.concat(...data);
                 });
@@ -100,23 +100,23 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
       if (messageType) {
         switch (messageType) {
-          case 'image':
+          case IMAGE_TYPE:
             file = {
-              type: 'image',
+              type: IMAGE_TYPE,
               imageUrl: messages?.imageUrl,
               extension: messages?.extension,
             };
             break;
-          case 'video':
+          case VIDEO_TYPE:
             file = {
-              type: 'video',
+              type: VIDEO_TYPE,
               imageUrl: messages?.imageUrl,
               extension: messages?.extension,
             };
             break;
           default:
             file = {
-              type: 'file',
+              type: FILE_TYPE,
               fileUrl: messages?.fileUrl,
               extension: messages?.extension,
             };

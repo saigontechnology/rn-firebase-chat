@@ -3,4 +3,9 @@
  */
 const TYPING_TIMEOUT_SECONDS = 3000;
 
-export { TYPING_TIMEOUT_SECONDS };
+const IMAGE_TYPE = 'image'
+const VIDEO_TYPE = 'video'
+const FILE_TYPE = 'file'
+const PENDING_TYPE = 'pending'
+const SENT_TYPE = 'sent'
+export { TYPING_TIMEOUT_SECONDS, SENT_TYPE, IMAGE_TYPE, VIDEO_TYPE, FILE_TYPE, PENDING_TYPE };

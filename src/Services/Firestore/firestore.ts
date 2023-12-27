@@ -16,6 +16,7 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
 import { haveSameContents } from 'src/Utilities/ultis';
+import { SENT_TYPE } from 'src/Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
@@ -100,35 +101,33 @@ export class FirestoreServices {
       }
 
       if (file) {
-        uploadFileToFirebase(
+        const res = await uploadFileToFirebase(
           file.imageUrl,
           file.extension,
           this.conversationId
-        ).then((res) => {
-
-          storage()
-            .ref(res.metadata.fullPath)
-            .getDownloadURL()
-            .then((imageUrl) => {
-              const created = new Date().valueOf();
-              messageData.created = created;
-              messageData.text = '';
-              firestore()
-                .collection<MessageProps>(
-                  `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-                )
-                .add(messageData)
-                .then((snapShot) => {
-                  snapShot.update({
-                    imageUrl,
-                    status: 'sent',
-                  });
-                })
-                .catch((err) => {
-                  console.log(err)
+        )
+        storage()
+          .ref(res.metadata.fullPath)
+          .getDownloadURL()
+          .then((imageUrl) => {
+            const created = new Date().valueOf();
+            messageData.created = created;
+            messageData.text = '';
+            firestore()
+              .collection<MessageProps>(
+                `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+              )
+              .add(messageData)
+              .then((snapShot) => {
+                snapShot.update({
+                  imageUrl,
+                  status: SENT_TYPE,
                 });
-            });
-        });
+              })
+              .catch((err) => {
+                console.log(err)
+              });
+          });
       }
     } catch (error) { }
   };

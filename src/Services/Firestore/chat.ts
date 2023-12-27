@@ -17,6 +17,7 @@ import type {
   UserProfileProps,
 } from '../../interfaces';
 import { FireStoreCollection } from '../../interfaces';
+import { PENDING_TYPE } from 'src/Chat/constanst';
 
 let userInfo: UserProfileProps;
 let currentUserId = '';
@@ -40,7 +41,7 @@ const sendMessage = async (
   const created = new Date().valueOf();
   const messageData = {
     readBy: {},
-    status: 'pending',
+    status: PENDING_TYPE,
     senderId: currentUserId,
     created: created,
     text: message || '',
