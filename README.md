@@ -1,7 +1,9 @@
 # rn-firebase-chat
 
 RN Firebase Chat
-
+# Demo
+Please view the demo in folder demo 
+./demo
 ## Installation
 
 ```sh
