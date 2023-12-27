@@ -128,16 +128,6 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           displayNameRef.current = text;
         }}
       />
-      {/* <Text style={styles.titleContainer}>Member Id</Text>
-      <TextInput
-        defaultValue={''}
-        autoFocus
-        style={styles.inputContainer}
-        placeholder={'Member Id'}
-        onChangeText={text => {
-          memberIdRef.current = text;
-        }}
-      /> */}
       {enableChatGroup && listMember.length > 0 && listMember.map((item, index) => (<>
         <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
         <TextInput
