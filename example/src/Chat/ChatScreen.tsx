@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
 import { Bubble, type InputToolbarProps } from 'react-native-gifted-chat';
 import { ChatProvider } from '../../../src';
 import type { IMessage as IGiftedChatMessage } from 'react-native-gifted-chat/lib/Models';
@@ -10,7 +10,8 @@ import FileViewer from 'react-native-file-viewer';
 import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
 import { MessageProps } from '../../../src/interfaces';
-import Video, { VideoRef } from 'react-native-video';
+import Video from 'react-native-video';
+import { isImageUrl } from '../Constants/utils';
 
 interface ChatScreenProps extends NativeStackScreenProps<any> { }
 
@@ -49,17 +50,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
       <Bubble
         {...props}
         renderCustomView={() => {
-          console.log(imageUrl && imageUrl.toLowerCase().includes('mov'))
-
           if (imageUrl)
-            if (imageUrl.toLowerCase().includes('mov')) {
+            if (!isImageUrl(imageUrl)) {
               return <Pressable
                 style={styles.image}
                 onPress={() => onFilePress(imageUrl)}>
                 <Video source={{ uri: imageUrl }} style={styles.image} />
               </Pressable>
             } else {
-              <Pressable
+              return <Pressable
                 style={styles.image}
                 onPress={() => onFilePress(imageUrl)}>
                 <Image

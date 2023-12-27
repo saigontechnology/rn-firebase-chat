@@ -16,9 +16,12 @@ const FirestoreServicesInstance = FirestoreServices.getInstance();
 export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
   const [enableTyping, setEnableTyping] = useState<boolean>(false);
-  const usernameRef = useRef<string>('123');
+  const [enableChatGroup, setEnableChatGroup] = useState<boolean>(false);
+  const [listMember, setListUser] = useState<string[]>([])
+  const usernameRef = useRef<string>('');
   const displayNameRef = useRef<string>('');
-  const memberIdRef = useRef<string>('456');
+  const memberIdRef = useRef<string[]>([]);
+
 
   const onStartChat = useCallback(async () => {
     const userId = usernameRef.current;
@@ -40,23 +43,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           },
           enableEncrypt,
           conversationId: conversationId,
-          memberId,
-        });
-        navigation.navigate('ChatScreen', {
-          userInfo: {
-            id: userId,
-            name: displayName,
-          },
-          memberId,
-          enableEncrypt,
-          conversationInfo: {
-            id: conversationId,
-            members: {
-              [userId]: `users/${userId}`,
-              [memberId]: `users/${memberId}`,
-            },
-          },
-          enableTyping,
+          memberId
         });
       } else {
         FirestoreServicesInstance.setChatData({
@@ -68,38 +55,54 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           enableEncrypt,
           memberId,
         });
-        const newId = await FirestoreServicesInstance.createConversation()
-      
-        navigation.navigate('ChatScreen', {
-          userInfo: {
-            id: userId,
-            name: displayName,
-          },
-          memberId,
-          enableEncrypt,
-          conversationInfo: {
-            id: newId.id,
-            members: {
-              [userId]: `users/${userId}`,
-              [memberId]: `users/${memberId}`,
-            },
-          },
-          enableTyping,
-        });
+        const newId = await FirestoreServicesInstance.createConversation();
+        conversationId = newId.id
       }
+      const members = {
+        [userId]: `users/${userId}`,
+      }
+
+      memberId.map((item, index) => {
+        members[item] = `users/${memberId}`
+      })
+
+      navigation.navigate('ChatScreen', {
+        userInfo: {
+          id: userId,
+          name: displayName,
+        },
+        memberId,
+        enableEncrypt,
+        conversationInfo: {
+          id: conversationId,
+          members,
+        },
+        enableTyping,
+      });
     };
 
-    const checkUserExist = await checkUsernameExist(userId)
-    const checkMemberExist = await checkUsernameExist(memberId)
-    if (!checkMemberExist) {
-      Alert.alert('Member dont exist')
+    const checkUserExist = await checkUsernameExist(userId);
+    var isAllMemberExist = true;
+    memberId.forEach(async (item, index) => {
+      const checkMemberExist = await checkUsernameExist(item);
+      if (!checkMemberExist) {
+        isAllMemberExist = false
+      }
+    })
+    if (!isAllMemberExist) {
+      Alert.alert('Member dont exist');
     }
-    if (!checkUserExist && checkMemberExist) {
+    if (!checkUserExist && isAllMemberExist) {
       await createUserProfile(userId, displayName).then(() => {
         navigateToChatScreen();
-      })
-    } else if (checkUserExist && checkMemberExist) {
+      });
+    } else if (checkUserExist && isAllMemberExist) {
+
       navigateToChatScreen();
+    } else if (!checkUserExist) {
+      await createUserProfile(userId, displayName).then(() => {
+        Alert.alert('Create User Success')
+      });
     }
   }, [navigation, enableEncrypt, enableTyping]);
 
@@ -125,7 +128,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           displayNameRef.current = text;
         }}
       />
-      <Text style={styles.titleContainer}>Member Id</Text>
+      {/* <Text style={styles.titleContainer}>Member Id</Text>
       <TextInput
         defaultValue={''}
         autoFocus
@@ -134,7 +137,31 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
         onChangeText={text => {
           memberIdRef.current = text;
         }}
-      />
+      /> */}
+      {enableChatGroup && listMember.length > 0 && listMember.map((item, index) => (<>
+        <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
+        <TextInput
+          defaultValue={''}
+          autoFocus
+          style={styles.inputContainer}
+          placeholder={'Member Id'}
+          onChangeText={text => {
+            memberIdRef.current[index] = text;
+          }}
+        />
+      </>))
+      }
+
+      {enableChatGroup &&
+        <>
+          <Button title={'+ add user'} onPress={() => {
+            if (listMember.length < 3) {
+              let tmp = [...listMember]
+              tmp.push('')
+              setListUser(tmp)
+            }
+          }} />
+        </>}
       <SwitchWithTitle
         title={'Encrypt Data'}
         value={enableEncrypt}
@@ -150,6 +177,16 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
         value={enableTyping}
         onValueChange={value => {
           setEnableTyping(value);
+        }}
+      />
+      <SwitchWithTitle
+        style={{
+          marginTop: 12,
+        }}
+        title={'Add Other User'}
+        value={enableChatGroup}
+        onValueChange={value => {
+          setEnableChatGroup(value);
         }}
       />
       <Button title={'Start Chat'} onPress={onStartChat} />

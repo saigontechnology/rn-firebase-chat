@@ -15,10 +15,12 @@ import {
   type UserProfileProps,
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
+import { haveSameContents } from 'src/Utilities/ultis';
 
 interface FirestoreProps {
   userId: string;
-  memberId: string;
+  // memberId: string;
+  memberId: string[];
   userInfo?: UserProfileProps;
   conversationId?: string;
   enableEncrypt?: boolean;
@@ -28,7 +30,7 @@ let instance: FirestoreServices | undefined;
 
 export class FirestoreServices {
   userId: string | undefined;
-  memberId: string | undefined;
+  memberId: string[] | undefined;
   userInfo: UserProfileProps | undefined;
   conversationId: string | undefined;
   enableEncrypt: boolean | undefined;
@@ -55,7 +57,7 @@ export class FirestoreServices {
     enableEncrypt,
   }: FirestoreProps) => {
     this.userId = userId.toString();
-    this.memberId = memberId.toString();
+    this.memberId = memberId;
     this.userInfo = userInfo;
     this.conversationId = conversationId;
     this.enableEncrypt = enableEncrypt;
@@ -352,14 +354,17 @@ export class FirestoreServices {
 
   createConversation = async () => {
     const userId = this.userId as string;
-    const memberId = this.memberId as string;
+    const memberId = this.memberId as string[];
 
     const conversationData = {
       members: {
         [userId]: firestore().doc(`${FireStoreCollection.users}/${userId}`),
-        [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
+        // [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
       },
     };
+    memberId.forEach((item, index) => {
+      conversationData.members[item] = firestore().doc(`${FireStoreCollection.users}/${item}`)
+    })
 
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -372,7 +377,7 @@ export class FirestoreServices {
       updated: new Date().valueOf(),
       unRead: {
         [userId]: 0,
-        [memberId]: 0,
+        // [memberId]: 0,
       },
       members: conversationData.members,
     };
@@ -388,7 +393,7 @@ export class FirestoreServices {
           merge: true,
         }),
       //Add the conversation id to the info of the user
-      [userId, memberId].map((id) => {
+      [userId, ...memberId].map((id) => {
         const userRef = firestore()
           .collection(`${FireStoreCollection.users}`)
           .doc(id);
@@ -411,7 +416,10 @@ export class FirestoreServices {
     return { ...conversationData, id: conversationRef.id };
   };
 
-  getConservation = async (userId: string, memberId: string) => {
+  getConservation = async (userId: string, memberId: string[]) => {
+
+
+
     let conversationId = '';
     await firestore()
       .collection(`${FireStoreCollection.conversations}`)
@@ -419,17 +427,18 @@ export class FirestoreServices {
       .then((e) => {
         e.docs.map((r) => {
           const data = r.data();
-          let listUser = [];
+          let listUser: string[] = [];
           try {
             listUser = Object.keys(data?.members);
-            if (
-              listUser.includes(userId.toString()) &&
-              listUser.includes(memberId.toString())
-            ) {
+
+            const listMemberA: string[] = [...memberId, userId];
+            const res = haveSameContents(listUser, listMemberA)
+            if (res) {
               conversationId = data.id;
-              return data.id;
+              return;
             }
-          } catch (error) { }
+          } catch (error) {
+          }
         });
       });
     return conversationId;
