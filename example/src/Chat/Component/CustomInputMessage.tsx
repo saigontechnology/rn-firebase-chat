@@ -6,7 +6,13 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Composer, InputToolbarProps, SendProps } from 'react-native-gifted-chat';
 import { PressAbleIcon } from '../../Components';
 import * as ImagePicker from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker'
+import DocumentPicker, {
+  DirectoryPickerResponse,
+  DocumentPickerResponse,
+  isCancel,
+  isInProgress,
+  types,
+} from 'react-native-document-picker'
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
   togglePhotoGallery: (value: boolean) => void;
