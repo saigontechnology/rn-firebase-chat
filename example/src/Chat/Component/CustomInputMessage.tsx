@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
 import {PressAbleIcon} from '../../Components';
-import * as ImagePicker from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-picker';
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
