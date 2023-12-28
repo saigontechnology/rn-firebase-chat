@@ -93,34 +93,13 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
         GiftedChat.append(previousMessages, [messages])
       );
 
-      let file;
       const messageType = messages?.type;
+      let file = {
+        imageUrl: messages?.imageUrl,
+        extension: messages?.extension,
+        type: messageType
+      };
 
-      if (messageType) {
-        switch (messageType) {
-          case 'image':
-            file = {
-              type: 'image',
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
-            break;
-          case 'video':
-            file = {
-              type: 'video',
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
-            break;
-          default:
-            file = {
-              type: 'file',
-              fileUrl: messages?.fileUrl,
-              extension: messages?.extension,
-            };
-            break;
-        }
-      }
       await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
 
