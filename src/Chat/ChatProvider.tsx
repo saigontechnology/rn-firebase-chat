@@ -64,7 +64,6 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       if (messagesList.length < totalMessages.current && !isLoadingEarlier) {
         setTimeout(() => {
           setIsLoadingEarlier(true);
-          setLoadEarlier(false);
 
           FirestoreServicesInstance.getMoreMessage().then(
             (data: MessageProps[]) => {
@@ -76,7 +75,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
                 });
               }
             }
-          );
+          ).finally(() => setLoadEarlier(false));
         }, 1000);
       } else {
         setLoadEarlier(false);
