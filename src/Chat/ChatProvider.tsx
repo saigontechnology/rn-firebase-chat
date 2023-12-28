@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   StyleProp,
@@ -6,12 +6,12 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import {GiftedChat, GiftedChatProps} from 'react-native-gifted-chat';
-import {FirestoreServices} from '../Services/Firestore';
-import {formatEncryptedMessageData, formatMessageData} from '../Utilities';
+import { GiftedChat, GiftedChatProps } from 'react-native-gifted-chat';
+import { FirestoreServices } from '../Services/Firestore';
+import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
-import {MEDIA_FILE_TYPE, TYPING_TIMEOUT_SECONDS} from './constanst';
-import type {ConversationProps, MessageProps} from '../interfaces';
+import { MEDIA_FILE_TYPE, TYPING_TIMEOUT_SECONDS } from './constanst';
+import type { ConversationProps, MessageProps } from '../interfaces';
 
 interface IUserInfo {
   id: string;
@@ -64,6 +64,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       if (messagesList.length < totalMessages.current && !isLoadingEarlier) {
         setTimeout(() => {
           setIsLoadingEarlier(true);
+          setLoadEarlier(false);
 
           FirestoreServicesInstance.getMoreMessage().then(
             (data: MessageProps[]) => {
@@ -75,9 +76,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
                 });
               }
             }
-          ).finally(() => {
-            setLoadEarlier(false);
-          });
+          );
         }, 1000);
       } else {
         setLoadEarlier(false);
@@ -105,13 +104,13 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
         };
         switch (messageType) {
           case MEDIA_FILE_TYPE.image:
-            file.type = MEDIA_FILE_TYPE.image
+            file['type'] = MEDIA_FILE_TYPE.image
             break;
           case MEDIA_FILE_TYPE.video:
-            file.type = MEDIA_FILE_TYPE.video
+            file['type'] = MEDIA_FILE_TYPE.video
             break;
           default:
-            file.type = MEDIA_FILE_TYPE.file
+            file['type'] = MEDIA_FILE_TYPE.file
             break;
         }
       }
