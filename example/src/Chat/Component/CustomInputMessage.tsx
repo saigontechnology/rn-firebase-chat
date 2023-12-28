@@ -91,9 +91,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       </View>
       {text ? (
         <PressAbleIcon
-          style={{
-            marginHorizontal: 12,
-          }}
+          style={styles.margin}
           onPress={() => {
             onSend?.({text: text}, true);
           }}
@@ -146,7 +144,10 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     flexDirection: 'row',
   },
-  row: {flexDirection: 'row'}
+  row: {flexDirection: 'row'},
+  margin: {
+    marginHorizontal: 12,
+  }
 });
 
 export default CustomInputMessage;
