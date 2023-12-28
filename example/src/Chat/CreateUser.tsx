@@ -1,19 +1,19 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, {useCallback, useRef, useState} from 'react';
+import {Alert, Button, StyleSheet, Text, TextInput, View} from 'react-native';
+import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {
   checkUsernameExist,
   createUserProfile,
   FirestoreServices,
 } from '../../../src';
-import { SwitchWithTitle } from '../Components/SwitchWithTitle';
+import {SwitchWithTitle} from '../Components/SwitchWithTitle';
 
 type CreateUserProps = NativeStackScreenProps<any>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
 
-export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
+export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
   const [enableTyping, setEnableTyping] = useState<boolean>(false);
   const usernameRef = useRef<string>('123');
@@ -69,7 +69,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           memberId,
         });
         const newId = await FirestoreServicesInstance.createConversation()
-      
+
         navigation.navigate('ChatScreen', {
           userInfo: {
             id: userId,
@@ -100,6 +100,10 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
       })
     } else if (checkUserExist && checkMemberExist) {
       navigateToChatScreen();
+    } else {
+      await createUserProfile(userId, displayName).then(() => {
+        Alert.alert('Create user success')
+      })
     }
   }, [navigation, enableEncrypt, enableTyping]);
 

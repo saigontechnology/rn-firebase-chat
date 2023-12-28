@@ -55,8 +55,8 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
             }
           },
         );
-      } catch (error) {}
-    } catch (err) {}
+      } catch (error) { }
+    } catch (err) { }
   };
   return (
     <View style={styles.container}>
@@ -101,7 +101,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           icon={require('../../Assets/send.png')}
         />
       ) : (
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.row}>
           {/*<VectorIconButton*/}
           {/*  onPress={() => {*/}
           {/*    showDocumentPicker();*/}
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     flexDirection: 'row',
   },
+  row: {flexDirection: 'row'}
 });
 
 export default CustomInputMessage;

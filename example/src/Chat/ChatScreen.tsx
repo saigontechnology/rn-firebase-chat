@@ -11,7 +11,7 @@ import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
 import {MessageProps} from '../../../src/interfaces';
 
-interface ChatScreenProps extends NativeStackScreenProps<any> {}
+interface ChatScreenProps extends NativeStackScreenProps<any> { }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
   const {userInfo, conversationInfo, memberId, enableEncrypt, enableTyping} =
@@ -64,10 +64,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
         }}
         wrapperStyle={{
           left: styles.left,
-          right: {
-            padding: 0,
-            // margin: 0,
-          },
+          right: styles.right,
         }}
       />
     );
@@ -102,4 +99,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     marginVertical: 0,
   },
+  right: {
+    padding: 0,
+  }
 });

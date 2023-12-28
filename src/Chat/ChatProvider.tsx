@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   KeyboardAvoidingView,
   StyleProp,
@@ -6,14 +6,12 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { GiftedChat, GiftedChatProps } from 'react-native-gifted-chat';
-import { FirestoreServices } from '../Services/Firestore';
-// import CustomMessageView from './Component/CustomMessageView';
-import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
+import {GiftedChat, GiftedChatProps} from 'react-native-gifted-chat';
+import {FirestoreServices} from '../Services/Firestore';
+import {formatEncryptedMessageData, formatMessageData} from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
-// import { PhotoGalleryView } from './Component/PhotoGalleryView';
-import { TYPING_TIMEOUT_SECONDS } from './constanst';
-import type { ConversationProps, MessageProps } from '../interfaces';
+import {TYPING_TIMEOUT_SECONDS} from './constanst';
+import type {ConversationProps, MessageProps} from '../interfaces';
 
 interface IUserInfo {
   id: string;
