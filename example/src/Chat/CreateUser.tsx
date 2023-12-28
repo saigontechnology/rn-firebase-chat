@@ -26,8 +26,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
     const memberId = memberIdRef.current;
 
     const navigateToChatScreen = async () => {
-      let conversationId = '';
-      conversationId = await FirestoreServicesInstance.getConservation(
+      let conversationId = await FirestoreServicesInstance.getConservation(
         userId,
         memberId,
       );
