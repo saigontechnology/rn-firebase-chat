@@ -6,13 +6,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Composer, InputToolbarProps, SendProps } from 'react-native-gifted-chat';
 import { PressAbleIcon } from '../../Components';
 import * as ImagePicker from 'react-native-image-picker';
-import DocumentPicker, {
-  DirectoryPickerResponse,
-  DocumentPickerResponse,
-  isCancel,
-  isInProgress,
-  types,
-} from 'react-native-document-picker'
+
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
   togglePhotoGallery: (value: boolean) => void;
@@ -43,7 +37,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
-  const showImagePicker = async () => {
+  const showDocumentPicker = async () => {
     try {
       ImagePicker.launchImageLibrary(
         {
@@ -66,17 +60,6 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       );
     } catch (error) { }
   };
-
-  const showDocumentPicker = async () => {
-    const pickerResult = await DocumentPicker.pickSingle({
-      presentationStyle: 'fullScreen',
-      copyTo: 'cachesDirectory',
-    })
-    if (pickerResult) {
-      onSend?.({ imageUrl: pickerResult.uri, extension: 'file', type: 'file' }, true);
-    }
-  }
-
   return (
     <View style={styles.container}>
       <PressAbleIcon
@@ -89,24 +72,13 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       <PressAbleIcon
         onPress={() => {
           togglePhotoGallery(!isShowPhotoGallery);
-          showImagePicker();
-        }}
-        style={{
-          marginHorizontal: 12,
-        }}
-        size={28}
-        icon={require('../../Assets/image.png')}
-      />
-      <PressAbleIcon
-        onPress={() => {
-          togglePhotoGallery(!isShowPhotoGallery);
           showDocumentPicker();
         }}
         style={{
           marginHorizontal: 12,
         }}
         size={28}
-        icon={require('../../Assets/upload_file.png')}
+        icon={require('../../Assets/image.png')}
       />
       <View style={styles.composeWrapper}>
         <ScrollView scrollEnabled={false}>
