@@ -17,7 +17,7 @@ import type {
   UserProfileProps,
 } from '../../interfaces';
 import { FireStoreCollection } from '../../interfaces';
-import { PENDING_TYPE } from 'src/Chat/constanst';
+import { PENDING_TYPE } from '../../Chat/constanst';
 
 let userInfo: UserProfileProps;
 let currentUserId = '';

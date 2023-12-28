@@ -50,7 +50,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
       <Bubble
         {...props}
         renderCustomView={() => {
-          if (imageUrl)
+          if (imageUrl) {
             if (!isImageUrl(imageUrl)) {
               return <Pressable
                 style={styles.image}
@@ -68,6 +68,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
                 />
               </Pressable>
             }
+          }
         }}
         wrapperStyle={{
           left: styles.left,

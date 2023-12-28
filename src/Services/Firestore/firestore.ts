@@ -15,12 +15,11 @@ import {
   type UserProfileProps,
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
-import { haveSameContents } from 'src/Utilities/ultis';
-import { SENT_TYPE } from 'src/Chat/constanst';
+import { haveSameContents } from '../../Utilities/ultis';
+import { SENT_TYPE } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
-  // memberId: string;
   memberId: string[];
   userInfo?: UserProfileProps;
   conversationId?: string;
@@ -99,7 +98,6 @@ export class FirestoreServices {
           })
           .catch((err) => { });
       }
-
       if (file) {
         const res = await uploadFileToFirebase(
           file.imageUrl,
