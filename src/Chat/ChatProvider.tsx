@@ -8,11 +8,9 @@ import {
 } from 'react-native';
 import { GiftedChat, GiftedChatProps } from 'react-native-gifted-chat';
 import { FirestoreServices } from '../Services/Firestore';
-// import CustomMessageView from './Component/CustomMessageView';
 import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
-// import { PhotoGalleryView } from './Component/PhotoGalleryView';
-import { FILE_TYPE, IMAGE_TYPE, TYPING_TIMEOUT_SECONDS, VIDEO_TYPE } from './constanst';
+import { MEDIA_FILE_TYPE, TYPING_TIMEOUT_SECONDS } from './constanst';
 import type { ConversationProps, MessageProps } from '../interfaces';
 
 interface IUserInfo {
@@ -99,27 +97,20 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
       const messageType = messages?.type;
 
       if (messageType) {
+        file = {
+          imageUrl: messages?.imageUrl,
+          extension: messages?.extension,
+          type: ''
+        };
         switch (messageType) {
-          case IMAGE_TYPE:
-            file = {
-              type: IMAGE_TYPE,
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
+          case MEDIA_FILE_TYPE.image:
+            file['type'] = MEDIA_FILE_TYPE.image
             break;
-          case VIDEO_TYPE:
-            file = {
-              type: VIDEO_TYPE,
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
+          case MEDIA_FILE_TYPE.video:
+            file['type'] = MEDIA_FILE_TYPE.video
             break;
           default:
-            file = {
-              type: FILE_TYPE,
-              fileUrl: messages?.fileUrl,
-              extension: messages?.extension,
-            };
+            file['type'] = MEDIA_FILE_TYPE.file
             break;
         }
       }

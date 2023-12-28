@@ -11,7 +11,7 @@ import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
 import { MessageProps } from '../../../src/interfaces';
 import Video from 'react-native-video';
-import { isImageUrl } from '../Constants/utils';
+import { isImageUrl } from '../Utilities/utils';
 
 interface ChatScreenProps extends NativeStackScreenProps<any> { }
 
@@ -50,25 +50,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
       <Bubble
         {...props}
         renderCustomView={() => {
-          if (imageUrl) {
-            if (!isImageUrl(imageUrl)) {
-              return <Pressable
+          if (imageUrl)
+            return (
+              <Pressable
                 style={styles.image}
                 onPress={() => onFilePress(imageUrl)}>
-                <Video source={{ uri: imageUrl }} style={styles.image} />
+                {isImageUrl(imageUrl) ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.image}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Video source={{ uri: imageUrl }} style={styles.image} />
+                )}
               </Pressable>
-            } else {
-              return <Pressable
-                style={styles.image}
-                onPress={() => onFilePress(imageUrl)}>
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={styles.image}
-                  resizeMode="contain"
-                />
-              </Pressable>
-            }
-          }
+            );
         }}
         wrapperStyle={{
           left: styles.left,
@@ -83,7 +80,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   return (
     <SafeAreaView
       edges={['bottom']}
-      style={{ flex: 1, backgroundColor: 'white' }}>
+      style={styles.container}>
       <ChatProvider
         enableEncrypt={enableEncrypt}
         enableTyping={enableTyping}
@@ -110,4 +107,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     marginVertical: 0,
   },
+  container: { flex: 1, backgroundColor: 'white' }
 });

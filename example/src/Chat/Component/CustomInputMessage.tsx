@@ -12,8 +12,8 @@ interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   togglePhotoGallery: (value: boolean) => void;
 }
 
-const byteToMB = 1048576;
-const IMAGE_TYPE = 'image';
+// const byteToMB = 1048576;
+// const IMAGE_TYPE = 'image';
 
 const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   isShowPhotoGallery,
@@ -39,28 +39,26 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
 
   const showDocumentPicker = async () => {
     try {
-      try {
-        ImagePicker.launchImageLibrary(
-          {
-            mediaType: 'mixed',
-            includeBase64: false,
-            includeExtra: true,
-            quality: 1,
-          },
-          (res: ImagePicker.ImagePickerResponse) => {
-            const { assets } = res;
-            if (assets && assets?.length > 0) {
-              const { type, uri } = assets[0];
-              if (type?.includes('video')) {
-                onSend?.({ imageUrl: uri, extension: type, type: 'video' }, true);
-              } else if (type?.includes('image')) {
-                onSend?.({ imageUrl: uri, extension: type, type: 'image' }, true);
-              }
+      ImagePicker.launchImageLibrary(
+        {
+          mediaType: 'mixed',
+          includeBase64: false,
+          includeExtra: true,
+          quality: 1,
+        },
+        (res: ImagePicker.ImagePickerResponse) => {
+          const { assets } = res;
+          if (assets && assets?.length > 0) {
+            const { type, uri } = assets[0];
+            if (type?.includes('video')) {
+              onSend?.({ imageUrl: uri, extension: type, type: 'video' }, true);
+            } else if (type?.includes('image')) {
+              onSend?.({ imageUrl: uri, extension: type, type: 'image' }, true);
             }
-          },
-        );
-      } catch (error) { }
-    } catch (err) { }
+          }
+        },
+      );
+    } catch (error) { }
   };
   return (
     <View style={styles.container}>
@@ -98,9 +96,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           style={{
             marginHorizontal: 12,
           }}
-          onPress={() => {
-            onSend?.({ text: text }, true);
-          }}
+          onPress={() => onSend?.({ text: text }, true)}
           size={28}
           icon={require('../../Assets/send.png')}
         />

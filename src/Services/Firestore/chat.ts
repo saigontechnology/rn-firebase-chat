@@ -17,7 +17,7 @@ import type {
   UserProfileProps,
 } from '../../interfaces';
 import { FireStoreCollection } from '../../interfaces';
-import { PENDING_TYPE } from '../../Chat/constanst';
+import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 let userInfo: UserProfileProps;
 let currentUserId = '';
@@ -41,7 +41,7 @@ const sendMessage = async (
   const created = new Date().valueOf();
   const messageData = {
     readBy: {},
-    status: PENDING_TYPE,
+    status: MESSAGE_STATUS.pending,
     senderId: currentUserId,
     created: created,
     text: message || '',
@@ -175,7 +175,7 @@ const changeReadMessage = (conversationId: string) => {
       },
       { merge: true }
     )
-    .then(() => {});
+    .then(() => { });
 };
 
 let messageCursor:

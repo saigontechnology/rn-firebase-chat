@@ -86,6 +86,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
       const checkMemberExist = await checkUsernameExist(item);
       if (!checkMemberExist) {
         isAllMemberExist = false;
+        return
       }
     });
     if (!isAllMemberExist) {

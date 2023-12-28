@@ -16,7 +16,7 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
 import { haveSameContents } from '../../Utilities/ultis';
-import { SENT_TYPE } from '../../Chat/constanst';
+import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
@@ -119,7 +119,7 @@ export class FirestoreServices {
               .then((snapShot) => {
                 snapShot.update({
                   imageUrl,
-                  status: SENT_TYPE,
+                  status: 'sent',
                 });
               })
               .catch((err) => {
@@ -414,9 +414,6 @@ export class FirestoreServices {
   };
 
   getConservation = async (userId: string, memberId: string[]) => {
-
-
-
     let conversationId = '';
     await firestore()
       .collection(`${FireStoreCollection.conversations}`)
@@ -432,7 +429,6 @@ export class FirestoreServices {
             const res = haveSameContents(listUser, listMemberA)
             if (res) {
               conversationId = data.id;
-              return;
             }
           } catch (error) {
           }
