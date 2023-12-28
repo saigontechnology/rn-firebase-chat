@@ -1,5 +1,5 @@
 import storage from '@react-native-firebase/storage';
-import { MEDIA_FILE_TYPE } from '../../Chat/constanst';
+import {MEDIA_FILE_TYPE} from '../../Chat/constanst';
 
 const uploadFileToFirebase = (path: string, mime: string, location: string) => {
   const comps = mime.split('/');
@@ -16,4 +16,4 @@ const uploadFileToFirebase = (path: string, mime: string, location: string) => {
   return storageRef.putFile(newPath);
 };
 
-export { uploadFileToFirebase };
+export {uploadFileToFirebase};

@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
-import { Bubble, type InputToolbarProps } from 'react-native-gifted-chat';
-import { ChatProvider } from '../../../src';
-import type { IMessage as IGiftedChatMessage } from 'react-native-gifted-chat/lib/Models';
+import React, {useState} from 'react';
+import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {ActivityIndicator, Image, Pressable, StyleSheet} from 'react-native';
+import {Bubble, type InputToolbarProps} from 'react-native-gifted-chat';
+import {ChatProvider} from '../../../src';
+import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models';
 import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
-import { MessageProps } from '../../../src/interfaces';
+import {MessageProps} from '../../../src/interfaces';
 import Video from 'react-native-video';
-import { isImageUrl, isVideoUrl } from '../Utilities/utils';
+import {isImageUrl, isVideoUrl} from '../Utilities/utils';
+import {Images} from '../Themes/images';
 
 interface ChatScreenProps extends NativeStackScreenProps<any> { }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
-  const { userInfo, conversationInfo, memberId, enableEncrypt, enableTyping } =
+export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
+  const {userInfo, conversationInfo, memberId, enableEncrypt, enableTyping} =
     route.params || {};
 
   const [isShowPhotoGallery, setIsShowPhotoGallery] = useState<boolean>(false);
@@ -52,15 +53,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
       }
       if (isImageUrl(imageUrl)) {
         return <Image
-          source={{ uri: imageUrl }}
+          source={{uri: imageUrl}}
           style={styles.image}
           resizeMode="contain"
         />
       } else if (isVideoUrl(imageUrl)) {
-        return <Video source={{ uri: imageUrl }} style={styles.image} />
+        return <Video source={{uri: imageUrl}} style={styles.image} />
       } else {
         return <Image
-          source={require('../Assets/upload_file.png')}
+          source={Images.file}
           style={styles.image}
           resizeMode="contain"
         />
@@ -111,12 +112,12 @@ const styles = StyleSheet.create({
   loadEarlier: {
     marginVertical: 20,
   },
-  image: { width: 150, height: 150 },
+  image: {width: 150, height: 150},
   left: {
     backgroundColor: 'gray',
     marginVertical: 0,
   },
-  container: { flex: 1, backgroundColor: 'white' },
+  container: {flex: 1, backgroundColor: 'white'},
   right: {
     padding: 0,
   }

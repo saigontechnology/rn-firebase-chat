@@ -1,10 +1,10 @@
 /**
  * Created by NL on 06/04/21.
  */
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Composer, InputToolbarProps, SendProps } from 'react-native-gifted-chat';
-import { PressAbleIcon } from '../../Components';
+import React, {useState} from 'react';
+import {View, StyleSheet, ScrollView} from 'react-native';
+import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
+import {PressAbleIcon} from '../../Components';
 import * as ImagePicker from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker'
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
@@ -23,7 +23,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   // const [, setIsShowImagePicker] = useState(false);
   const [image, setImage] = useState({});
 
-  const { onSend, text } = props;
+  const {onSend, text} = props;
   /**************************
    ======== Lifecycle =======
    **************************/
@@ -47,13 +47,13 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           quality: 1,
         },
         (res: ImagePicker.ImagePickerResponse) => {
-          const { assets } = res;
+          const {assets} = res;
           if (assets && assets?.length > 0) {
-            const { type, uri } = assets[0];
+            const {type, uri} = assets[0];
             if (type?.includes('video')) {
-              onSend?.({ imageUrl: uri, extension: type, type: 'video' }, true);
+              onSend?.({imageUrl: uri, extension: type, type: 'video'}, true);
             } else if (type?.includes('image')) {
-              onSend?.({ imageUrl: uri, extension: type, type: 'image' }, true);
+              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
             }
           }
         },
@@ -67,7 +67,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       copyTo: 'cachesDirectory',
     })
     if (pickerResult) {
-      onSend?.({ imageUrl: pickerResult.uri, extension: 'file', type: 'file' }, true);
+      onSend?.({imageUrl: pickerResult.uri, extension: 'file', type: 'file'}, true);
     }
   }
 
@@ -118,7 +118,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           style={{
             marginHorizontal: 12,
           }}
-          onPress={() => onSend?.({ text: text }, true)}
+          onPress={() => onSend?.({text: text}, true)}
           size={28}
           icon={require('../../Assets/send.png')}
         />
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     flexDirection: 'row',
   },
-  row: { flexDirection: 'row' }
+  row: {flexDirection: 'row'}
 });
 
 export default CustomInputMessage;

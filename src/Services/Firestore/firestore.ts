@@ -14,9 +14,8 @@ import {
   type MessageProps,
   type UserProfileProps,
 } from '../../interfaces';
-import { uploadFileToFirebase } from '../Firebase';
-import { haveSameContents } from '../../Utilities/ultis';
-import { MESSAGE_STATUS } from '../../Chat/constanst';
+import {uploadFileToFirebase} from '../Firebase';
+import {haveSameContents} from '../../Utilities/ultis';
 
 interface FirestoreProps {
   userId: string;
@@ -192,7 +191,7 @@ export class FirestoreServices {
               [this.userId]: 0,
             },
           },
-          { merge: true }
+          {merge: true}
         )
         .then();
     }
@@ -216,7 +215,7 @@ export class FirestoreServices {
         listMessage = await Promise.all(
           querySnapshot.docs.map((doc) => {
             return formatEncryptedMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             );
           })
@@ -225,7 +224,7 @@ export class FirestoreServices {
         querySnapshot.forEach((doc) => {
           listMessage.push(
             formatMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             )
           );
@@ -257,7 +256,7 @@ export class FirestoreServices {
         listMessage = await Promise.all<MessageProps>(
           querySnapshot.docs.map((doc) => {
             return formatEncryptedMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             );
           })
@@ -265,7 +264,7 @@ export class FirestoreServices {
       } else {
         querySnapshot.forEach((doc) => {
           let message = formatMessageData(
-            { ...doc.data(), id: doc.id },
+            {...doc.data(), id: doc.id},
             (this.userInfo as UserProfileProps).name
           );
           listMessage.push(message);
@@ -290,7 +289,7 @@ export class FirestoreServices {
               change.type === 'modified' &&
               change.doc.data().status === 'sent'
             ) {
-              callBack({ ...change.doc.data(), id: change.doc.id });
+              callBack({...change.doc.data(), id: change.doc.id});
             }
           });
         }
@@ -410,7 +409,7 @@ export class FirestoreServices {
       }),
     ]);
     this.conversationId = conversationRef.id;
-    return { ...conversationData, id: conversationRef.id };
+    return {...conversationData, id: conversationRef.id};
   };
 
   getConservation = async (userId: string, memberId: string[]) => {
