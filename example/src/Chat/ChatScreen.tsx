@@ -69,7 +69,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
         }}
         wrapperStyle={{
           left: styles.left,
-          right: styles.right,
+          right: {
+            padding: 0,
+            // margin: 0,
+          },
         }}
       />
     );
@@ -104,8 +107,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
     marginVertical: 0,
   },
-  container: { flex: 1, backgroundColor: 'white' },
-  right: {
-    padding: 0,
-  }
+  container: { flex: 1, backgroundColor: 'white' }
 });
