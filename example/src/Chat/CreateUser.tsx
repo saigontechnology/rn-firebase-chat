@@ -166,9 +166,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
         }}
       />
       <SwitchWithTitle
-        style={{
-          marginTop: 12,
-        }}
+        style={styles.margin}
         title={'Support Typing'}
         value={enableTyping}
         onValueChange={value => {
@@ -176,9 +174,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
         }}
       />
       <SwitchWithTitle
-        style={{
-          marginTop: 12,
-        }}
+        style={styles.margin}
         title={'Add Other User'}
         value={enableChatGroup}
         onValueChange={value => {
@@ -207,4 +203,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginBottom: 8,
   },
+  margin: {
+    marginTop: 12,
+  }
 });
