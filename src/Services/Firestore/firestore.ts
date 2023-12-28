@@ -355,6 +355,7 @@ export class FirestoreServices {
     const conversationData = {
       members: {
         [userId]: firestore().doc(`${FireStoreCollection.users}/${userId}`),
+        // [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
       },
     };
     memberId.forEach((item, index) => {
