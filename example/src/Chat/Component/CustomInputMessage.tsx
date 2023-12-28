@@ -92,9 +92,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       {text ? (
         <PressAbleIcon
           style={styles.margin}
-          onPress={() => {
-            onSend?.({text: text}, true);
-          }}
+          onPress={() => onSend?.({text: text}, true)}
           size={28}
           icon={require('../../Assets/send.png')}
         />
