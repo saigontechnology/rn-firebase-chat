@@ -37,7 +37,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
-  const showDocumentPicker = async () => {
+  const showImageLibrary = async () => {
     try {
       try {
         ImagePicker.launchImageLibrary(
@@ -70,7 +70,7 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       <PressAbleIcon
         onPress={() => {
           togglePhotoGallery(!isShowPhotoGallery);
-          showDocumentPicker();
+          showImageLibrary();
         }}
         style={{
           marginHorizontal: 12,
