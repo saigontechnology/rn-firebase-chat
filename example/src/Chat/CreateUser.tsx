@@ -17,11 +17,10 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
   const [enableTyping, setEnableTyping] = useState<boolean>(false);
   const [enableChatGroup, setEnableChatGroup] = useState<boolean>(false);
-  const [listMember, setListUser] = useState<string[]>([])
+  const [listMember, setListUser] = useState<string[]>([]);
   const usernameRef = useRef<string>('');
   const displayNameRef = useRef<string>('');
   const memberIdRef = useRef<string[]>([]);
-
 
   const onStartChat = useCallback(async () => {
     const userId = usernameRef.current;
@@ -43,7 +42,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           },
           enableEncrypt,
           conversationId: conversationId,
-          memberId
+          memberId,
         });
       } else {
         FirestoreServicesInstance.setChatData({
@@ -55,16 +54,16 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           enableEncrypt,
           memberId,
         });
-        const newId = await FirestoreServicesInstance.createConversation();
-        conversationId = newId.id
+        const newConversation =
+          await FirestoreServicesInstance.createConversation();
+        conversationId = newConversation.id;
       }
       const members = {
         [userId]: `users/${userId}`,
-      }
-
+      };
       memberId.map((item, index) => {
-        members[item] = `users/${memberId}`
-      })
+        members[item] = `users/${item}`;
+      });
 
       navigation.navigate('ChatScreen', {
         userInfo: {
@@ -82,13 +81,13 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
     };
 
     const checkUserExist = await checkUsernameExist(userId);
-    var isAllMemberExist = true;
+    let isAllMemberExist = true;
     memberId.forEach(async (item, index) => {
       const checkMemberExist = await checkUsernameExist(item);
       if (!checkMemberExist) {
-        isAllMemberExist = false
+        isAllMemberExist = false;
       }
-    })
+    });
     if (!isAllMemberExist) {
       Alert.alert('Member dont exist');
     }
@@ -97,11 +96,10 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
         navigateToChatScreen();
       });
     } else if (checkUserExist && isAllMemberExist) {
-
       navigateToChatScreen();
     } else if (!checkUserExist) {
       await createUserProfile(userId, displayName).then(() => {
-        Alert.alert('Create User Success')
+        Alert.alert('Create User Success');
       });
     }
   }, [navigation, enableEncrypt, enableTyping]);
@@ -128,30 +126,37 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
           displayNameRef.current = text;
         }}
       />
-      {enableChatGroup && listMember.length > 0 && listMember.map((item, index) => (<>
-        <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
-        <TextInput
-          defaultValue={''}
-          autoFocus
-          style={styles.inputContainer}
-          placeholder={'Member Id'}
-          onChangeText={text => {
-            memberIdRef.current[index] = text;
-          }}
-        />
-      </>))
-      }
-
       {enableChatGroup &&
+        listMember.length > 0 &&
+        listMember.map((item, index) => (
+          <>
+            <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
+            <TextInput
+              defaultValue={''}
+              autoFocus
+              style={styles.inputContainer}
+              placeholder={'Member Id'}
+              onChangeText={text => {
+                memberIdRef.current[index] = text;
+              }}
+            />
+          </>
+        ))}
+
+      {enableChatGroup && (
         <>
-          <Button title={'+ add user'} onPress={() => {
-            if (listMember.length < 3) {
-              let tmp = [...listMember]
-              tmp.push('')
-              setListUser(tmp)
-            }
-          }} />
-        </>}
+          <Button
+            title={'+ add user'}
+            onPress={() => {
+              if (listMember.length < 3) {
+                const tmp = [...listMember];
+                tmp.push('');
+                setListUser(tmp);
+              }
+            }}
+          />
+        </>
+      )}
       <SwitchWithTitle
         title={'Encrypt Data'}
         value={enableEncrypt}
