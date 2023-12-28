@@ -1,10 +1,11 @@
 import storage from '@react-native-firebase/storage';
+import { MEDIA_FILE_TYPE } from '../../Chat/constanst';
 
 const uploadFileToFirebase = (path: string, mime: string, location: string) => {
   const comps = mime.split('/');
   let fileName = '';
   let newPath = path
-  if (mime.includes('video')) {
+  if (mime.includes(MEDIA_FILE_TYPE.video) || mime.includes(MEDIA_FILE_TYPE.file)) {
     let name = path.split('/');
     fileName = `${location}/${name[name.length - 1]}`;
     newPath = newPath.replace('file://', '')

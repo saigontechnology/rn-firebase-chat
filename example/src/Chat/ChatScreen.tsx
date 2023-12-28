@@ -11,7 +11,7 @@ import AvatarName from '../Components/AvatarName';
 import CustomInputMessage from './Component/CustomInputMessage';
 import { MessageProps } from '../../../src/interfaces';
 import Video from 'react-native-video';
-import { isImageUrl } from '../Utilities/utils';
+import { isImageUrl, isVideoUrl } from '../Utilities/utils';
 
 interface ChatScreenProps extends NativeStackScreenProps<any> { }
 
@@ -46,6 +46,26 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const renderBubble = (props: Bubble<MessageProps>['props']) => {
     const imageUrl = props.currentMessage?.imageUrl;
 
+    const renderUIBubble = () => {
+      if (!imageUrl) {
+        return null;
+      }
+      if (isImageUrl(imageUrl)) {
+        return <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      } else if (isVideoUrl(imageUrl)) {
+        return <Video source={{ uri: imageUrl }} style={styles.image} />
+      } else {
+        return <Image
+          source={require('../Assets/upload_file.png')}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      }
+    }
     return (
       <Bubble
         {...props}
@@ -55,15 +75,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
               <Pressable
                 style={styles.image}
                 onPress={() => onFilePress(imageUrl)}>
-                {isImageUrl(imageUrl) ? (
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.image}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Video source={{ uri: imageUrl }} style={styles.image} />
-                )}
+                {renderUIBubble()}
               </Pressable>
             );
         }}
