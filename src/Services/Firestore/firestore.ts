@@ -373,6 +373,7 @@ export class FirestoreServices {
       updated: new Date().valueOf(),
       unRead: {
         [userId]: 0,
+        // [memberId]: 0,
       },
       members: conversationData.members,
     };
