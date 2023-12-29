@@ -39,25 +39,24 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
 
   const showImageLibrary = async () => {
     try {
-      try {
-        ImagePicker.launchImageLibrary(
-          {
-            mediaType: 'photo',
-            includeBase64: false,
-            includeExtra: true,
-            quality: 1,
-          },
-          (res: ImagePicker.ImagePickerResponse) => {
-            const {assets} = res;
-            if (assets && assets?.length > 0) {
-              const {type, uri} = assets[0];
-              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
-            }
-          },
-        );
-      } catch (error) { }
-    } catch (err) { }
+      ImagePicker.launchImageLibrary(
+        {
+          mediaType: 'photo',
+          includeBase64: false,
+          includeExtra: true,
+          quality: 1,
+        },
+        (res: ImagePicker.ImagePickerResponse) => {
+          const {assets} = res;
+          if (assets && assets?.length > 0) {
+            const {type, uri} = assets[0];
+            onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
+          }
+        },
+      );
+    } catch (error) { }
   };
+  
   return (
     <View style={styles.container}>
       <PressAbleIcon
