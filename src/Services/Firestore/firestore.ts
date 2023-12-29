@@ -14,7 +14,7 @@ import {
   type MessageProps,
   type UserProfileProps,
 } from '../../interfaces';
-import { uploadFileToFirebase } from '../Firebase';
+import {uploadFileToFirebase} from '../Firebase';
 
 interface FirestoreProps {
   userId: string;
@@ -37,7 +37,7 @@ export class FirestoreServices {
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor() {}
+  constructor() { }
 
   static getInstance = () => {
     if (instance) {
@@ -62,80 +62,67 @@ export class FirestoreServices {
   };
 
   sendMessage = async (text: string, file?: any) => {
-    if (!this.conversationId) {
-      return;
-    }
-    let message = text;
-    if (this.enableEncrypt) {
-      const key = await generateKey('Arnold', 'salt', 5000, 256);
-      message = await encryptData(text, key);
-    }
-    const created = new Date().valueOf();
-    const messageData = {
-      readBy: {},
-      status: 'pending',
-      senderId: this.userId,
-      created: created,
-      text: message,
-      ...file,
-    };
-    await this.updateLatestMessageInChannel(message);
-
-    if (file) {
-      const task = uploadFileToFirebase(
-        file.imageUrl,
-        file.extension,
-        this.conversationId
-      );
-      task
-        .then(
-          (res) => {
-            storage()
-              .ref(res.metadata.fullPath)
-              .getDownloadURL()
-              .then((imageUrl) => {
-                firestore()
-                  .collection<MessageProps>(
-                    `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-                  )
-                  .add(messageData)
-                  .then((snapShot) => {
-                    snapShot
-                      .update({
-                        imageUrl,
-                        status: 'sent',
-                      })
-                      .then();
-                  })
-                  .catch((err) => {
-                    console.log('chat', err);
-                  });
-              });
-          },
-          (err) => {
-            console.log('reject', err);
-          }
-        )
-        .catch(() => {
-          console.log('chat', 'err');
-        });
-      return;
-    }
-    firestore()
-      .collection<MessageProps>(
-        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-      )
-      .add(messageData)
-      .then((snapShot) => {
-        snapShot
-          .update({
-            status: 'sent',
+    try {
+      if (!this.conversationId) {
+        return;
+      }
+      let message = text;
+      const messageData = {
+        readBy: {},
+        status: 'pending',
+        senderId: this.userId,
+        ...file,
+      };
+      if (message) {
+        if (this.enableEncrypt) {
+          const key = await generateKey('Arnold', 'salt', 5000, 256);
+          message = await encryptData(text, key);
+        }
+        const created = new Date().valueOf();
+        messageData.created = created;
+        messageData.text = message;
+        await this.updateLatestMessageInChannel(message);
+        firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData)
+          .then((snapShot) => {
+            snapShot
+              .update({
+                status: 'sent',
+              })
+              .then();
           })
-          .then();
-      })
-      .catch((err) => {
-        console.log('chat', err);
-      });
+          .catch((err) => { });
+      }
+
+      if (file) {
+        uploadFileToFirebase(
+          file.imageUrl,
+          file.extension,
+          this.conversationId
+        ).then((res) => {
+          storage()
+            .ref(res.metadata.fullPath)
+            .getDownloadURL()
+            .then((imageUrl) => {
+              firestore()
+                .collection<MessageProps>(
+                  `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+                )
+                .add(messageData)
+                .then((snapShot) => {
+                  snapShot.update({
+                    imageUrl,
+                    status: 'sent',
+                  });
+                })
+                .catch((err) => { });
+            });
+        });
+      }
+    } catch (error) { }
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -200,7 +187,7 @@ export class FirestoreServices {
               [this.userId]: 0,
             },
           },
-          { merge: true }
+          {merge: true}
         )
         .then();
     }
@@ -224,7 +211,7 @@ export class FirestoreServices {
         listMessage = await Promise.all(
           querySnapshot.docs.map((doc) => {
             return formatEncryptedMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             );
           })
@@ -233,7 +220,7 @@ export class FirestoreServices {
         querySnapshot.forEach((doc) => {
           listMessage.push(
             formatMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             )
           );
@@ -265,7 +252,7 @@ export class FirestoreServices {
         listMessage = await Promise.all<MessageProps>(
           querySnapshot.docs.map((doc) => {
             return formatEncryptedMessageData(
-              { ...doc.data(), id: doc.id },
+              {...doc.data(), id: doc.id},
               (this.userInfo as UserProfileProps).name
             );
           })
@@ -273,7 +260,7 @@ export class FirestoreServices {
       } else {
         querySnapshot.forEach((doc) => {
           let message = formatMessageData(
-            { ...doc.data(), id: doc.id },
+            {...doc.data(), id: doc.id},
             (this.userInfo as UserProfileProps).name
           );
           listMessage.push(message);
@@ -298,7 +285,7 @@ export class FirestoreServices {
               change.type === 'modified' &&
               change.doc.data().status === 'sent'
             ) {
-              callBack({ ...change.doc.data(), id: change.doc.id });
+              callBack({...change.doc.data(), id: change.doc.id});
             }
           });
         }
@@ -414,8 +401,31 @@ export class FirestoreServices {
         });
       }),
     ]);
-
     this.conversationId = conversationRef.id;
-    return { ...conversationData, id: conversationRef.id };
+    return {...conversationData, id: conversationRef.id};
+  };
+
+  getConservation = async (userId: string, memberId: string) => {
+    let conversationId = '';
+    await firestore()
+      .collection(`${FireStoreCollection.conversations}`)
+      .get()
+      .then((e) => {
+        e.docs.map((r) => {
+          const data = r.data();
+          let listUser = [];
+          try {
+            listUser = Object.keys(data?.members);
+            if (
+              listUser.includes(userId.toString()) &&
+              listUser.includes(memberId.toString())
+            ) {
+              conversationId = data.id;
+              return data.id;
+            }
+          } catch (error) { }
+        });
+      });
+    return conversationId;
   };
 }
