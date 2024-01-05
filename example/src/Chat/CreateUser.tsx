@@ -1,19 +1,19 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, {useCallback, useRef, useState} from 'react';
+import {Alert, Button, StyleSheet, Text, TextInput, View} from 'react-native';
+import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 import {
   checkUsernameExist,
   createUserProfile,
   FirestoreServices,
 } from '../../../src';
-import { SwitchWithTitle } from '../Components/SwitchWithTitle';
+import {SwitchWithTitle} from '../Components/SwitchWithTitle';
 
 type CreateUserProps = NativeStackScreenProps<any>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
 
-export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
+export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
   const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
   const [enableTyping, setEnableTyping] = useState<boolean>(false);
   const [enableChatGroup, setEnableChatGroup] = useState<boolean>(false);
@@ -86,7 +86,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({ navigation }) => {
       const checkMemberExist = await checkUsernameExist(item);
       if (!checkMemberExist) {
         isAllMemberExist = false;
-        return
+        return;
       }
     });
     if (!isAllMemberExist) {
@@ -205,5 +205,5 @@ const styles = StyleSheet.create({
   },
   margin: {
     marginTop: 12,
-  }
+  },
 });

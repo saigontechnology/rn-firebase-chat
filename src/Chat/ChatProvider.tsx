@@ -100,17 +100,17 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
         file = {
           imageUrl: messages?.imageUrl,
           extension: messages?.extension,
-          type: ''
+          type: '',
         };
         switch (messageType) {
           case MEDIA_FILE_TYPE.image:
-            file['type'] = MEDIA_FILE_TYPE.image
+            file.type = MEDIA_FILE_TYPE.image;
             break;
           case MEDIA_FILE_TYPE.video:
-            file['type'] = MEDIA_FILE_TYPE.video
+            file.type = MEDIA_FILE_TYPE.video;
             break;
           default:
-            file['type'] = MEDIA_FILE_TYPE.file
+            file.type = MEDIA_FILE_TYPE.file;
             break;
         }
       }
@@ -195,7 +195,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             setIsTyping(typingRef.current);
           }
         );
-      } catch (error) { }
+      } catch (error) {}
 
       return () => {
         if (receiveMessageRef) {
