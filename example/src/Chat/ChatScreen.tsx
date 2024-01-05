@@ -43,41 +43,40 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
     RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile));
   };
 
+  const renderCustomView = (imageUrl: string | undefined) => {
+    if (imageUrl) {
+      return (
+        <Pressable style={styles.image} onPress={() => onFilePress(imageUrl)}>
+          {isImageUrl(imageUrl) ? (
+            <Image
+              source={{uri: imageUrl}}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          ) : (
+            <Video source={{uri: imageUrl}} style={styles.image} />
+          )}
+        </Pressable>
+      );
+    }
+  };
+
   const renderBubble = (props: Bubble<MessageProps>['props']) => {
     const imageUrl = props.currentMessage?.imageUrl;
+    const styleBuble = {
+      left: styles.left,
+      right: styles.padding,
+    };
 
     return (
       <Bubble
         {...props}
-        renderCustomView={() => {
-          if (imageUrl) {
-            return (
-              <Pressable
-                style={styles.image}
-                onPress={() => onFilePress(imageUrl)}>
-                {isImageUrl(imageUrl) ? (
-                  <Image
-                    source={{uri: imageUrl}}
-                    style={styles.image}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Video source={{uri: imageUrl}} style={styles.image} />
-                )}
-              </Pressable>
-            );
-          }
-        }}
-        wrapperStyle={{
-          left: styles.left,
-          right: {
-            padding: 0,
-            // margin: 0,
-          },
-        }}
+        renderCustomView={() => renderCustomView(imageUrl)}
+        wrapperStyle={styleBuble}
       />
     );
   };
+
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <ChatProvider
@@ -107,4 +106,7 @@ const styles = StyleSheet.create({
     marginVertical: 0,
   },
   container: {flex: 1, backgroundColor: 'white'},
+  padding: {
+    padding: 0,
+  },
 });

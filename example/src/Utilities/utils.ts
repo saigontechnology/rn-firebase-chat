@@ -1,5 +1,5 @@
-export function isImageUrl(url: string): boolean {
-  const link = url.toLowerCase();
-  const imageExtension = ['jpg', 'jpeg', 'png'];
-  return imageExtension.some(extension => link.includes(extension));
-}
+export const isImageUrl = url => {
+  const pattern =
+    /(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png|jpeg|bmp|webp|svg)$/;
+  return pattern.test(url);
+};

@@ -128,9 +128,8 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         }}
       />
       {enableChatGroup &&
-        listMember.length > 0 &&
-        listMember.map((item, index) => (
-          <>
+        listMember?.map((item, index) => (
+          <View key={`${index} - ${item}`}>
             <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
             <TextInput
               defaultValue={''}
@@ -141,7 +140,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
                 memberIdRef.current[index] = text;
               }}
             />
-          </>
+          </View>
         ))}
 
       {enableChatGroup && (
