@@ -5,20 +5,20 @@
  * @format
  */
 
-import React, {useRef} from 'react';
-import {StatusBar} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React, {useRef} from 'react'
+import {StatusBar} from 'react-native'
+import {NavigationContainer} from '@react-navigation/native'
+import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
-import {ChatScreen} from './src/Chat/ChatScreen';
-import {CreateUser} from './src/Chat/CreateUser';
+import {ChatScreen} from './src/Chat/ChatScreen'
+import {CreateUser} from './src/Chat/CreateUser'
 // import {ConversationsScreen} from './src/Chat/ConversationsScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator()
 
 function App(): JSX.Element {
-  const navigationRef = useRef<any>();
+  const navigationRef = useRef<any>()
   return (
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef}>
@@ -63,7 +63,7 @@ function App(): JSX.Element {
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
-  );
+  )
 }
 
-export default App;
+export default App

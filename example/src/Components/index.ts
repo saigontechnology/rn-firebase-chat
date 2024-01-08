@@ -1,2 +1,2 @@
-export * from './VectorIconButton';
-export * from './PressAbleIcon';
+export * from './VectorIconButton'
+export * from './PressAbleIcon'

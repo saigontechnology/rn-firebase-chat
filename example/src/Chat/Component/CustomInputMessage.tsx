@@ -1,24 +1,29 @@
 /**
  * Created by NL on 06/04/21.
  */
-import React, {useState} from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
-import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
-import {PressAbleIcon} from '../../Components';
+import React, {useState} from 'react'
+import {View, StyleSheet, ScrollView} from 'react-native'
+import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat'
+import {PressAbleIcon} from '../../Components'
+import * as ImagePicker from 'react-native-image-picker'
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
-  isShowPhotoGallery: boolean;
-  togglePhotoGallery: (value: boolean) => void;
+  isShowPhotoGallery: boolean
+  togglePhotoGallery: (value: boolean) => void
 }
+
+// const byteToMB = 1048576;
+// const IMAGE_TYPE = 'image';
 
 const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   isShowPhotoGallery,
   togglePhotoGallery,
   ...props
 }) => {
-  const [, setIsShowImagePicker] = useState(false);
+  // const [, setIsShowImagePicker] = useState(false);
+  const [image, setImage] = useState({})
 
-  const {onSend, text} = props;
+  const {onSend, text} = props
   /**************************
    ======== Lifecycle =======
    **************************/
@@ -32,30 +37,31 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
-  // const showDocumentPicker = async () => {
-  //   // try {
-  //   //   const res = await DocumentPicker.pick({
-  //   //     type: [DocumentPicker.types.allFiles],
-  //   //   })
-  //   //   //file size < 5Mb
-  //   //   if (!res.size || res.uri.includes('storage/document'))
-  //   //     return Toast.info('Can not send file from drive.')
-  //   //   if (res.size > 5 * 1024 * 1024) {
-  //   //     Alert.alert('', 'File size must less than 5Mb')
-  //   //   } else {
-  //   //     const documentUri = await getPathForFirebaseStorage(res.uri)
-  //   //     const messageData: any = {type: res.type, fileUrl: documentUri, fileName: res.name, size: res.size}
-  //   //     if (res.type.includes('image')) messageData.imageUrl = 'file://' + documentUri
-  //   //     onSend(messageData)
-  //   //   }
-  //   // } catch (err) {
-  //   //   if (DocumentPicker.isCancel(err)) {
-  //   //     // User cancelled the picker, exit any dialogs or menus and move on
-  //   //   } else {
-  //   //     throw err
-  //   //   }
-  //   // }
-  // };
+  const showDocumentPicker = async () => {
+    try {
+      ImagePicker.launchImageLibrary(
+        {
+          mediaType: 'mixed',
+          includeBase64: false,
+          includeExtra: true,
+          quality: 1,
+        },
+        (res: ImagePicker.ImagePickerResponse) => {
+          const {assets} = res
+          if (assets && assets?.length > 0) {
+            const {type, uri} = assets[0]
+            if (type?.includes('video')) {
+              onSend?.({imageUrl: uri, extension: type, type: 'video'}, true)
+            } else if (type?.includes('image')) {
+              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true)
+            }
+          }
+        },
+      )
+    } catch (error) {
+      console.log('Can not open document picker', error)
+    }
+  }
   return (
     <View style={styles.container}>
       <PressAbleIcon
@@ -67,7 +73,8 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       />
       <PressAbleIcon
         onPress={() => {
-          togglePhotoGallery(!isShowPhotoGallery);
+          togglePhotoGallery(!isShowPhotoGallery)
+          showDocumentPicker()
         }}
         style={{
           marginHorizontal: 12,
@@ -124,8 +131,8 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
       {/*  onSelectImage={handleSelectImage}*/}
       {/*/>*/}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -141,6 +148,6 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     flexDirection: 'row',
   },
-});
+})
 
-export default CustomInputMessage;
+export default CustomInputMessage
