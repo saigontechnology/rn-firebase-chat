@@ -16,7 +16,6 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
 import { haveSameContents } from '../../Utilities/ultis';
-import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
@@ -39,7 +38,7 @@ export class FirestoreServices {
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor() { }
+  constructor() {}
 
   static getInstance = () => {
     if (instance) {
@@ -96,14 +95,14 @@ export class FirestoreServices {
               })
               .then();
           })
-          .catch((err) => { });
+          .catch((err) => {});
       }
       if (file) {
         const res = await uploadFileToFirebase(
           file.imageUrl,
           file.extension,
           this.conversationId
-        )
+        );
         storage()
           .ref(res.metadata.fullPath)
           .getDownloadURL()
@@ -123,11 +122,11 @@ export class FirestoreServices {
                 });
               })
               .catch((err) => {
-                console.log(err)
+                console.log(err);
               });
           });
       }
-    } catch (error) { }
+    } catch (error) {}
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -360,8 +359,10 @@ export class FirestoreServices {
       },
     };
     memberId.forEach((item, index) => {
-      conversationData.members[item] = firestore().doc(`${FireStoreCollection.users}/${item}`)
-    })
+      conversationData.members[item] = firestore().doc(
+        `${FireStoreCollection.users}/${item}`
+      );
+    });
 
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -426,12 +427,11 @@ export class FirestoreServices {
             listUser = Object.keys(data?.members);
 
             const listMemberA: string[] = [...memberId, userId];
-            const res = haveSameContents(listUser, listMemberA)
+            const res = haveSameContents(listUser, listMemberA);
             if (res) {
               conversationId = data.id;
             }
-          } catch (error) {
-          }
+          } catch (error) {}
         });
       });
     return conversationId;

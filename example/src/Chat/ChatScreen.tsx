@@ -1,81 +1,70 @@
-import React, {useState} from 'react';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ActivityIndicator, Image, Pressable, StyleSheet} from 'react-native';
-import {Bubble, type InputToolbarProps} from 'react-native-gifted-chat';
-import {ChatProvider} from '../../../src';
-import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models';
-import RNFS from 'react-native-fs';
-import FileViewer from 'react-native-file-viewer';
-import AvatarName from '../Components/AvatarName';
-import CustomInputMessage from './Component/CustomInputMessage';
-import {MessageProps} from '../../../src/interfaces';
-import Video from 'react-native-video';
-import {isImageUrl} from '../Utilities/utils';
+import React, {useState} from 'react'
+import type {NativeStackScreenProps} from '@react-navigation/native-stack'
+import {SafeAreaView} from 'react-native-safe-area-context'
+import {ActivityIndicator, Image, Pressable, StyleSheet} from 'react-native'
+import {Bubble, type InputToolbarProps} from 'react-native-gifted-chat'
+import {ChatProvider} from '../../../src'
+import type {IMessage as IGiftedChatMessage} from 'react-native-gifted-chat/lib/Models'
+import RNFS from 'react-native-fs'
+import FileViewer from 'react-native-file-viewer'
+import AvatarName from '../Components/AvatarName'
+import CustomInputMessage from './Component/CustomInputMessage'
+import {MessageProps} from '../../../src/interfaces'
+import Video from 'react-native-video'
+import {isImageUrl} from '../Utilities/utils'
 
-type ChatScreenProps = NativeStackScreenProps<any>;
+type ChatScreenProps = NativeStackScreenProps<any>
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
-  const {userInfo, conversationInfo, memberId, enableEncrypt, enableTyping} =
-    route.params || {};
+  const {userInfo, conversationInfo, memberId, enableEncrypt, enableTyping} = route.params || {}
 
-  const [isShowPhotoGallery, setIsShowPhotoGallery] = useState<boolean>(false);
+  const [isShowPhotoGallery, setIsShowPhotoGallery] = useState<boolean>(false)
 
   const renderInputToolbar = (props: InputToolbarProps<IGiftedChatMessage>) => (
     <CustomInputMessage
       {...props}
       isShowPhotoGallery={isShowPhotoGallery}
       togglePhotoGallery={value => {
-        setIsShowPhotoGallery(value);
+        setIsShowPhotoGallery(value)
       }}
     />
-  );
+  )
 
   const onFilePress = (url: string) => {
-    const extension = url.split(/[#?]/)[0].split('.').pop().trim();
+    const extension = url.split(/[#?]/)[0].split('.').pop()?.trim()
     // Feel free to change main path according to your requirements.
-    const localFile = `${RNFS.DocumentDirectoryPath}/temporaryfile.${extension}`;
+    const localFile = `${RNFS.DocumentDirectoryPath}/temporaryfile.${extension}`
 
     const options = {
       fromUrl: url,
       toFile: localFile,
-    };
-    RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile));
-  };
+    }
+    RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile))
+  }
 
   const renderCustomView = (imageUrl: string | undefined) => {
     if (imageUrl) {
       return (
         <Pressable style={styles.image} onPress={() => onFilePress(imageUrl)}>
           {isImageUrl(imageUrl) ? (
-            <Image
-              source={{uri: imageUrl}}
-              style={styles.image}
-              resizeMode="contain"
-            />
+            <Image source={{uri: imageUrl}} style={styles.image} resizeMode="contain" />
           ) : (
             <Video source={{uri: imageUrl}} style={styles.image} />
           )}
         </Pressable>
-      );
+      )
     }
-  };
+  }
 
   const renderBubble = (props: Bubble<MessageProps>['props']) => {
-    const imageUrl = props.currentMessage?.imageUrl;
+    const imageUrl = props.currentMessage?.imageUrl
     const styleBuble = {
       left: styles.left,
       right: styles.padding,
-    };
+    }
 
-    return (
-      <Bubble
-        {...props}
-        renderCustomView={() => renderCustomView(imageUrl)}
-        wrapperStyle={styleBuble}
-      />
-    );
-  };
+    return <Bubble {...props} renderCustomView={() => renderCustomView(imageUrl)} wrapperStyle={styleBuble} />
+  }
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
@@ -86,15 +75,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
         conversationInfo={conversationInfo}
         memberId={memberId}
         renderLoadEarlier={() => {
-          return <ActivityIndicator style={styles.loadEarlier} />;
+          return <ActivityIndicator style={styles.loadEarlier} />
         }}
         renderBubble={renderBubble}
         renderAvatar={() => <AvatarName fullName={'React Native'} />}
         renderInputToolbar={renderInputToolbar}
       />
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   loadEarlier: {
@@ -102,11 +91,11 @@ const styles = StyleSheet.create({
   },
   image: {width: 150, height: 150},
   left: {
-    backgroundColor: 'gray',
+    backgroundColor: '#F0F0F0',
     marginVertical: 0,
   },
   container: {flex: 1, backgroundColor: 'white'},
   padding: {
     padding: 0,
   },
-});
+})

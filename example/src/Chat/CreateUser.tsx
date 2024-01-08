@@ -1,38 +1,31 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Alert, Button, StyleSheet, Text, TextInput, View} from 'react-native';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import React, {useCallback, useRef, useState} from 'react'
+import {Alert, Button, StyleSheet, Text, TextInput, View} from 'react-native'
+import type {NativeStackScreenProps} from '@react-navigation/native-stack'
 
-import {
-  checkUsernameExist,
-  createUserProfile,
-  FirestoreServices,
-} from '../../../src';
-import {SwitchWithTitle} from '../Components/SwitchWithTitle';
+import {checkUsernameExist, createUserProfile, FirestoreServices} from '../../../src'
+import {SwitchWithTitle} from '../Components/SwitchWithTitle'
 
-type CreateUserProps = NativeStackScreenProps<any>;
+type CreateUserProps = NativeStackScreenProps<any>
 
-const FirestoreServicesInstance = FirestoreServices.getInstance();
+const FirestoreServicesInstance = FirestoreServices.getInstance()
 
 export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
-  const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false);
-  const [enableTyping, setEnableTyping] = useState<boolean>(false);
-  const [enableChatGroup, setEnableChatGroup] = useState<boolean>(false);
-  const [listMember, setListUser] = useState<string[]>([]);
-  const usernameRef = useRef<string>('');
-  const displayNameRef = useRef<string>('');
-  const memberIdRef = useRef<string[]>([]);
+  const [enableEncrypt, setEnableEncrypt] = useState<boolean>(false)
+  const [enableTyping, setEnableTyping] = useState<boolean>(false)
+  const [enableChatGroup, setEnableChatGroup] = useState<boolean>(false)
+  const [listMember, setListUser] = useState<string[]>([])
+  const usernameRef = useRef<string>('')
+  const displayNameRef = useRef<string>('')
+  const memberIdRef = useRef<string[]>([])
 
   const onStartChat = useCallback(async () => {
-    const userId = usernameRef.current;
-    const displayName = displayNameRef.current;
-    const memberId = memberIdRef.current;
+    const userId = usernameRef.current
+    const displayName = displayNameRef.current
+    const memberId = memberIdRef.current
 
     const navigateToChatScreen = async () => {
-      let conversationId = '';
-      conversationId = await FirestoreServicesInstance.getConservation(
-        userId,
-        memberId,
-      );
+      let conversationId = ''
+      conversationId = await FirestoreServicesInstance.getConservation(userId, memberId)
       if (conversationId) {
         FirestoreServicesInstance.setChatData({
           userId,
@@ -43,7 +36,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
           enableEncrypt,
           conversationId: conversationId,
           memberId,
-        });
+        })
       } else {
         FirestoreServicesInstance.setChatData({
           userId,
@@ -53,17 +46,16 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
           },
           enableEncrypt,
           memberId,
-        });
-        const newConversation =
-          await FirestoreServicesInstance.createConversation();
-        conversationId = newConversation.id;
+        })
+        const newConversation = await FirestoreServicesInstance.createConversation()
+        conversationId = newConversation.id
       }
       const members = {
         [userId]: `users/${userId}`,
-      };
+      }
       memberId.map((item, index) => {
-        members[item] = `users/${item}`;
-      });
+        members[item] = `users/${item}`
+      })
 
       navigation.navigate('ChatScreen', {
         userInfo: {
@@ -77,33 +69,33 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
           members,
         },
         enableTyping,
-      });
-    };
+      })
+    }
 
-    const checkUserExist = await checkUsernameExist(userId);
-    let isAllMemberExist = true;
+    const checkUserExist = await checkUsernameExist(userId)
+    let isAllMemberExist = true
     memberId.forEach(async (item, index) => {
-      const checkMemberExist = await checkUsernameExist(item);
+      const checkMemberExist = await checkUsernameExist(item)
       if (!checkMemberExist) {
-        isAllMemberExist = false;
-        return;
+        isAllMemberExist = false
+        return
       }
-    });
+    })
     if (!isAllMemberExist) {
-      Alert.alert('Member dont exist');
+      Alert.alert('Member dont exist')
     }
     if (!checkUserExist && isAllMemberExist) {
       await createUserProfile(userId, displayName).then(() => {
-        navigateToChatScreen();
-      });
+        navigateToChatScreen()
+      })
     } else if (checkUserExist && isAllMemberExist) {
-      navigateToChatScreen();
+      navigateToChatScreen()
     } else if (!checkUserExist) {
       await createUserProfile(userId, displayName).then(() => {
-        Alert.alert('Create User Success');
-      });
+        Alert.alert('Create User Success')
+      })
     }
-  }, [navigation, enableEncrypt, enableTyping]);
+  }, [navigation, enableEncrypt, enableTyping])
 
   return (
     <View style={styles.container}>
@@ -114,7 +106,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         style={styles.inputContainer}
         placeholder={'Username'}
         onChangeText={text => {
-          usernameRef.current = text;
+          usernameRef.current = text
         }}
       />
       <Text style={styles.titleContainer}>Display Name</Text>
@@ -124,7 +116,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         style={styles.inputContainer}
         placeholder={'Display name'}
         onChangeText={text => {
-          displayNameRef.current = text;
+          displayNameRef.current = text
         }}
       />
       {enableChatGroup &&
@@ -137,7 +129,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
               style={styles.inputContainer}
               placeholder={'Member Id'}
               onChangeText={text => {
-                memberIdRef.current[index] = text;
+                memberIdRef.current[index] = text
               }}
             />
           </View>
@@ -149,9 +141,9 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
             title={'+ add user'}
             onPress={() => {
               if (listMember.length < 3) {
-                const tmp = [...listMember];
-                tmp.push('');
-                setListUser(tmp);
+                const tmp = [...listMember]
+                tmp.push('')
+                setListUser(tmp)
               }
             }}
           />
@@ -161,7 +153,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         title={'Encrypt Data'}
         value={enableEncrypt}
         onValueChange={value => {
-          setEnableEncrypt(value);
+          setEnableEncrypt(value)
         }}
       />
       <SwitchWithTitle
@@ -169,7 +161,7 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         title={'Support Typing'}
         value={enableTyping}
         onValueChange={value => {
-          setEnableTyping(value);
+          setEnableTyping(value)
         }}
       />
       <SwitchWithTitle
@@ -177,13 +169,13 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
         title={'Add Other User'}
         value={enableChatGroup}
         onValueChange={value => {
-          setEnableChatGroup(value);
+          setEnableChatGroup(value)
         }}
       />
       <Button title={'Start Chat'} onPress={onStartChat} />
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -205,4 +197,4 @@ const styles = StyleSheet.create({
   margin: {
     marginTop: 12,
   },
-});
+})

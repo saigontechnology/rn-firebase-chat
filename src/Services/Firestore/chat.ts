@@ -175,7 +175,7 @@ const changeReadMessage = (conversationId: string) => {
       },
       { merge: true }
     )
-    .then(() => { });
+    .then(() => {});
 };
 
 let messageCursor:
