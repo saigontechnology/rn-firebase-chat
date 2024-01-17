@@ -32,21 +32,24 @@ let typingTimeout: ReturnType<typeof setTimeout>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
 export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
-  ({
-    userInfo,
-    memberId,
-    conversationInfo,
-    style,
-    renderLoadEarlier,
-    renderAvatar,
-    renderBubble,
-    renderMessage,
-    enableEncrypt,
-    enableTyping,
-    typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
-    renderInputToolbar,
-    ...props
-  }) => {
+  (
+    {
+      userInfo,
+      memberId,
+      conversationInfo,
+      style,
+      renderLoadEarlier,
+      renderAvatar,
+      renderBubble,
+      renderMessage,
+      enableEncrypt,
+      enableTyping,
+      typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
+      renderInputToolbar,
+      ...props
+    },
+    ref
+  ) => {
     const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
     // const [isShowPhotoGallery, setIsShowPhotoGallery] =
     //   useState<boolean>(false);
@@ -100,19 +103,8 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
         file = {
           imageUrl: messages?.imageUrl,
           extension: messages?.extension,
-          type: '',
+          type: MEDIA_FILE_TYPE[messageType],
         };
-        switch (messageType) {
-          case MEDIA_FILE_TYPE.image:
-            file.type = MEDIA_FILE_TYPE.image;
-            break;
-          case MEDIA_FILE_TYPE.video:
-            file.type = MEDIA_FILE_TYPE.video;
-            break;
-          default:
-            file.type = MEDIA_FILE_TYPE.file;
-            break;
-        }
       }
       await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
@@ -208,7 +200,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
     }, [userInfo.id, loadEarlier, memberId, enableEncrypt, userInfo.name]);
 
     return (
-      <View style={[styles.container, style]}>
+      <View ref={ref} style={[styles.container, style]}>
         <KeyboardAvoidingView style={styles.container}>
           <GiftedChat
             messages={messagesList}

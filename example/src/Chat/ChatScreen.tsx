@@ -32,29 +32,42 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
   );
 
   const onFilePress = (url: string) => {
-    const extension = url.split(/[#?]/)[0].split('.').pop().trim();
-    // Feel free to change main path according to your requirements.
-    const localFile = `${RNFS.DocumentDirectoryPath}/temporaryfile.${extension}`;
+    try {
+      const extension = url?.split(/[#?]/)[0]?.split('.').pop()?.trim();
 
-    const options = {
-      fromUrl: url,
-      toFile: localFile,
-    };
-    RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile));
+      if (!extension) {
+        throw new Error('Invalid file extension');
+      }
+      const localFile = `${RNFS.DocumentDirectoryPath}/temporaryfile.${extension}`;
+
+      const options = {
+        fromUrl: url,
+        toFile: localFile,
+      };
+      RNFS.downloadFile(options).promise.then(() => FileViewer.open(localFile));
+    } catch (error) {
+      console.error('Error processing file:', error);
+      // Handle the error as needed, e.g., show a user-friendly message.
+    }
   };
 
-  const renderCustomView = (imageUrl: string | undefined) => {
+  const renderCustomView = (
+    imageUrl: string | undefined,
+    width: number,
+    height: number,
+  ) => {
+    const image = {width, height};
     if (imageUrl) {
       return (
-        <Pressable style={styles.image} onPress={() => onFilePress(imageUrl)}>
+        <Pressable style={image} onPress={() => onFilePress(imageUrl)}>
           {isImageUrl(imageUrl) ? (
             <Image
               source={{uri: imageUrl}}
-              style={styles.image}
+              style={image}
               resizeMode="contain"
             />
           ) : (
-            <Video source={{uri: imageUrl}} style={styles.image} />
+            <Video source={{uri: imageUrl}} style={image} />
           )}
         </Pressable>
       );
@@ -71,7 +84,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({route}) => {
     return (
       <Bubble
         {...props}
-        renderCustomView={() => renderCustomView(imageUrl)}
+        renderCustomView={() => renderCustomView(imageUrl, 150, 150)}
         wrapperStyle={styleBuble}
       />
     );
@@ -100,7 +113,6 @@ const styles = StyleSheet.create({
   loadEarlier: {
     marginVertical: 20,
   },
-  image: {width: 150, height: 150},
   left: {
     backgroundColor: 'gray',
     marginVertical: 0,

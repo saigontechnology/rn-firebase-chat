@@ -16,7 +16,6 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
 import { haveSameContents } from '../../Utilities/ultis';
-import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
@@ -39,7 +38,7 @@ export class FirestoreServices {
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor() { }
+  constructor() {}
 
   static getInstance = () => {
     if (instance) {
@@ -84,50 +83,42 @@ export class FirestoreServices {
         messageData.created = created;
         messageData.text = message;
         await this.updateLatestMessageInChannel(message);
-        firestore()
+        const messageRef = await firestore()
           .collection<MessageProps>(
             `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
           )
-          .add(messageData)
-          .then((snapShot) => {
-            snapShot
-              .update({
-                status: 'sent',
-              })
-              .then();
-          })
-          .catch((err) => { });
+          .add(messageData);
+
+        await messageRef.update({
+          status: 'sent',
+        });
       }
       if (file) {
         const res = await uploadFileToFirebase(
-          file.imageUrl,
-          file.extension,
+          file?.imageUrl,
+          file?.extension,
           this.conversationId
-        )
-        storage()
+        );
+        const imageUrl = await storage()
           .ref(res.metadata.fullPath)
-          .getDownloadURL()
-          .then((imageUrl) => {
-            const created = new Date().valueOf();
-            messageData.created = created;
-            messageData.text = '';
-            firestore()
-              .collection<MessageProps>(
-                `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-              )
-              .add(messageData)
-              .then((snapShot) => {
-                snapShot.update({
-                  imageUrl,
-                  status: 'sent',
-                });
-              })
-              .catch((err) => {
-                console.log(err)
-              });
-          });
+          .getDownloadURL();
+
+        const created = new Date().valueOf();
+        messageData.created = created;
+        messageData.text = '';
+
+        const fileMessageRef = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData);
+
+        await fileMessageRef.update({
+          imageUrl,
+          status: 'sent',
+        });
       }
-    } catch (error) { }
+    } catch (error) {}
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -360,8 +351,10 @@ export class FirestoreServices {
       },
     };
     memberId.forEach((item, index) => {
-      conversationData.members[item] = firestore().doc(`${FireStoreCollection.users}/${item}`)
-    })
+      conversationData.members[item] = firestore().doc(
+        `${FireStoreCollection.users}/${item}`
+      );
+    });
 
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -426,12 +419,11 @@ export class FirestoreServices {
             listUser = Object.keys(data?.members);
 
             const listMemberA: string[] = [...memberId, userId];
-            const res = haveSameContents(listUser, listMemberA)
+            const res = haveSameContents(listUser, listMemberA);
             if (res) {
               conversationId = data.id;
             }
-          } catch (error) {
-          }
+          } catch (error) {}
         });
       });
     return conversationId;

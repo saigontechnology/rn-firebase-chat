@@ -90,7 +90,8 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
       }
     });
     if (!isAllMemberExist) {
-      Alert.alert('Member dont exist');
+      Alert.alert('Member not exist');
+      return;
     }
     if (!checkUserExist && isAllMemberExist) {
       await createUserProfile(userId, displayName).then(() => {
@@ -127,24 +128,22 @@ export const CreateUser: React.FC<CreateUserProps> = ({navigation}) => {
           displayNameRef.current = text;
         }}
       />
-      {enableChatGroup &&
-        listMember?.map((item, index) => (
-          <View key={`${index} - ${item}`}>
-            <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
-            <TextInput
-              defaultValue={''}
-              autoFocus
-              style={styles.inputContainer}
-              placeholder={'Member Id'}
-              onChangeText={text => {
-                memberIdRef.current[index] = text;
-              }}
-            />
-          </View>
-        ))}
-
       {enableChatGroup && (
         <>
+          {listMember?.map((item, index) => (
+            <View key={`${index} - ${item}`}>
+              <Text style={styles.titleContainer}>Member Id {index + 1}</Text>
+              <TextInput
+                defaultValue={''}
+                autoFocus
+                style={styles.inputContainer}
+                placeholder={'Member Id'}
+                onChangeText={text => {
+                  memberIdRef.current[index] = text;
+                }}
+              />
+            </View>
+          ))}
           <Button
             title={'+ add user'}
             onPress={() => {

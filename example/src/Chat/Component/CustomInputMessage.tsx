@@ -5,7 +5,13 @@ import React, {useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
 import {PressAbleIcon} from '../../Components';
-import * as ImagePicker from 'react-native-image-picker';
+import {
+  MediaType,
+  PhotoQuality,
+  launchImageLibrary,
+} from 'react-native-image-picker';
+import {MEDIA_TYPE_IMAGE_PICKER} from '../constanst';
+import {MEDIA_FILE_TYPE} from '../../../../src/Chat/constanst';
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
@@ -39,35 +45,43 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
 
   const showDocumentPicker = async () => {
     try {
-      ImagePicker.launchImageLibrary(
-        {
-          mediaType: 'mixed',
-          includeBase64: false,
-          includeExtra: true,
-          quality: 1,
-        },
-        (res: ImagePicker.ImagePickerResponse) => {
-          const {assets} = res;
-          if (assets && assets?.length > 0) {
-            const {type, uri} = assets[0];
-            if (type?.includes('video')) {
-              onSend?.({imageUrl: uri, extension: type, type: 'video'}, true);
-            } else if (type?.includes('image')) {
-              onSend?.({imageUrl: uri, extension: type, type: 'image'}, true);
-            }
-          }
-        },
-      );
+      const options = {
+        mediaType: MEDIA_TYPE_IMAGE_PICKER.mixed as MediaType,
+        includeBase64: false,
+        includeExtra: true,
+        quality: 1 as PhotoQuality,
+      };
+
+      const res = await launchImageLibrary(options);
+      const {assets} = res;
+      if (assets && assets?.length > 0) {
+        const {type, uri} = assets[0];
+        let mediaType = MEDIA_FILE_TYPE.image;
+
+        if (type?.includes(MEDIA_FILE_TYPE.video)) {
+          mediaType = MEDIA_FILE_TYPE.video;
+        } else if (type?.includes(MEDIA_FILE_TYPE.image)) {
+          mediaType = MEDIA_FILE_TYPE.image;
+        }
+
+        onSend?.(
+          {
+            imageUrl: uri,
+            extension: type,
+            type: mediaType,
+          },
+          true,
+        );
+      }
     } catch (error) {
       console.log('Can not open document picker', error);
     }
   };
+
   return (
     <View style={styles.container}>
       <PressAbleIcon
-        style={{
-          marginHorizontal: 12,
-        }}
+        style={styles.mgHorizontal}
         size={28}
         icon={require('../../Assets/camera.png')}
       />
@@ -76,34 +90,24 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
           togglePhotoGallery(!isShowPhotoGallery);
           showDocumentPicker();
         }}
-        style={{
-          marginHorizontal: 12,
-        }}
+        style={styles.mgHorizontal}
         size={28}
         icon={require('../../Assets/image.png')}
       />
       <View style={styles.composeWrapper}>
         <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={{
-              marginHorizontal: 20,
-              lineHeight: 20,
-            }}
-          />
+          <Composer {...props} textInputStyle={styles.textInputStyle} />
         </ScrollView>
       </View>
       {text ? (
         <PressAbleIcon
-          style={{
-            marginHorizontal: 12,
-          }}
+          style={styles.mgHorizontal}
           onPress={() => onSend?.({text: text}, true)}
           size={28}
           icon={require('../../Assets/send.png')}
         />
       ) : (
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.directionStyle}>
           {/*<VectorIconButton*/}
           {/*  onPress={() => {*/}
           {/*    showDocumentPicker();*/}
@@ -146,6 +150,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     paddingLeft: 10,
     paddingRight: 20,
+    flexDirection: 'row',
+  },
+  mgHorizontal: {
+    marginHorizontal: 12,
+  },
+  textInputStyle: {
+    marginHorizontal: 20,
+    lineHeight: 20,
+  },
+  directionStyle: {
     flexDirection: 'row',
   },
 });
