@@ -8,11 +8,9 @@ import {
 } from 'react-native';
 import { GiftedChat, GiftedChatProps } from 'react-native-gifted-chat';
 import { FirestoreServices } from '../Services/Firestore';
-// import CustomMessageView from './Component/CustomMessageView';
 import { formatEncryptedMessageData, formatMessageData } from '../Utilities';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
-// import { PhotoGalleryView } from './Component/PhotoGalleryView';
-import { TYPING_TIMEOUT_SECONDS } from './constanst';
+import { MEDIA_FILE_TYPE, TYPING_TIMEOUT_SECONDS } from './constanst';
 import type { ConversationProps, MessageProps } from '../interfaces';
 
 interface IUserInfo {
@@ -33,23 +31,25 @@ interface ChatScreenProps extends GiftedChatProps {
 let typingTimeout: ReturnType<typeof setTimeout>;
 
 const FirestoreServicesInstance = FirestoreServices.getInstance();
-
 export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
-  ({
-    userInfo,
-    memberId,
-    conversationInfo,
-    style,
-    renderLoadEarlier,
-    renderAvatar,
-    renderBubble,
-    renderMessage,
-    enableEncrypt,
-    enableTyping,
-    typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
-    renderInputToolbar,
-    ...props
-  }) => {
+  (
+    {
+      userInfo,
+      memberId,
+      conversationInfo,
+      style,
+      renderLoadEarlier,
+      renderAvatar,
+      renderBubble,
+      renderMessage,
+      enableEncrypt,
+      enableTyping,
+      typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
+      renderInputToolbar,
+      ...props
+    },
+    ref
+  ) => {
     const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
     // const [isShowPhotoGallery, setIsShowPhotoGallery] =
     //   useState<boolean>(false);
@@ -73,7 +73,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
             (data: MessageProps[]) => {
               setIsLoadingEarlier(false);
               setLoadEarlier(true);
-              if (data && data?.length) {
+              if (data?.length) {
                 setMessagesList((prevState) => {
                   return prevState.concat(...data);
                 });
@@ -98,32 +98,14 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
       let file;
       const messageType = messages?.type;
+
       if (messageType) {
-        switch (messageType) {
-          case 'image':
-            file = {
-              type: 'image',
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
-            break;
-          default:
-            file = {
-              type: 'file',
-              fileUrl: messages?.fileUrl,
-              extension: messages?.extension,
-            };
-            break;
-        }
+        file = {
+          imageUrl: messages?.imageUrl,
+          extension: messages?.extension,
+          type: MEDIA_FILE_TYPE[messageType],
+        };
       }
-      //file = {
-      //           type: 'image',
-      //           imageUrl: messages?.imageUrl,
-      //           // fileUrl: fileUrl,
-      //           // fileName: messages?.fileName,
-      //           // fileSize: messages?.fileSize,
-      //           extension: messages?.extension,
-      //         };
       await FirestoreServicesInstance.sendMessage(messages.text, file);
     }, []);
 
@@ -159,12 +141,13 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
 
     useEffect(() => {
       if (conversationInfo?.id) {
+        setLoadEarlier(true);
         FirestoreServicesInstance.countAllMessages().then((total) => {
           totalMessages.current = total;
         });
         FirestoreServicesInstance.getMessageHistory().then((res) => {
           FirestoreServicesInstance.changeReadMessage();
-          setLoadEarlier(true);
+          setLoadEarlier(false);
           setMessagesList(res);
         });
       }
@@ -173,36 +156,38 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
     useEffect(() => {
       let receiveMessageRef: () => void;
       let userConversation: () => void;
-      receiveMessageRef = FirestoreServicesInstance.receiveMessageListener(
-        (message: MessageProps) => {
-          if (message.senderId !== userInfo.id) {
-            if (enableEncrypt) {
-              formatEncryptedMessageData(message, userInfo.name).then(
-                (formattedMessages: any) => {
-                  setMessagesList([formattedMessages, ...messageRef.current]);
-                  FirestoreServicesInstance.changeReadMessage();
-                }
-              );
-            } else {
-              const formatMessage = formatMessageData(message, userInfo.name);
-              const mergeMessageList = [
-                formatMessage,
-                ...messageRef.current,
-              ] as MessageProps[];
-              setMessagesList(mergeMessageList);
-              FirestoreServicesInstance.changeReadMessage();
+      try {
+        receiveMessageRef = FirestoreServicesInstance.receiveMessageListener(
+          (message: MessageProps) => {
+            if (message.senderId !== userInfo.id) {
+              if (enableEncrypt) {
+                formatEncryptedMessageData(message, userInfo.name).then(
+                  (formattedMessages: any) => {
+                    setMessagesList([formattedMessages, ...messageRef.current]);
+                    FirestoreServicesInstance.changeReadMessage();
+                  }
+                );
+              } else {
+                const formatMessage = formatMessageData(message, userInfo.name);
+                const mergeMessageList = [
+                  formatMessage,
+                  ...messageRef.current,
+                ] as MessageProps[];
+                setMessagesList(mergeMessageList);
+                FirestoreServicesInstance.changeReadMessage();
+              }
             }
           }
-        }
-      );
-      // //Build for chat 1-1
-      userConversation = FirestoreServicesInstance.userConversationListener(
-        (newConversation) => {
-          conversationRef.current = newConversation as ConversationProps;
-          typingRef.current = newConversation?.typing?.[memberId];
-          setIsTyping(typingRef.current);
-        }
-      );
+        );
+        // //Build for chat 1-1
+        userConversation = FirestoreServicesInstance.userConversationListener(
+          (newConversation) => {
+            conversationRef.current = newConversation as ConversationProps;
+            typingRef.current = newConversation?.typing?.[memberId];
+            setIsTyping(typingRef.current);
+          }
+        );
+      } catch (error) {}
 
       return () => {
         if (receiveMessageRef) {
@@ -215,7 +200,7 @@ export const ChatProvider = React.forwardRef<any, ChatScreenProps>(
     }, [userInfo.id, loadEarlier, memberId, enableEncrypt, userInfo.name]);
 
     return (
-      <View style={[styles.container, style]}>
+      <View ref={ref} style={[styles.container, style]}>
         <KeyboardAvoidingView style={styles.container}>
           <GiftedChat
             messages={messagesList}

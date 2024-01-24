@@ -15,10 +15,12 @@ import {
   type UserProfileProps,
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
+import { haveSameContents } from '../../Utilities/ultis';
+import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
-  memberId: string;
+  memberId: string[];
   userInfo?: UserProfileProps;
   conversationId?: string;
   enableEncrypt?: boolean;
@@ -28,7 +30,7 @@ let instance: FirestoreServices | undefined;
 
 export class FirestoreServices {
   userId: string | undefined;
-  memberId: string | undefined;
+  memberId: string[] | undefined;
   userInfo: UserProfileProps | undefined;
   conversationId: string | undefined;
   enableEncrypt: boolean | undefined;
@@ -55,87 +57,69 @@ export class FirestoreServices {
     enableEncrypt,
   }: FirestoreProps) => {
     this.userId = userId.toString();
-    this.memberId = memberId.toString();
+    this.memberId = memberId;
     this.userInfo = userInfo;
     this.conversationId = conversationId;
     this.enableEncrypt = enableEncrypt;
   };
 
   sendMessage = async (text: string, file?: any) => {
-    if (!this.conversationId) {
-      return;
-    }
-    let message = text;
-    if (this.enableEncrypt) {
-      const key = await generateKey('Arnold', 'salt', 5000, 256);
-      message = await encryptData(text, key);
-    }
-    const created = new Date().valueOf();
-    const messageData = {
-      readBy: {},
-      status: 'pending',
-      senderId: this.userId,
-      created: created,
-      text: message,
-      ...file,
-    };
-    await this.updateLatestMessageInChannel(message);
+    try {
+      if (!this.conversationId) {
+        return;
+      }
+      let message = text;
+      const messageData = {
+        readBy: {},
+        status: MESSAGE_STATUS.pending,
+        senderId: this.userId,
+        ...file,
+      };
+      if (message) {
+        if (this.enableEncrypt) {
+          const key = await generateKey('Arnold', 'salt', 5000, 256);
+          message = await encryptData(text, key);
+        }
+        const created = new Date().valueOf();
+        messageData.created = created;
+        messageData.text = message;
+        await this.updateLatestMessageInChannel(message);
+        const messageRef = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData);
 
-    if (file) {
-      const task = uploadFileToFirebase(
-        file.imageUrl,
-        file.extension,
-        this.conversationId
-      );
-      task
-        .then(
-          (res) => {
-            storage()
-              .ref(res.metadata.fullPath)
-              .getDownloadURL()
-              .then((imageUrl) => {
-                firestore()
-                  .collection<MessageProps>(
-                    `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-                  )
-                  .add(messageData)
-                  .then((snapShot) => {
-                    snapShot
-                      .update({
-                        imageUrl,
-                        status: 'sent',
-                      })
-                      .then();
-                  })
-                  .catch((err) => {
-                    console.log('chat', err);
-                  });
-              });
-          },
-          (err) => {
-            console.log('reject', err);
-          }
-        )
-        .catch(() => {
-          console.log('chat', 'err');
+        await messageRef.update({
+          status: MESSAGE_STATUS.sent as MessageProps['status'],
         });
-      return;
-    }
-    firestore()
-      .collection<MessageProps>(
-        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-      )
-      .add(messageData)
-      .then((snapShot) => {
-        snapShot
-          .update({
-            status: 'sent',
-          })
-          .then();
-      })
-      .catch((err) => {
-        console.log('chat', err);
-      });
+      }
+      if (file) {
+        const res = await uploadFileToFirebase(
+          file?.imageUrl,
+          file?.extension,
+          this.conversationId
+        );
+        const imageUrl = await storage()
+          .ref(res.metadata.fullPath)
+          .getDownloadURL();
+
+        const created = new Date().valueOf();
+        messageData.created = created;
+        messageData.text = '';
+
+        const fileMessageRef = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData);
+
+        await fileMessageRef.update({
+          imageUrl,
+          status: MESSAGE_STATUS.sent as MessageProps['status'],
+        });
+      }
+    } catch (error) {}
   };
 
   updateLatestMessageInChannel = (message: string) => {
@@ -296,7 +280,7 @@ export class FirestoreServices {
           snapshot.docChanges().forEach((change) => {
             if (
               change.type === 'modified' &&
-              change.doc.data().status === 'sent'
+              change.doc.data().status === MESSAGE_STATUS.sent
             ) {
               callBack({ ...change.doc.data(), id: change.doc.id });
             }
@@ -359,14 +343,19 @@ export class FirestoreServices {
 
   createConversation = async () => {
     const userId = this.userId as string;
-    const memberId = this.memberId as string;
+    const memberId = this.memberId as string[];
 
     const conversationData = {
       members: {
         [userId]: firestore().doc(`${FireStoreCollection.users}/${userId}`),
-        [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
+        // [memberId]: firestore().doc(`${FireStoreCollection.users}/${memberId}`),
       },
     };
+    memberId.forEach((item, index) => {
+      conversationData.members[item] = firestore().doc(
+        `${FireStoreCollection.users}/${item}`
+      );
+    });
 
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -379,7 +368,7 @@ export class FirestoreServices {
       updated: new Date().valueOf(),
       unRead: {
         [userId]: 0,
-        [memberId]: 0,
+        // [memberId]: 0,
       },
       members: conversationData.members,
     };
@@ -395,7 +384,7 @@ export class FirestoreServices {
           merge: true,
         }),
       //Add the conversation id to the info of the user
-      [userId, memberId].map((id) => {
+      [userId, ...memberId].map((id) => {
         const userRef = firestore()
           .collection(`${FireStoreCollection.users}`)
           .doc(id);
@@ -414,8 +403,30 @@ export class FirestoreServices {
         });
       }),
     ]);
-
     this.conversationId = conversationRef.id;
     return { ...conversationData, id: conversationRef.id };
+  };
+
+  getConservation = async (userId: string, memberId: string[]) => {
+    let conversationId = '';
+    await firestore()
+      .collection(`${FireStoreCollection.conversations}`)
+      .get()
+      .then((e) => {
+        e.docs.map((r) => {
+          const data = r.data();
+          let listUser: string[] = [];
+          try {
+            listUser = Object.keys(data?.members);
+
+            const listMemberA: string[] = [...memberId, userId];
+            const res = haveSameContents(listUser, listMemberA);
+            if (res) {
+              conversationId = data.id;
+            }
+          } catch (error) {}
+        });
+      });
+    return conversationId;
   };
 }

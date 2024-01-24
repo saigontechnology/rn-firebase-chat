@@ -5,18 +5,29 @@ import React, {useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {Composer, InputToolbarProps, SendProps} from 'react-native-gifted-chat';
 import {PressAbleIcon} from '../../Components';
+import {
+  MediaType,
+  PhotoQuality,
+  launchImageLibrary,
+} from 'react-native-image-picker';
+import {MEDIA_TYPE_IMAGE_PICKER} from '../constanst';
+import {MEDIA_FILE_TYPE} from '../../../../src/Chat/constanst';
 
 interface ICustomInputMessage extends InputToolbarProps<any>, SendProps<any> {
   isShowPhotoGallery: boolean;
   togglePhotoGallery: (value: boolean) => void;
 }
 
+// const byteToMB = 1048576;
+// const IMAGE_TYPE = 'image';
+
 const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   isShowPhotoGallery,
   togglePhotoGallery,
   ...props
 }) => {
-  const [, setIsShowImagePicker] = useState(false);
+  // const [, setIsShowImagePicker] = useState(false);
+  const [image, setImage] = useState({});
 
   const {onSend, text} = props;
   /**************************
@@ -32,71 +43,69 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
-  // const showDocumentPicker = async () => {
-  //   // try {
-  //   //   const res = await DocumentPicker.pick({
-  //   //     type: [DocumentPicker.types.allFiles],
-  //   //   })
-  //   //   //file size < 5Mb
-  //   //   if (!res.size || res.uri.includes('storage/document'))
-  //   //     return Toast.info('Can not send file from drive.')
-  //   //   if (res.size > 5 * 1024 * 1024) {
-  //   //     Alert.alert('', 'File size must less than 5Mb')
-  //   //   } else {
-  //   //     const documentUri = await getPathForFirebaseStorage(res.uri)
-  //   //     const messageData: any = {type: res.type, fileUrl: documentUri, fileName: res.name, size: res.size}
-  //   //     if (res.type.includes('image')) messageData.imageUrl = 'file://' + documentUri
-  //   //     onSend(messageData)
-  //   //   }
-  //   // } catch (err) {
-  //   //   if (DocumentPicker.isCancel(err)) {
-  //   //     // User cancelled the picker, exit any dialogs or menus and move on
-  //   //   } else {
-  //   //     throw err
-  //   //   }
-  //   // }
-  // };
+  const options = {
+    mediaType: MEDIA_TYPE_IMAGE_PICKER.mixed as MediaType,
+    includeBase64: false,
+    includeExtra: true,
+    quality: 1 as PhotoQuality,
+  };
+
+  const showDocumentPicker = async () => {
+    try {
+      const res = await launchImageLibrary(options);
+      const {assets} = res;
+      if (assets && assets?.length > 0) {
+        const {type, uri} = assets[0];
+        let mediaType = MEDIA_FILE_TYPE.image;
+
+        if (type?.includes(MEDIA_FILE_TYPE.video)) {
+          mediaType = MEDIA_FILE_TYPE.video;
+        }
+
+        onSend?.(
+          {
+            imageUrl: uri,
+            extension: type,
+            type: mediaType,
+          },
+          true,
+        );
+      }
+    } catch (error) {
+      console.log('Can not open document picker', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <PressAbleIcon
-        style={{
-          marginHorizontal: 12,
-        }}
+        style={styles.mgHorizontal}
         size={28}
         icon={require('../../Assets/camera.png')}
       />
       <PressAbleIcon
         onPress={() => {
           togglePhotoGallery(!isShowPhotoGallery);
+          showDocumentPicker();
         }}
-        style={{
-          marginHorizontal: 12,
-        }}
+        style={styles.mgHorizontal}
         size={28}
         icon={require('../../Assets/image.png')}
       />
       <View style={styles.composeWrapper}>
         <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={{
-              marginHorizontal: 20,
-              lineHeight: 20,
-            }}
-          />
+          <Composer {...props} textInputStyle={styles.textInputStyle} />
         </ScrollView>
       </View>
       {text ? (
         <PressAbleIcon
-          style={{
-            marginHorizontal: 12,
-          }}
+          style={styles.mgHorizontal}
           onPress={() => onSend?.({text: text}, true)}
           size={28}
           icon={require('../../Assets/send.png')}
         />
       ) : (
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.directionStyle}>
           {/*<VectorIconButton*/}
           {/*  onPress={() => {*/}
           {/*    showDocumentPicker();*/}
@@ -139,6 +148,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     paddingLeft: 10,
     paddingRight: 20,
+    flexDirection: 'row',
+  },
+  mgHorizontal: {
+    marginHorizontal: 12,
+  },
+  textInputStyle: {
+    marginHorizontal: 20,
+    lineHeight: 20,
+  },
+  directionStyle: {
     flexDirection: 'row',
   },
 });
