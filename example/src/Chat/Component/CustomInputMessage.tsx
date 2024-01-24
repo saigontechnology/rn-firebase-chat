@@ -43,15 +43,15 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
   //   onSend({type: image.type, imageUrl: image.uri});
   // };
 
+  const options = {
+    mediaType: MEDIA_TYPE_IMAGE_PICKER.mixed as MediaType,
+    includeBase64: false,
+    includeExtra: true,
+    quality: 1 as PhotoQuality,
+  };
+
   const showDocumentPicker = async () => {
     try {
-      const options = {
-        mediaType: MEDIA_TYPE_IMAGE_PICKER.mixed as MediaType,
-        includeBase64: false,
-        includeExtra: true,
-        quality: 1 as PhotoQuality,
-      };
-
       const res = await launchImageLibrary(options);
       const {assets} = res;
       if (assets && assets?.length > 0) {
@@ -60,8 +60,6 @@ const CustomInputMessage: React.FC<ICustomInputMessage> = ({
 
         if (type?.includes(MEDIA_FILE_TYPE.video)) {
           mediaType = MEDIA_FILE_TYPE.video;
-        } else if (type?.includes(MEDIA_FILE_TYPE.image)) {
-          mediaType = MEDIA_FILE_TYPE.image;
         }
 
         onSend?.(

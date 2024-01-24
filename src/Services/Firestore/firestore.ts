@@ -16,6 +16,7 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from '../Firebase';
 import { haveSameContents } from '../../Utilities/ultis';
+import { MESSAGE_STATUS } from '../../Chat/constanst';
 
 interface FirestoreProps {
   userId: string;
@@ -70,7 +71,7 @@ export class FirestoreServices {
       let message = text;
       const messageData = {
         readBy: {},
-        status: 'pending',
+        status: MESSAGE_STATUS.pending,
         senderId: this.userId,
         ...file,
       };
@@ -90,7 +91,7 @@ export class FirestoreServices {
           .add(messageData);
 
         await messageRef.update({
-          status: 'sent',
+          status: MESSAGE_STATUS.sent as MessageProps['status'],
         });
       }
       if (file) {
@@ -115,7 +116,7 @@ export class FirestoreServices {
 
         await fileMessageRef.update({
           imageUrl,
-          status: 'sent',
+          status: MESSAGE_STATUS.sent as MessageProps['status'],
         });
       }
     } catch (error) {}
@@ -279,7 +280,7 @@ export class FirestoreServices {
           snapshot.docChanges().forEach((change) => {
             if (
               change.type === 'modified' &&
-              change.doc.data().status === 'sent'
+              change.doc.data().status === MESSAGE_STATUS.sent
             ) {
               callBack({ ...change.doc.data(), id: change.doc.id });
             }
