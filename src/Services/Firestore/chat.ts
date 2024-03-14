@@ -327,6 +327,58 @@ const setUserConversationTyping = (
     );
 };
 
+const addStartAtToUserChat = async (userId: number, conversationId: string) => {
+  firestore()
+    .collection<Partial<ConversationProps>>(FireStoreCollection.conversations)
+    .doc(conversationId)
+    .get()
+    .then(async (querySnapshot) => {
+      const data = querySnapshot.data();
+      const userConversationData: Partial<ConversationProps> = {
+        ...data,
+        updated: new Date().valueOf(),
+        startAt: {
+          ...(data?.startAt || {}),
+          [userId]: new Date().valueOf(),
+        },
+      };
+      firestore()
+        .collection<Partial<ConversationProps>>(
+          FireStoreCollection.conversations
+        )
+        .doc(conversationId)
+        .set(userConversationData, {
+          merge: true,
+        });
+    });
+};
+
+const checkUserConversationUnreadListener = (
+  userId: number,
+  callBack?: (data?: UserProfileProps) => void
+) =>
+  firestore()
+    .collection<UserProfileProps>(`${FireStoreCollection.users}`)
+    .doc(`${userId}`)
+    .onSnapshot((snapshot) => {
+      if (snapshot) {
+        callBack?.(snapshot.data());
+      }
+    });
+
+const watchChatLatestMessage = (
+  conversationId: string,
+  callBack?: (data?: ConversationProps['latestMessage']) => void
+) =>
+  firestore()
+    .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+    .doc(conversationId)
+    .onSnapshot((snapshot) => {
+      if (snapshot) {
+        callBack?.(snapshot.data()?.latestMessage);
+      }
+    });
+
 export {
   setUserData,
   getMessageHistory,
@@ -338,4 +390,7 @@ export {
   countAllMessages,
   userConversationListener,
   setUserConversationTyping,
+  addStartAtToUserChat,
+  checkUserConversationUnreadListener,
+  watchChatLatestMessage,
 };

@@ -28,4 +28,17 @@ const checkUsernameExist = (username?: string) => {
   });
 };
 
-export { createUserProfile, checkUsernameExist };
+const createMultipleUserProfile = async (listUser: UserProfileProps[]) => {
+  const batch = firestore().batch();
+  listUser.forEach((user) =>
+    batch.set(firestore().collection('users').doc(`${user.id}`), {
+      name: user.name,
+      created: Date.now(),
+      status: 'online',
+      updated: Date.now(),
+    })
+  );
+  await batch.commit();
+};
+
+export { createUserProfile, createMultipleUserProfile, checkUsernameExist };

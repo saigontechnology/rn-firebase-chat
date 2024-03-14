@@ -11,6 +11,9 @@ interface UserProfileProps extends BaseEntity {
   status?: UserStatus;
   updated?: number;
   conversations?: string[];
+  unRead?: {
+    [conversationId: string]: number;
+  };
 }
 
 export { UserProfileProps };

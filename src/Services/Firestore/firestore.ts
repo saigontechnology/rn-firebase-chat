@@ -165,10 +165,12 @@ export class FirestoreServices {
               if (memberId === this.userId) {
                 return [memberId, 0];
               } else {
+                this.updateUnreadMessageOfUser(true, memberId).then();
                 return [memberId, (unRead?.[memberId] ?? 0) + 1];
               }
             })
           ),
+          updated: new Date().valueOf(),
         });
         return;
       }
@@ -180,10 +182,12 @@ export class FirestoreServices {
               if (memberId === this.userId) {
                 return [memberId, 0];
               } else {
+                this.updateUnreadMessageOfUser(true, memberId).then();
                 return [memberId, 1];
               }
             })
           ),
+          updated: new Date().valueOf(),
         })
         .then();
     });
@@ -199,10 +203,16 @@ export class FirestoreServices {
             unRead: {
               [this.userId]: 0,
             },
+            latestMessage: {
+              readBy: {
+                [this.userId]: true,
+              },
+            },
           },
           { merge: true }
         )
         .then();
+      this.updateUnreadMessageOfUser(false, this.userId).then();
     }
   };
 
@@ -213,13 +223,29 @@ export class FirestoreServices {
         resolve(listMessage);
         return;
       }
-      const querySnapshot = await firestore()
-        .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-        .orderBy('created', 'desc')
-        .limit(20)
+      const conversationSnapshot = await firestore()
+        .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+        .doc(this.conversationId)
         .get();
+      let querySnapshot;
+      if (this.userId && conversationSnapshot.data()?.startAt?.[this.userId]) {
+        querySnapshot = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .orderBy('created', 'desc')
+          .limit(20)
+          .endBefore(conversationSnapshot.data()?.startAt?.[this.userId])
+          .get();
+      } else {
+        querySnapshot = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .orderBy('created', 'desc')
+          .limit(20)
+          .get();
+      }
       if (this.enableEncrypt) {
         listMessage = await Promise.all(
           querySnapshot.docs.map((doc) => {
@@ -253,14 +279,31 @@ export class FirestoreServices {
         resolve(listMessage);
         return;
       }
-      const querySnapshot = await firestore()
-        .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-        .orderBy('created', 'desc')
-        .limit(20)
-        .startAfter(this.messageCursor)
+      const conversationSnapshot = await firestore()
+        .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+        .doc(this.conversationId)
         .get();
+      let querySnapshot;
+      if (this.userId && conversationSnapshot.data()?.startAt?.[this.userId]) {
+        querySnapshot = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .orderBy('created', 'desc')
+          .limit(20)
+          .endBefore(conversationSnapshot.data()?.startAt?.[this.userId])
+          .startAfter(this.messageCursor)
+          .get();
+      } else {
+        querySnapshot = await firestore()
+          .collection<MessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .orderBy('created', 'desc')
+          .limit(20)
+          .startAfter(this.messageCursor)
+          .get();
+      }
       if (this.enableEncrypt) {
         listMessage = await Promise.all<MessageProps>(
           querySnapshot.docs.map((doc) => {
@@ -357,6 +400,28 @@ export class FirestoreServices {
     });
   };
 
+  updateUnreadMessageOfUser = async (unRead = true, memberId?: string) => {
+    const currentMemberId = memberId ?? this.memberId;
+    const userSnapshot = await firestore()
+      .collection<UserProfileProps>(`${FireStoreCollection.users}`)
+      .doc(currentMemberId)
+      .get();
+    const userData: UserProfileProps = {
+      ...(userSnapshot.data() as UserProfileProps),
+      unRead: {
+        ...userSnapshot.data()?.unRead,
+        [`${this.conversationId}`]: unRead ? 1 : 0,
+      },
+      updated: new Date().valueOf(),
+    };
+    await firestore()
+      .collection<Partial<UserProfileProps>>(`${FireStoreCollection.users}`)
+      .doc(currentMemberId)
+      .set(userData, {
+        merge: true,
+      });
+  };
+
   createConversation = async () => {
     const userId = this.userId as string;
     const memberId = this.memberId as string;
@@ -368,14 +433,18 @@ export class FirestoreServices {
       },
     };
 
-    const conversationRef = await firestore()
+    const listUser = [userId, memberId].sort();
+    // Use conversationId created by userId to help track easier
+    const conversationId = `${listUser[0]}_${listUser[1]}`;
+    await firestore()
       .collection<Partial<ConversationProps>>(
         `${FireStoreCollection.conversations}`
       )
-      .add(conversationData);
+      .doc(conversationId)
+      .set(conversationData);
 
     const userConversationData: Partial<ConversationProps> = {
-      id: conversationRef.id,
+      id: conversationId,
       updated: new Date().valueOf(),
       unRead: {
         [userId]: 0,
@@ -390,7 +459,7 @@ export class FirestoreServices {
         .collection<Partial<ConversationProps>>(
           `${FireStoreCollection.conversations}`
         )
-        .doc(conversationRef.id)
+        .doc(conversationId)
         .set(userConversationData, {
           merge: true,
         }),
@@ -404,18 +473,18 @@ export class FirestoreServices {
           const conversations = doc?.data()?.conversations ?? [];
           if (doc.exists) {
             transaction.update(userRef, {
-              conversations: conversations.concat(conversationRef.id),
+              conversations: conversations.concat(conversationId),
             });
             return;
           }
           await userRef.update({
-            conversations: conversations.concat(conversationRef.id),
+            conversations: conversations.concat(conversationId),
           });
         });
       }),
     ]);
 
-    this.conversationId = conversationRef.id;
-    return { ...conversationData, id: conversationRef.id };
+    this.conversationId = conversationId;
+    return { ...conversationData, id: conversationId };
   };
 }

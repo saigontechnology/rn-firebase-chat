@@ -21,6 +21,9 @@ interface ConversationProps extends BaseEntity {
   unRead: {
     [userId: string]: number;
   };
+  startAt?: {
+    [userId: string]: number;
+  };
 }
 
 export { ConversationProps, MemberProps };
