@@ -51,9 +51,7 @@ export class FirestoreServices {
 
   static getInstance = () => {
     if (!FirestoreServices.instance) {
-      throw new Error(
-        'To use chat feature you must wrap your app with ChatProvider'
-      );
+      FirestoreServices.instance = new FirestoreServices();
     }
     return FirestoreServices.instance;
   };
