@@ -8,19 +8,33 @@ import type { LatestMessageProps } from './message';
 interface MemberProps {
   [userId: string]: FirebaseFirestoreTypes.DocumentReference;
 }
+
 interface ConversationProps extends BaseEntity {
-  latestMessage: LatestMessageProps;
+  latestMessage?: LatestMessageProps;
   updated: number;
-  // memberId?: string;
-  // memberRef?: DocumentReference;
-  members: MemberProps;
-  conversationName?: string;
-  typing: {
+  members: string[];
+  name?: string;
+  image?: string;
+  typing?: {
     [userId: string]: boolean;
   };
-  unRead: {
+  unRead?: {
     [userId: string]: number;
   };
 }
 
-export { ConversationProps, MemberProps };
+enum MessageTypes {
+  text = 'text',
+  image = 'image',
+  voice = 'voice',
+  video = 'video',
+}
+
+enum MessageStatus {
+  sending,
+  sent,
+  failed,
+  read,
+}
+
+export { ConversationProps, MemberProps, MessageTypes, MessageStatus };

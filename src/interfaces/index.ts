@@ -6,3 +6,4 @@ export * from './conversation';
 export * from './firestore';
 export * from './message';
 export * from './user';
+export * from './chat';
