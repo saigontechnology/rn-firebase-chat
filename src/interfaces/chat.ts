@@ -1,14 +1,12 @@
 import type { ConversationProps } from './conversation';
 
-interface IUserInfo {
+export interface IUserInfo {
   id: string;
   name: string;
   avatar: string;
 }
 
-interface IChatContext {
-  userInfo: IUserInfo;
+export interface IChatContext {
+  userInfo: IUserInfo | null;
   listConversation: ConversationProps[] | null;
 }
-
-export { IChatContext, IUserInfo };

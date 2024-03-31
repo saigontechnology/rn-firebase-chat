@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import { FirestoreServices } from '../services/firebase';
 import type { ConversationProps, IChatContext } from '../interfaces';
 
-interface ChatProviderProps extends IChatContext {
+interface ChatProviderProps extends Omit<IChatContext, 'listConversation'> {
   children: React.ReactNode;
 }
 
@@ -19,7 +19,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   >(null);
 
   useEffect(() => {
-    if (userInfo.id) {
+    if (userInfo?.id) {
       const firestoreServices = new FirestoreServices({ userInfo });
       firestoreServices.getListConversation().then((res) => {
         setListConversation(res);
@@ -27,6 +27,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
       firestoreServices.listenConversationUpdate((data) => {
         //TODO: handle update conversation changed
+        console.log(data);
       });
     }
   }, [userInfo]);

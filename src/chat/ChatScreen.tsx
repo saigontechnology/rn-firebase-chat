@@ -78,7 +78,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ style, memberIds }) => {
           messages={messagesList}
           onSend={(messages) => onSend(messages[0] as MessageProps)}
           user={{
-            _id: userInfo.id,
+            _id: userInfo?.id || '',
             ...userInfo,
           }}
           keyboardShouldPersistTaps={'always'}
