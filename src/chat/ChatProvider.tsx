@@ -3,8 +3,9 @@ import { FirestoreServices } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import { chatReducer, setListConversation } from '../reducer';
 
-interface ChatProviderProps extends IChatContext {
-  children: React.ReactNode;
+interface ChatProviderProps
+  extends Omit<IChatContext, 'chatState' | 'chatDispatch'> {
+  children?: React.ReactNode;
 }
 
 export const ChatContext = createContext<IChatContext>({} as IChatContext);
