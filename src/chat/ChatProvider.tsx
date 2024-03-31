@@ -1,30 +1,26 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useReducer } from 'react';
 import { FirestoreServices } from '../services/firebase';
-import type { ConversationProps, IChatContext } from '../interfaces';
+import type { IChatContext } from '../interfaces';
+import { chatReducer, setListConversation } from '../reducer';
 
-interface ChatProviderProps extends Omit<IChatContext, 'listConversation'> {
+interface ChatProviderProps extends IChatContext {
   children: React.ReactNode;
 }
 
-export const ChatContext = createContext<IChatContext>({
-  userInfo: { id: '', name: '', avatar: '' },
-  listConversation: null,
-});
+export const ChatContext = createContext<IChatContext>({} as IChatContext);
 export const ChatProvider: React.FC<ChatProviderProps> = ({
   userInfo,
   children,
   enableEncrypt = false,
 }) => {
-  const [listConversation, setListConversation] = useState<
-    ConversationProps[] | null
-  >(null);
+  const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
     if (userInfo?.id) {
       const firestoreServices = FirestoreServices.getInstance();
       firestoreServices.setChatData({ userInfo, enableEncrypt });
       firestoreServices.getListConversation().then((res) => {
-        setListConversation(res);
+        dispatch(setListConversation(res));
       });
 
       firestoreServices.listenConversationUpdate((data) => {
@@ -38,7 +34,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     <ChatContext.Provider
       value={{
         userInfo,
-        listConversation,
+        chatState: state,
+        chatDispatch: dispatch,
       }}
     >
       {children}

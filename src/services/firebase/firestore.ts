@@ -43,7 +43,7 @@ export class FirestoreServices {
   constructor() {}
 
   get getUserId(): string {
-    if (this.userInfo?.id) {
+    if (!this.userInfo?.id) {
       throw new Error('Please set userInfo before call chat  function');
     }
     return this.userInfo?.id || '';

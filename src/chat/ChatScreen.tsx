@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   type StyleProp,
@@ -13,23 +13,33 @@ import {
   MessageTypes,
 } from '../interfaces';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
-import { ChatContext } from './ChatProvider';
 import { FirestoreServices } from '../services/firebase';
+import { useChatContext } from '../hooks';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
-  conversationInfo?: ConversationProps;
+  partnerInfo?: ConversationProps;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({ style, memberIds }) => {
-  const { userInfo } = useContext(ChatContext);
+export const ChatScreen: React.FC<ChatScreenProps> = ({
+  style,
+  memberIds,
+  partnerInfo,
+}) => {
+  const { userInfo, chatState } = useChatContext();
+
+  const conversationInfo = useMemo(() => {
+    return chatState?.conversation;
+  }, [chatState]);
 
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
 
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
 
-  const conversationRef = useRef<ConversationProps | null>(null);
+  const conversationRef = useRef<ConversationProps | undefined>(
+    conversationInfo
+  );
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
@@ -38,7 +48,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ style, memberIds }) => {
       /** If the conversation not created yet. it will create at the first message sent */
       if (!conversationRef.current?.id) {
         conversationRef.current = await firebaseInstance.createConversation(
-          memberIds
+          memberIds,
+          partnerInfo?.name,
+          partnerInfo?.image
         );
       }
       /** Add new message to message list  */
@@ -68,7 +80,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ style, memberIds }) => {
       }
       await firebaseInstance.sendMessage(messages.text, file);
     },
-    [firebaseInstance, memberIds]
+    [firebaseInstance, memberIds, partnerInfo]
   );
 
   return (

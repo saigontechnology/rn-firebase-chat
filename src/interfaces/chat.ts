@@ -1,4 +1,5 @@
-import type { ConversationProps } from './conversation';
+import type { ChatAction, ChatState } from '../reducer/chat';
+import type { Dispatch } from 'react';
 
 export interface IUserInfo {
   id: string;
@@ -8,6 +9,7 @@ export interface IUserInfo {
 
 export interface IChatContext {
   userInfo: IUserInfo | null;
-  listConversation: ConversationProps[] | null;
   enableEncrypt?: boolean;
+  chatState: ChatState;
+  chatDispatch: Dispatch<ChatAction>;
 }
