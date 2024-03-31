@@ -13,6 +13,7 @@ export const ChatContext = createContext<IChatContext>({
 export const ChatProvider: React.FC<ChatProviderProps> = ({
   userInfo,
   children,
+  enableEncrypt = false,
 }) => {
   const [listConversation, setListConversation] = useState<
     ConversationProps[] | null
@@ -20,7 +21,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
   useEffect(() => {
     if (userInfo?.id) {
-      const firestoreServices = new FirestoreServices({ userInfo });
+      const firestoreServices = FirestoreServices.getInstance();
+      firestoreServices.setChatData({ userInfo, enableEncrypt });
       firestoreServices.getListConversation().then((res) => {
         setListConversation(res);
       });
@@ -30,7 +32,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         console.log(data);
       });
     }
-  }, [userInfo]);
+  }, [enableEncrypt, userInfo]);
 
   return (
     <ChatContext.Provider

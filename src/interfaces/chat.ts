@@ -9,4 +9,5 @@ export interface IUserInfo {
 export interface IChatContext {
   userInfo: IUserInfo | null;
   listConversation: ConversationProps[] | null;
+  enableEncrypt?: boolean;
 }

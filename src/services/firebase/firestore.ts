@@ -22,13 +22,13 @@ interface FirestoreProps {
   memberIds?: string[];
 }
 
-let instance: FirestoreServices | undefined;
-
 export class FirestoreServices {
+  private static instance: FirestoreServices;
+
   userId: string | undefined;
   memberId: string | undefined;
   memberIds: string[] | undefined;
-  userInfo: IUserInfo;
+  userInfo: IUserInfo | undefined;
   conversationId: string | undefined;
   enableEncrypt: boolean | undefined;
 
@@ -36,19 +36,35 @@ export class FirestoreServices {
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
 
-  constructor(props: FirestoreProps) {
-    this.userInfo = props.userInfo;
-    this.enableEncrypt = props.enableEncrypt;
-    this.memberIds = props.memberIds;
+  /**
+   * The constructor should always be private to prevent direct
+   * construction calls with the `new` operator.
+   */
+  constructor() {}
+
+  get getUserId(): string {
+    if (this.userInfo?.id) {
+      throw new Error('Please set userInfo before call chat  function');
+    }
+    return this.userInfo?.id || '';
   }
 
   static getInstance = () => {
-    if (!instance) {
+    if (!FirestoreServices.instance) {
       throw new Error(
         'To use chat feature you must wrap your app with ChatProvider'
       );
     }
-    return instance;
+    return FirestoreServices.instance;
+  };
+
+  setChatData = ({ userInfo, enableEncrypt }: FirestoreProps) => {
+    if (userInfo) {
+      this.userInfo = userInfo;
+    }
+    if (enableEncrypt) {
+      this.enableEncrypt = enableEncrypt;
+    }
   };
 
   /**
@@ -62,7 +78,7 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    const userId = this.userInfo.id;
+    const userId = this.getUserId;
     let conversationData = {
       members: [userId, ...memberIds],
       name,
@@ -344,7 +360,7 @@ export class FirestoreServices {
   };
 
   getListConversation = async (): Promise<ConversationProps[]> => {
-    const userId = this.userInfo.id;
+    const userId = this.getUserId;
     const listChannels: ConversationProps[] = [];
     return new Promise((resolve) =>
       firestore()
@@ -366,7 +382,7 @@ export class FirestoreServices {
   };
 
   listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
-    const userId = this.userInfo.id;
+    const userId = this.getUserId;
     firestore()
       .collection(
         `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
