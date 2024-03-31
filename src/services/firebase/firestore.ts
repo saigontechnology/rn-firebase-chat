@@ -25,7 +25,6 @@ interface FirestoreProps {
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
-  userId: string | undefined;
   memberId: string | undefined;
   memberIds: string[] | undefined;
   userInfo: IUserInfo | undefined;
@@ -42,7 +41,7 @@ export class FirestoreServices {
    */
   constructor() {}
 
-  get getUserId(): string {
+  get userId(): string {
     if (!this.userInfo?.id) {
       throw new Error('Please set userInfo before call chat  function');
     }
@@ -65,6 +64,10 @@ export class FirestoreServices {
     }
   };
 
+  setConversationId = (id: string) => {
+    this.conversationId = id;
+  };
+
   /**
    *
    * @param memberIds list member id in the conversation
@@ -76,9 +79,8 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    const userId = this.getUserId;
     let conversationData = {
-      members: [userId, ...memberIds],
+      members: [this.userId, ...memberIds],
       name,
       image,
       updated: Date.now(),
@@ -86,7 +88,7 @@ export class FirestoreServices {
     /** Create the conversation to the user who create the chat */
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
-        `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
       )
       .add(conversationData);
     /** Add the conversation to the user who is conversation's member */
@@ -129,12 +131,11 @@ export class FirestoreServices {
     };
     try {
       /** send message to collection conversation by id */
-      const messageRef = await firestore()
+      await firestore()
         .collection<MessageProps>(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .add(messageData);
-      this.updateUserConversation(message);
     } catch (e) {}
   };
 
@@ -358,12 +359,11 @@ export class FirestoreServices {
   };
 
   getListConversation = async (): Promise<ConversationProps[]> => {
-    const userId = this.getUserId;
     const listChannels: ConversationProps[] = [];
     return new Promise((resolve) =>
       firestore()
         .collection<Partial<ConversationProps>>(
-          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
         )
         .orderBy('updated', 'desc')
         .get()
@@ -380,10 +380,9 @@ export class FirestoreServices {
   };
 
   listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
-    const userId = this.getUserId;
     firestore()
       .collection(
-        `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
       )
       .onSnapshot(function (snapshot) {
         if (snapshot) {

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   KeyboardAvoidingView,
   type StyleProp,
@@ -20,12 +26,17 @@ interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
   partnerInfo?: ConversationProps;
+  onStartLoad?: () => void;
+  onLoadEnd?: () => void;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
   style,
   memberIds,
   partnerInfo,
+  onStartLoad,
+  onLoadEnd,
+  ...props
 }) => {
   const { userInfo, chatState } = useChatContext();
 
@@ -34,7 +45,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   }, [chatState]);
 
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
-
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
 
   const conversationRef = useRef<ConversationProps | undefined>(
@@ -42,6 +52,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   );
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
+
+  useEffect(() => {
+    if (conversationInfo?.id) {
+      onStartLoad?.();
+      firebaseInstance.setConversationId(conversationInfo?.id);
+      firebaseInstance.getMessageHistory().then((res) => {
+        console.log(res);
+        setMessagesList(res);
+        onLoadEnd?.();
+      });
+    }
+  }, [conversationInfo?.id, firebaseInstance, onLoadEnd, onStartLoad]);
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
@@ -96,6 +118,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           keyboardShouldPersistTaps={'always'}
           infiniteScroll
           renderChatFooter={() => <TypingIndicator />}
+          {...props}
         />
       </KeyboardAvoidingView>
     </View>
