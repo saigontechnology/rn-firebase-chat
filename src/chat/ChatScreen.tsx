@@ -16,12 +16,12 @@ import { GiftedChat, type GiftedChatProps } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext } from '../hooks';
-import type { ConversationProps, MessageProps } from '../interfaces';
+import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
-  partnerInfo?: ConversationProps;
+  partners: IUserInfo[];
   onStartLoad?: () => void;
   onLoadEnd?: () => void;
 }
@@ -29,7 +29,7 @@ interface ChatScreenProps extends GiftedChatProps {
 export const ChatScreen: React.FC<ChatScreenProps> = ({
   style,
   memberIds,
-  partnerInfo,
+  partners,
   onStartLoad,
   onLoadEnd,
   ...props
@@ -52,14 +52,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   useEffect(() => {
     if (conversationInfo?.id) {
       onStartLoad?.();
-      firebaseInstance.setConversationId(conversationInfo?.id);
+      firebaseInstance.setConversationInfo(
+        conversationInfo?.id,
+        memberIds,
+        partners
+      );
       firebaseInstance.getMessageHistory().then((res) => {
-        console.log(res);
         setMessagesList(res);
         onLoadEnd?.();
       });
     }
-  }, [conversationInfo?.id, firebaseInstance, onLoadEnd, onStartLoad]);
+    return () => {
+      firebaseInstance.clearConversationInfo();
+    };
+  }, [
+    conversationInfo?.id,
+    firebaseInstance,
+    onLoadEnd,
+    onStartLoad,
+    memberIds,
+    partners,
+  ]);
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
@@ -67,8 +80,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       if (!conversationRef.current?.id) {
         conversationRef.current = await firebaseInstance.createConversation(
           memberIds,
-          partnerInfo?.name,
-          partnerInfo?.image
+          partners[0]?.name,
+          partners[0]?.avatar
         );
       }
       /** Add new message to message list  */
@@ -78,7 +91,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages.text);
     },
-    [firebaseInstance, memberIds, partnerInfo]
+    [firebaseInstance, memberIds, partners]
   );
 
   return (

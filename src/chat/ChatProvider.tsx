@@ -19,7 +19,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     if (userInfo?.id) {
       const firestoreServices = FirestoreServices.getInstance();
-      firestoreServices.setChatData({ userInfo, enableEncrypt });
+      firestoreServices.configuration({ userInfo, enableEncrypt });
       firestoreServices.getListConversation().then((res) => {
         dispatch(setListConversation(res));
       });

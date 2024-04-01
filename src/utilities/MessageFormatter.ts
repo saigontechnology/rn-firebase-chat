@@ -16,10 +16,9 @@ const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
     _id: message.id,
     createdAt: message.createdAt || Date.now(),
     user: {
-      _id: message.senderId,
+      _id: userInfo.id,
       name: userInfo.name,
-      avatar:
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
+      avatar: userInfo.avatar,
     },
   };
 };

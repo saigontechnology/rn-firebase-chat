@@ -3,7 +3,6 @@ import firestore, {
 } from '@react-native-firebase/firestore';
 import {
   encryptData,
-  formatEncryptedMessageData,
   formatLatestMessage,
   formatMessageData,
   formatSendMessage,
@@ -16,7 +15,6 @@ import {
   type LatestMessageProps,
   type MessageProps,
   type SendMessageProps,
-  type UserProfileProps,
 } from '../../interfaces';
 
 interface FirestoreProps {
@@ -29,13 +27,16 @@ interface FirestoreProps {
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
-  memberId: string | undefined;
-  memberIds: string[] | undefined;
+  /** User configuration*/
   userInfo: IUserInfo | undefined;
-  conversationId: string | undefined;
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
 
+  /** Conversation info */
+  conversationId: string | null = null;
+  memberIds: string[] = [];
+  partners: Record<string, IUserInfo> | null = null;
+  /** Message info */
   messageCursor:
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
@@ -60,7 +61,7 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
-  setChatData = ({ userInfo, enableEncrypt, encryptKey }: FirestoreProps) => {
+  configuration = ({ userInfo, enableEncrypt, encryptKey }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
     }
@@ -72,8 +73,19 @@ export class FirestoreServices {
     }
   };
 
-  setConversationId = (id: string) => {
-    this.conversationId = id;
+  setConversationInfo = (
+    conversationId: string,
+    memberIds: string[],
+    partners: IUserInfo[]
+  ) => {
+    this.conversationId = conversationId;
+    this.memberIds = [this.userId, ...memberIds];
+    this.partners = partners.reduce((a, b) => ({ ...a, [b.id]: b }), {});
+  };
+  clearConversationInfo = () => {
+    this.conversationId = null;
+    this.memberIds = [];
+    this.partners = null;
   };
 
   /**
@@ -156,6 +168,11 @@ export class FirestoreServices {
     userId: string,
     latestMessageData: LatestMessageProps
   ) => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before send the first message!'
+      );
+    }
     /** Update latest message for each member */
     const conversationRef = firestore()
       .collection<ConversationProps>(
@@ -175,6 +192,11 @@ export class FirestoreServices {
   };
 
   changeReadMessage = () => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before send the first message!'
+      );
+    }
     if (this.userId) {
       firestore()
         .collection(`${FireStoreCollection.conversations}`)
@@ -206,7 +228,12 @@ export class FirestoreServices {
         .limit(20)
         .get();
       querySnapshot.forEach((doc) => {
-        listMessage.push({ ...doc.data(), id: doc.id });
+        listMessage.push(
+          formatMessageData(
+            { ...doc.data(), id: doc.id },
+            this.partners?.[doc.data().senderId] as IUserInfo
+          )
+        );
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -231,7 +258,12 @@ export class FirestoreServices {
         .startAfter(this.messageCursor)
         .get();
       querySnapshot.forEach((doc) => {
-        listMessage.push({ ...doc.data(), id: doc.id });
+        listMessage.push(
+          formatMessageData(
+            { ...doc.data(), id: doc.id },
+            this.partners?.[doc.data().senderId] as IUserInfo
+          )
+        );
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -259,6 +291,11 @@ export class FirestoreServices {
   userConversationListener = (
     callBack?: (data: FirebaseFirestoreTypes.DocumentData | undefined) => void
   ) => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before send the first message!'
+      );
+    }
     return firestore()
       .collection(`${FireStoreCollection.conversations}`)
       .doc(this.conversationId)
@@ -288,6 +325,11 @@ export class FirestoreServices {
   };
 
   setUserConversationTyping = (isTyping: boolean) => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before send the first message!'
+      );
+    }
     if (this.userId) {
       return firestore()
         .collection(`${FireStoreCollection.conversations}`)
