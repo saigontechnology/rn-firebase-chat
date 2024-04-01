@@ -228,12 +228,12 @@ export class FirestoreServices {
         .limit(20)
         .get();
       querySnapshot.forEach((doc) => {
-        listMessage.push(
-          formatMessageData(
-            { ...doc.data(), id: doc.id },
-            this.partners?.[doc.data().senderId] as IUserInfo
-          )
-        );
+        const data = { ...doc.data(), id: doc.id };
+        const userInfo =
+          data.senderId === this.userInfo?.id
+            ? this.userInfo
+            : (this.partners?.[doc.data().senderId] as IUserInfo);
+        listMessage.push(formatMessageData(data, userInfo));
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -258,12 +258,12 @@ export class FirestoreServices {
         .startAfter(this.messageCursor)
         .get();
       querySnapshot.forEach((doc) => {
-        listMessage.push(
-          formatMessageData(
-            { ...doc.data(), id: doc.id },
-            this.partners?.[doc.data().senderId] as IUserInfo
-          )
-        );
+        const data = { ...doc.data(), id: doc.id };
+        const userInfo =
+          data.senderId === this.userInfo?.id
+            ? this.userInfo
+            : (this.partners?.[doc.data().senderId] as IUserInfo);
+        listMessage.push(formatMessageData(data, userInfo));
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
