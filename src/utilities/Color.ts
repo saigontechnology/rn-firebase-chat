@@ -1,9 +1,24 @@
-export const randomColor = () => {
-  // Generate random values for red, green, and blue components
-  const red = Math.floor(Math.random() * 256);
-  const green = Math.floor(Math.random() * 256);
-  const blue = Math.floor(Math.random() * 256);
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return hash;
+}
 
-  // Construct the RGB color string
-  return `rgb(${red},${green},${blue})`;
-};
+function intToRGB(i: number) {
+  const c = (i & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0');
+  return `#${c}`;
+}
+
+export function randomColor(key: string): string {
+  const hashedKey = hashCode(key);
+  let color = intToRGB(hashedKey);
+
+  // Ensure color is not white
+  while (color === '#FFFFFF') {
+    color = intToRGB(hashCode(color));
+  }
+
+  return color;
+}

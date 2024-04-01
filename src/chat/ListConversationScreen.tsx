@@ -5,14 +5,21 @@ import type { ConversationProps } from '../interfaces';
 import { useChatContext } from '../hooks';
 import { setConversation } from '../reducer';
 
+type ListItem = {
+  item: ConversationProps;
+  index: number;
+};
+
 export interface IListConversationProps {
   hasSearchBar?: boolean;
   onPress?: (conversation: ConversationProps) => void;
+  renderCustomItem: ({ item, index }: ListItem) => JSX.Element | null;
 }
 
 export const ListConversationScreen: React.FC<IListConversationProps> = ({
   hasSearchBar,
   onPress,
+  renderCustomItem,
 }) => {
   const { chatState, chatDispatch } = useChatContext();
 
@@ -30,17 +37,18 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: ConversationProps }) => {
+    ({ item, index }: ListItem) => {
+      if (renderCustomItem) return renderCustomItem({ item, index });
       return (
         <ConversationItem data={item} onPress={handleConversationPressed} />
       );
     },
-    [handleConversationPressed]
+    [handleConversationPressed, renderCustomItem]
   );
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlatList<ConversationProps>
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         data={data}

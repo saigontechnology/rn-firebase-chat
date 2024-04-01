@@ -34,7 +34,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   const Avatar = CustomImage ?? Image;
 
   const backgroundColor = useMemo(() => {
-    if (!data.image && data.name) return randomColor();
+    if (!data.image) return randomColor(data.name || '');
     return undefined;
   }, [data.image, data.name]);
 
@@ -43,8 +43,10 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
       <View style={styles.row}>
         <View style={styles.avatarContainer}>
           <View style={[styles.avatarWrapper, { backgroundColor }]}>
-            {data.image && (
+            {data.image ? (
               <Avatar style={styles.avatar} source={{ uri: data.image }} />
+            ) : (
+              <Text style={styles.textAvatar}>{data.name?.[0]}</Text>
             )}
           </View>
         </View>
@@ -68,6 +70,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   row: {
     flexDirection: 'row',
@@ -79,11 +82,16 @@ const styles = StyleSheet.create({
   avatarWrapper: {
     width: 50,
     height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#acacac',
   },
   avatar: {
     width: 50,
@@ -91,10 +99,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   title: {
-    fontSize: 14,
+    fontSize: 15,
+    marginBottom: 2,
   },
   message: {
     fontSize: 10,
     color: '#909090',
+  },
+  textAvatar: {
+    fontSize: 24,
+    color: '#fff',
   },
 });

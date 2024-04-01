@@ -88,7 +88,7 @@ export const ChatScreen: React.FC = () => {
   return (
     <BaseChatScreen
       memberIds={[partnerInfo.id]}
-      partnerInfo={partnerInfo}
+      partners={[partnerInfo]}
     />
   )
 }
