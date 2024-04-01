@@ -1,7 +1,7 @@
 /**
  * Created by NL on 01/07/21.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Text,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import type { ConversationProps } from '../../interfaces';
+import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
   data: ConversationProps;
@@ -32,20 +33,31 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 }) => {
   const Avatar = CustomImage ?? Image;
 
+  const backgroundColor = useMemo(() => {
+    if (!data.image && data.name) return randomColor();
+    return undefined;
+  }, [data.image, data.name]);
+
   return (
     <TouchableOpacity onPress={() => onPress?.(data)} style={styles.container}>
       <View style={styles.row}>
         <View style={styles.avatarContainer}>
-          {data.image && (
-            <Avatar style={styles.avatar} source={{ uri: data.image }} />
-          )}
+          <View style={[styles.avatarWrapper, { backgroundColor }]}>
+            {data.image && (
+              <Avatar style={styles.avatar} source={{ uri: data.image }} />
+            )}
+          </View>
         </View>
         {renderMessage ? (
           renderMessage()
         ) : (
           <View style={styles.contentContainer}>
-            <Text style={[titleStyle]}>{data?.name}</Text>
-            <Text style={[lastMessageStyle]}>{data?.latestMessage?.text}</Text>
+            <Text style={[styles.title, titleStyle]} numberOfLines={1}>
+              {data?.name}
+            </Text>
+            <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>
+              {data?.latestMessage?.text}
+            </Text>
           </View>
         )}
       </View>
@@ -54,13 +66,19 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    marginBottom: 16,
+  },
   row: {
     flexDirection: 'row',
   },
   avatarContainer: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
+  },
+  avatarWrapper: {
+    width: 50,
+    height: 50,
   },
   contentContainer: {
     flex: 1,
@@ -68,8 +86,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  title: {
+    fontSize: 14,
+  },
+  message: {
+    fontSize: 10,
+    color: '#909090',
   },
 });

@@ -174,21 +174,19 @@ export class FirestoreServices {
       );
     }
     /** Update latest message for each member */
-    const conversationRef = firestore()
-      .collection<ConversationProps>(
+    firestore()
+      .collection(
         `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
       )
-      .doc(this.conversationId);
-
-    return firestore().runTransaction(async (transaction) => {
-      const doc = await transaction.get(conversationRef);
-      if (doc.exists) {
-        transaction.update(conversationRef, {
+      .doc(this.conversationId)
+      .set(
+        {
           latestMessage: latestMessageData,
           updatedAt: Date.now(),
-        });
-      }
-    });
+        },
+        { merge: true }
+      )
+      .then();
   };
 
   changeReadMessage = () => {
