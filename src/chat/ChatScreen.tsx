@@ -13,14 +13,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { GiftedChat, type GiftedChatProps } from 'react-native-gifted-chat';
-import {
-  type ConversationProps,
-  type MessageProps,
-  MessageTypes,
-} from '../interfaces';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext } from '../hooks';
+import type { ConversationProps, MessageProps } from '../interfaces';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -80,27 +76,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         GiftedChat.append(previousMessages, [messages])
       );
 
-      let file;
-      const messageType = messages?.type;
-      if (messageType) {
-        switch (messageType) {
-          case MessageTypes.image:
-            file = {
-              type: 'image',
-              imageUrl: messages?.imageUrl,
-              extension: messages?.extension,
-            };
-            break;
-          default:
-            file = {
-              type: 'file',
-              fileUrl: messages?.fileUrl,
-              extension: messages?.extension,
-            };
-            break;
-        }
-      }
-      await firebaseInstance.sendMessage(messages.text, file);
+      await firebaseInstance.sendMessage(messages.text);
     },
     [firebaseInstance, memberIds, partnerInfo]
   );

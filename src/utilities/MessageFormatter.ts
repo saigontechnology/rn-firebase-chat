@@ -2,32 +2,29 @@
  * Created by NL on 6/1/23.
  */
 import { decryptData, generateKey } from './AESCrypto';
-import type { MessageProps } from '../interfaces';
+import {
+  type IUserInfo,
+  type LatestMessageProps,
+  type MessageProps,
+  MessageStatus,
+  type SendMessageProps,
+} from '../interfaces';
 
-const formatMessageData = (message: MessageProps, userName: string) => {
+const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
   return {
+    ...message,
     _id: message.id,
-    text: message.text,
-    createdAt: message.created || Date.now(),
+    createdAt: message.createdAt || Date.now(),
     user: {
       _id: message.senderId,
-      name: userName,
+      name: userInfo.name,
       avatar:
         'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
     },
-    imageUrl: message.imageUrl,
-    type: message.type,
-    fileUrl: message.fileUrl,
-    fileName: message?.fileName,
-    fileSize: message?.fileSize,
-    mine: message?.mine,
-    senderId: message.senderId,
-    readBy: message.readBy,
-    id: message.id,
   };
 };
 
-const formatEncryptedMessageData = (
+const formatEncryptedMessageData = async (
   message: MessageProps,
   userName: string
 ) => {
@@ -37,43 +34,28 @@ const formatEncryptedMessageData = (
         return {
           _id: message.id,
           text: decryptedMessage ? decryptedMessage : message.text,
-          createdAt: message.created || Date.now(),
           user: {
             _id: message.senderId,
             name: userName,
             avatar:
               'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
           },
-          imageUrl: message.imageUrl,
-          type: message.type,
-          fileUrl: message.fileUrl,
-          fileName: message?.fileName,
-          fileSize: message?.fileSize,
-          mine: message?.mine,
           senderId: message.senderId,
           readBy: message.readBy,
           id: message.id,
         };
       })
-      .catch((err) => {
-        console.log('%c decryptData', 'color:#4AF82F', err);
+      .catch(() => {
         return {
           _id: message.id,
           // if fail to decrypt, return the original text
           text: message.text,
-          createdAt: message.created || Date.now(),
           user: {
             _id: message.senderId,
             name: userName,
             avatar:
               'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
           },
-          imageUrl: message.imageUrl,
-          type: message.type,
-          fileUrl: message.fileUrl,
-          fileName: message?.fileName,
-          fileSize: message?.fileSize,
-          mine: message?.mine,
           senderId: message.senderId,
           readBy: message.readBy,
           id: message.id,
@@ -82,4 +64,33 @@ const formatEncryptedMessageData = (
   });
 };
 
-export { formatMessageData, formatEncryptedMessageData };
+const formatSendMessage = (
+  userId: string,
+  message: string
+): SendMessageProps => ({
+  readBy: {
+    [userId]: true,
+  },
+  status: MessageStatus.sent,
+  senderId: userId,
+  createdAt: Date.now(),
+  text: message,
+});
+
+const formatLatestMessage = (
+  userId: string,
+  message: string
+): LatestMessageProps => ({
+  text: message,
+  senderId: userId,
+  readBy: {
+    [userId]: true,
+  },
+});
+
+export {
+  formatMessageData,
+  formatEncryptedMessageData,
+  formatSendMessage,
+  formatLatestMessage,
+};

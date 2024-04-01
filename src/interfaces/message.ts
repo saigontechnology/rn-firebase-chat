@@ -4,8 +4,7 @@
 
 import type { IMessage } from 'react-native-gifted-chat/lib/Models';
 import type { BaseEntity } from './base';
-
-type MessageStatus = 'pending' | 'sent';
+import type { MessageStatus } from './conversation';
 
 interface LatestMessageProps {
   readBy: {
@@ -13,23 +12,32 @@ interface LatestMessageProps {
   };
   senderId: string;
   text: string;
-  created: number;
 }
+
 interface MessageProps extends BaseEntity, IMessage {
   text: string;
-  created?: number;
   senderId: string;
   readBy: {
     [userId: string]: boolean;
   };
   status?: MessageStatus;
-  imageUrl?: string;
-  type?: 'file' | 'image';
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
-  mine?: string;
-  extension?: string;
+  // imageUrl?: string;
+  // type?: 'file' | 'image';
+  // fileUrl?: string;
+  // fileName?: string;
+  // fileSize?: number;
+  // mine?: string;
+  // extension?: string;
 }
 
-export { MessageProps, LatestMessageProps };
+interface SendMessageProps {
+  text: string;
+  createdAt?: number;
+  senderId: string;
+  readBy: {
+    [userId: string]: boolean;
+  };
+  status?: MessageStatus;
+}
+
+export { MessageProps, LatestMessageProps, SendMessageProps };

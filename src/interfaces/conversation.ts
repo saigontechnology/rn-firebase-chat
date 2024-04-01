@@ -11,7 +11,7 @@ interface MemberProps {
 
 interface ConversationProps extends BaseEntity {
   latestMessage?: LatestMessageProps;
-  updated: number;
+  updatedAt: number;
   members: string[];
   name?: string;
   image?: string;
