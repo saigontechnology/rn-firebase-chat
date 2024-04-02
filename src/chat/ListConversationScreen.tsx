@@ -4,6 +4,7 @@ import { ConversationItem } from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
+import { getListConversation } from 'src/reducer/selectors';
 
 type ListItem = {
   item: ConversationProps;
@@ -22,7 +23,7 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   renderCustomItem,
 }) => {
   const { chatDispatch } = useChatContext();
-  const listConversation = useChatSelector((state) => state.listConversation);
+  const listConversation = useChatSelector(getListConversation);
 
   const data = useMemo(() => {
     //TODO: handle search

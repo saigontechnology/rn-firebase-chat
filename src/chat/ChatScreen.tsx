@@ -17,6 +17,7 @@ import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
+import { getConversation } from 'src/reducer/selectors';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -35,7 +36,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   ...props
 }) => {
   const { userInfo } = useChatContext();
-  const conversation = useChatSelector((state) => state.conversation);
+  const conversation = useChatSelector(getConversation);
 
   const conversationInfo = useMemo(() => {
     return conversation;
