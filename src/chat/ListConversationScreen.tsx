@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ConversationItem } from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
-import { useChatContext } from '../hooks';
+import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
 
 type ListItem = {
@@ -17,16 +17,17 @@ export interface IListConversationProps {
 }
 
 export const ListConversationScreen: React.FC<IListConversationProps> = ({
-  hasSearchBar,
+  // hasSearchBar,
   onPress,
   renderCustomItem,
 }) => {
-  const { chatState, chatDispatch } = useChatContext();
+  const { chatDispatch } = useChatContext();
+  const listConversation = useChatSelector((state) => state.listConversation);
 
   const data = useMemo(() => {
     //TODO: handle search
-    return chatState?.listConversation;
-  }, [chatState]);
+    return listConversation;
+  }, [listConversation]);
 
   const handleConversationPressed = useCallback(
     (item: ConversationProps) => {
