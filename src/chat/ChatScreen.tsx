@@ -12,13 +12,18 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { GiftedChat, type GiftedChatProps } from 'react-native-gifted-chat';
+import {
+  type ComposerProps,
+  GiftedChat,
+  type GiftedChatProps,
+} from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
+import { InputToolbar } from './components/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -153,6 +158,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       }
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+  const customInputToolbar = useCallback((props: ComposerProps) => {
+    return <InputToolbar {...props} />;
+  }, []);
 
   return (
     <View style={[styles.container, style]}>
@@ -169,6 +177,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
+          renderComposer={customInputToolbar}
           {...props}
         />
       </KeyboardAvoidingView>
