@@ -4,7 +4,7 @@ import { ConversationItem } from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
-import { getListConversation } from 'src/reducer/selectors';
+import { getListConversation } from '../reducer/selectors';
 
 type ListItem = {
   item: ConversationProps;
