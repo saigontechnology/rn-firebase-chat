@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useReducer } from 'react';
 import { FirestoreServices } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
-import { chatReducer, setListConversation } from '../reducer';
+import { chatReducer, setListConversation, setConversation } from '../reducer';
 
 interface ChatProviderProps
   extends Omit<IChatContext, 'chatState' | 'chatDispatch'> {
@@ -25,8 +25,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       });
 
       firestoreServices.listenConversationUpdate((data) => {
-        //TODO: handle update conversation changed
-        console.log(data);
+        dispatch(setConversation(data));
       });
     }
   }, [enableEncrypt, userInfo]);

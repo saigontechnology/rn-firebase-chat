@@ -12,12 +12,17 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { GiftedChat, type GiftedChatProps } from 'react-native-gifted-chat';
+import {
+  type ComposerProps,
+  GiftedChat,
+  type GiftedChatProps,
+} from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
-import { getConversation } from '../reducer/selectors';
+import { getConversation } from '../reducer';
+import { InputToolbar } from './components/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -33,6 +38,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   partners,
   onStartLoad,
   onLoadEnd,
+  renderInputToolbar,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -96,6 +102,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [firebaseInstance, memberIds, partners]
   );
 
+  const customInputToolbar = useCallback((props: ComposerProps) => {
+    return <InputToolbar {...props} />;
+  }, []);
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -109,6 +119,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           keyboardShouldPersistTaps={'always'}
           infiniteScroll
           renderChatFooter={() => <TypingIndicator />}
+          renderComposer={customInputToolbar}
+          renderInputToolbar={renderInputToolbar}
           {...props}
         />
       </KeyboardAvoidingView>
