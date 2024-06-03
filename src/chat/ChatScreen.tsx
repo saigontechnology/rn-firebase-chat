@@ -23,7 +23,6 @@ import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { getConversation } from '../reducer';
 import { InputToolbar } from './components/InputToolbar';
-import { InputToolbarProps } from 'react-native-gifted-chat/lib/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -121,6 +120,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           infiniteScroll
           renderChatFooter={() => <TypingIndicator />}
           renderComposer={customInputToolbar}
+          renderInputToolbar={renderInputToolbar}
           {...props}
         />
       </KeyboardAvoidingView>

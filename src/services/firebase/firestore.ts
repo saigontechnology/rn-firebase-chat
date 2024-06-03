@@ -99,12 +99,15 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    let conversationData = {
+    let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      image,
       updatedAt: Date.now(),
     };
+
+    if (image) {
+      conversationData.image = image;
+    }
     /** Create the conversation to the user who create the chat */
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -125,7 +128,7 @@ export class FirestoreServices {
 
     this.conversationId = conversationRef.id;
     this.memberIds = memberIds;
-    return { ...conversationData, id: conversationRef.id };
+    return { ...conversationData, id: conversationRef.id } as ConversationProps;
   };
 
   /**

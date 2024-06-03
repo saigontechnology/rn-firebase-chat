@@ -4,6 +4,7 @@ import type { Dispatch } from 'react';
 export interface IUserInfo {
   id: string;
   name: string;
+  memberId: string;
   avatar: string;
 }
 
