@@ -44,6 +44,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -61,6 +62,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
       firebaseInstance.getMessageHistory().then((res) => {
         setMessagesList(res);
+        setHasMoreMessages(res.length >= 20);
         onLoadEnd?.();
       });
     }
@@ -96,6 +98,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [firebaseInstance, memberIds, partners]
   );
 
+  const onLoadEarlier = useCallback(async () => {
+    if (conversationRef.current?.id) {
+      const res = await firebaseInstance.getMoreMessage();
+      setHasMoreMessages(res.length > 0);
+      setMessagesList((previousMessages) =>
+        GiftedChat.append(res, previousMessages)
+      );
+    }
+  }, [firebaseInstance]);
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -108,7 +120,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           }}
           keyboardShouldPersistTaps={'always'}
           infiniteScroll
+          loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
+          onLoadEarlier={onLoadEarlier}
           {...props}
         />
       </KeyboardAvoidingView>
