@@ -23,7 +23,7 @@ import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
-import { InputToolbar } from './components/InputToolbar';
+import InputToolbar from './components/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -41,6 +41,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onStartLoad,
   onLoadEnd,
   maxPageSize = 20,
+  renderComposer,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -158,9 +159,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       }
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
-  const customInputToolbar = useCallback((props: ComposerProps) => {
-    return <InputToolbar {...props} />;
-  }, []);
+
+  const customInputToolbar = useCallback(
+    (composeProps: ComposerProps) => {
+      if (renderComposer) return renderComposer(composeProps);
+      return <InputToolbar {...composeProps} />;
+    },
+    [renderComposer]
+  );
 
   return (
     <View style={[styles.container, style]}>
