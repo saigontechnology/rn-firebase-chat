@@ -1,0 +1,122 @@
+import React, { useCallback, useRef } from 'react';
+import type { ViewProps } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
+export const CAPTURE_BUTTON_SIZE = 78;
+
+const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
+
+interface Props extends ViewProps {
+  camera: React.RefObject<Camera>;
+  onMediaCaptured: (
+    media: PhotoFile | VideoFile,
+    type: 'photo' | 'video'
+  ) => void;
+  flash: 'off' | 'on';
+  isPhoto: boolean;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
+}
+
+const _CaptureButton: React.FC<Props> = ({
+  camera,
+  onMediaCaptured,
+  onStopRecording,
+  onStartRecording,
+  isPhoto,
+  flash,
+  style,
+  ...props
+}): React.ReactElement => {
+  const isRecording = useRef(false);
+  //#region Camera Capture
+  const takePhoto = useCallback(async () => {
+    try {
+      if (camera.current == null) throw new Error('Camera ref is null!');
+
+      console.log('Taking photo...');
+      const photo = await camera.current.takePhoto({
+        flash: flash,
+        enableShutterSound: false,
+      });
+      console.log('photo: ', photo);
+      onMediaCaptured(photo, 'photo');
+    } catch (e) {
+      console.error('Failed to take photo!', e);
+    }
+  }, [camera, flash, onMediaCaptured]);
+
+  const stopRecording = useCallback(async () => {
+    try {
+      if (camera.current == null) throw new Error('Camera ref is null!');
+      await camera.current.stopRecording();
+      onStopRecording?.();
+    } catch (e) {
+      console.error('failed to stop recording!', e);
+    }
+  }, [camera, onStopRecording]);
+
+  const startRecording = useCallback(() => {
+    try {
+      if (camera.current == null) throw new Error('Camera ref is null!');
+      isRecording.current = true;
+      onStartRecording?.();
+      camera.current.startRecording({
+        flash: flash,
+        onRecordingError: (error) => {
+          console.error('Recording failed!', error);
+        },
+        onRecordingFinished: (video) => {
+          console.log(`Recording successfully finished! ${video.path}`);
+          onMediaCaptured(video, 'video');
+        },
+      });
+    } catch (e) {
+      console.error('failed to start recording!', e, 'camera');
+    }
+  }, [camera, flash, onMediaCaptured, onStartRecording]);
+
+  const onPress = useCallback(() => {
+    if (isPhoto) {
+      takePhoto();
+    } else {
+      isRecording.current ? stopRecording() : startRecording();
+    }
+  }, [isPhoto, startRecording, stopRecording, takePhoto]);
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={1}
+      style={[styles.flex, style]}
+      {...props}
+    >
+      <View style={styles.flex}>
+        <View style={styles.shadow} />
+        <View style={styles.button} />
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+export const CaptureButton = React.memo(_CaptureButton);
+
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+  shadow: {
+    position: 'absolute',
+    width: CAPTURE_BUTTON_SIZE,
+    height: CAPTURE_BUTTON_SIZE,
+    borderRadius: CAPTURE_BUTTON_SIZE / 2,
+    backgroundColor: '#e34077',
+  },
+  button: {
+    width: CAPTURE_BUTTON_SIZE,
+    height: CAPTURE_BUTTON_SIZE,
+    borderRadius: CAPTURE_BUTTON_SIZE / 2,
+    borderWidth: BORDER_WIDTH,
+    borderColor: 'white',
+  },
+});
