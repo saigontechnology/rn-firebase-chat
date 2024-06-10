@@ -1,21 +1,25 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+
 import {
   encryptData,
   formatLatestMessage,
   formatMessageData,
   formatSendMessage,
   generateKey,
-} from '../../utilities';
+} from '../../Utilities';
 import {
   ConversationProps,
   FireStoreCollection,
+  SendPhotoVideoMessageProps,
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
+import { uploadFileToFirebase } from './storage';
 
 interface FirestoreProps {
   userInfo: IUserInfo;
@@ -99,12 +103,15 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    let conversationData = {
+    let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      image,
       updatedAt: Date.now(),
     };
+
+    if (image) {
+      conversationData.image = image;
+    }
     /** Create the conversation to the user who create the chat */
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -125,7 +132,7 @@ export class FirestoreServices {
 
     this.conversationId = conversationRef.id;
     this.memberIds = memberIds;
-    return { ...conversationData, id: conversationRef.id };
+    return { ...conversationData, id: conversationRef.id } as ConversationProps;
   };
 
   /**
@@ -162,6 +169,52 @@ export class FirestoreServices {
     } catch (e) {
       console.log(e);
     }
+  };
+
+  sendMessageWithFile = async (message: SendPhotoVideoMessageProps) => {
+    const { fileUrl, extension, type } = message;
+
+    if (!fileUrl || !extension || this.conversationId === null) {
+      throw new Error('Please provide fileUrl and extension');
+    }
+
+    const task = uploadFileToFirebase(
+      fileUrl,
+      type,
+      this.conversationId,
+      extension
+    );
+    task
+      .then(
+        (res) => {
+          storage()
+            .ref(res.metadata.fullPath)
+            .getDownloadURL()
+            .then((imgURL) => {
+              firestore()
+                .collection<SendPhotoVideoMessageProps>(
+                  `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+                )
+                .add(message)
+                .then((snapShot) => {
+                  snapShot
+                    .update({
+                      fileUrl: imgURL,
+                    })
+                    .then();
+                })
+                .catch((err) => {
+                  console.log('chat', err);
+                });
+            });
+        },
+        (err) => {
+          console.log('reject', err);
+        }
+      )
+      .catch(() => {
+        console.log('chat', 'err');
+      });
   };
 
   updateUserConversation = (

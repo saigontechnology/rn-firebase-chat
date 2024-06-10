@@ -20,10 +20,16 @@ import {
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
-import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import type {
+  ConversationProps,
+  IUserInfo,
+  MessageProps,
+  SendPhotoVideoMessageProps,
+} from '../interfaces';
+import { CameraView } from '../chat_obs/components/CameraView';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -32,8 +38,9 @@ interface ChatScreenProps extends GiftedChatProps {
   onStartLoad?: () => void;
   onLoadEnd?: () => void;
   maxPageSize?: number;
-  inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  inputToolbarProps?: IInputToolbar;
+  onPressCamera?: () => void;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -58,6 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const isLoadingRef = useRef(false);
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -176,6 +184,38 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     },
     [props.hasCamera, renderComposer, inputToolbarProps]
   );
+
+  const onPressCamera = useCallback(() => {
+    if (props.onPressCamera) return props.onPressCamera?.();
+    setIsCameraVisible(true);
+  }, [props]);
+
+  const onSendMedia = useCallback(
+    async (media: {
+      type: 'photo' | 'video';
+      path: string;
+      extension: string;
+    }) => {
+      setIsCameraVisible(false);
+      const message: SendPhotoVideoMessageProps = {
+        type: media.type,
+        fileUrl: media.path,
+        readBy: {
+          [userInfo?.id || '']: true,
+        },
+        extension: media.extension,
+        text: '',
+        senderId: userInfo?.id || '',
+      };
+
+      await firebaseInstance.sendMessageWithFile(message);
+    },
+    [firebaseInstance, userInfo]
+  );
+
+  if (isCameraVisible) {
+    return <CameraView visible={isCameraVisible} onSendMedia={onSendMedia} />;
+  }
 
   return (
     <View style={[styles.container, style]}>
