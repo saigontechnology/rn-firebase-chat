@@ -25,6 +25,7 @@ interface ChatScreenProps extends GiftedChatProps {
   partners: IUserInfo[];
   onStartLoad?: () => void;
   onLoadEnd?: () => void;
+  maxPageSize?: number;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -33,6 +34,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   partners,
   onStartLoad,
   onLoadEnd,
+  maxPageSize = 20,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -45,6 +47,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const isLoadingRef = useRef(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -60,9 +63,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         memberIds,
         partners
       );
-      firebaseInstance.getMessageHistory().then((res) => {
+      firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
-        setHasMoreMessages(res.length >= 20);
+        setHasMoreMessages(res.length === maxPageSize);
         onLoadEnd?.();
       });
     }
@@ -76,11 +79,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     onStartLoad,
     memberIds,
     partners,
+    maxPageSize,
   ]);
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
       /** If the conversation not created yet. it will create at the first message sent */
+      isLoadingRef.current = false;
       if (!conversationRef.current?.id) {
         conversationRef.current = await firebaseInstance.createConversation(
           memberIds,
@@ -99,14 +104,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   );
 
   const onLoadEarlier = useCallback(async () => {
+    if (isLoadingRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
     if (conversationRef.current?.id) {
-      const res = await firebaseInstance.getMoreMessage();
-      setHasMoreMessages(res.length > 0);
+      const res = await firebaseInstance.getMoreMessage(maxPageSize);
+      const isMoreMessage = res.length === maxPageSize;
+      setHasMoreMessages(isMoreMessage);
+      isLoadingRef.current = !isMoreMessage;
       setMessagesList((previousMessages) =>
-        GiftedChat.append(res, previousMessages)
+        GiftedChat.prepend(previousMessages, res)
       );
     }
-  }, [firebaseInstance]);
+  }, [maxPageSize, firebaseInstance]);
 
   return (
     <View style={[styles.container, style]}>
