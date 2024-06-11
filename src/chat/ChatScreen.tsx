@@ -17,6 +17,7 @@ import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
+import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 
 interface ChatScreenProps extends GiftedChatProps {
@@ -69,9 +70,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onLoadEnd?.();
       });
     }
-    return () => {
-      firebaseInstance.clearConversationInfo();
-    };
   }, [
     conversationInfo?.id,
     firebaseInstance,
@@ -91,6 +89,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           memberIds,
           partners[0]?.name,
           partners[0]?.avatar
+        );
+        firebaseInstance.setConversationInfo(
+          conversationRef.current?.id,
+          memberIds,
+          partners
         );
       }
       /** Add new message to message list  */
@@ -118,6 +121,38 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
     }
   }, [maxPageSize, firebaseInstance]);
+
+  useEffect(() => {
+    return () => {
+      firebaseInstance.clearConversationInfo();
+    };
+  }, [firebaseInstance]);
+
+  useEffect(() => {
+    let receiveMessageRef: () => void;
+    if (conversationRef.current?.id) {
+      receiveMessageRef = firebaseInstance.receiveMessageListener(
+        (message: MessageProps) => {
+          if (userInfo && message.senderId !== userInfo.id) {
+            const userInfoIncomming = {
+              id: message.id,
+              name: message.senderId,
+            } as IUserInfo;
+            const formatMessage = formatMessageData(message, userInfoIncomming);
+            setMessagesList((previousMessages) =>
+              GiftedChat.append(previousMessages, [formatMessage])
+            );
+          }
+        }
+      );
+    }
+
+    return () => {
+      if (receiveMessageRef) {
+        receiveMessageRef();
+      }
+    };
+  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
   return (
     <View style={[styles.container, style]}>
