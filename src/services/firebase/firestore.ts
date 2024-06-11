@@ -211,7 +211,7 @@ export class FirestoreServices {
     }
   };
 
-  getMessageHistory = () => {
+  getMessageHistory = (maxPageSize: number) => {
     let listMessage: Awaited<MessageProps>[] = [];
     return new Promise<Array<MessageProps>>(async (resolve) => {
       if (!this.userInfo) {
@@ -223,7 +223,7 @@ export class FirestoreServices {
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .orderBy('createdAt', 'desc')
-        .limit(20)
+        .limit(maxPageSize)
         .get();
       querySnapshot.forEach((doc) => {
         const data = { ...doc.data(), id: doc.id };
@@ -240,7 +240,7 @@ export class FirestoreServices {
     });
   };
 
-  getMoreMessage = () => {
+  getMoreMessage = (maxPageSize: number) => {
     let listMessage: Awaited<MessageProps>[] = [];
     return new Promise<Array<MessageProps>>(async (resolve) => {
       if (!this.userInfo || !this.messageCursor) {
@@ -252,7 +252,7 @@ export class FirestoreServices {
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .orderBy('createdAt', 'desc')
-        .limit(20)
+        .limit(maxPageSize)
         .startAfter(this.messageCursor)
         .get();
       querySnapshot.forEach((doc) => {
