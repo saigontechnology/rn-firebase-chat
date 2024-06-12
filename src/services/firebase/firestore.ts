@@ -278,7 +278,7 @@ export class FirestoreServices {
       .onSnapshot((snapshot) => {
         if (snapshot) {
           snapshot.docChanges().forEach((change) => {
-            if (change.type === 'modified') {
+            if (change.type === 'added') {
               callBack({ ...change.doc.data(), id: change.doc.id });
             }
           });

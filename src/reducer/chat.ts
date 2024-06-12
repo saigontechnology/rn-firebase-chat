@@ -26,5 +26,26 @@ export const chatReducer = (
         ...state,
         conversation: action.payload as ConversationProps,
       };
+    case ChatActionKind.UPDATE_CONVERSATION:
+      const message = action.payload as ConversationProps;
+      const isExistID = state.listConversation?.some(
+        (item) => item.id === message.id
+      );
+
+      if (!isExistID) {
+        return {
+          ...state,
+          listConversation: [message, ...(state.listConversation || [])],
+        };
+      }
+
+      const newListConversation = state.listConversation
+        ?.map((item) => (item.id === message.id ? message : item))
+        .sort((a, b) => b.updatedAt - a.updatedAt);
+
+      return {
+        ...state,
+        listConversation: newListConversation,
+      };
   }
 };
