@@ -3,8 +3,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  Image,
   StyleProp,
   ViewStyle,
   ImageStyle,
@@ -14,8 +12,14 @@ import {
   InputToolbarProps,
   SendProps,
 } from 'react-native-gifted-chat';
+import { PressableIcon } from './PressableIcon';
 
-interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
+const ImageURL = {
+  camera: require('../../images/camera.png'),
+  gallery: require('../../images/gallery.png'),
+  send: require('../../images/send.png'),
+};
+export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   isShowCamera?: boolean;
   isShowPhotoGallery?: boolean;
   togglePhotoGallery?: () => void;
@@ -31,39 +35,6 @@ interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconMargin?: number;
 }
 
-export const PressableIcon: React.FC<{
-  icon: any;
-  style?: StyleProp<ViewStyle>;
-  iconStyle?: StyleProp<ImageStyle>;
-  onPress?: () => void;
-  resizeMode?: 'contain' | 'cover' | 'stretch' | 'repeat' | 'center';
-  disabled?: boolean;
-  hitSlop?: { top?: number; right?: number; bottom?: number; left?: number };
-  size?: number;
-}> = ({
-  icon,
-  style,
-  iconStyle,
-  onPress,
-  resizeMode = 'contain',
-  disabled,
-  hitSlop,
-  size = 18,
-}) => (
-  <TouchableOpacity
-    disabled={disabled}
-    hitSlop={{ top: 10, right: 10, bottom: 10, left: 10, ...hitSlop }}
-    style={style}
-    onPress={onPress}
-  >
-    <Image
-      source={icon}
-      style={[{ width: size, height: size }, iconStyle]}
-      resizeMode={resizeMode}
-    />
-  </TouchableOpacity>
-);
-
 const InputToolbar: React.FC<IInputToolbar> = ({
   isShowCamera = true,
   isShowPhotoGallery = true,
@@ -71,13 +42,10 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
-  customViewStyle,
-  iconCamera = require('../../images/camera.png'),
-  iconGallery = require('../../images/gallery.png'),
-  iconSend = require('../../images/send.png'),
+  iconCamera = ImageURL.camera,
+  iconGallery = ImageURL.gallery,
+  iconSend = ImageURL.send,
   iconStyle,
-  iconSize = 28,
-  iconMargin = 12,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -86,19 +54,15 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     <View style={[styles.container, containerStyle]}>
       {isShowCamera && (
         <PressableIcon
-          style={{ marginHorizontal: iconMargin }}
-          size={iconSize}
           icon={iconCamera}
-          iconStyle={iconStyle}
+          iconStyle={(styles.iconStyleDefault, iconStyle)}
         />
       )}
       {isShowPhotoGallery && (
         <PressableIcon
           onPress={togglePhotoGallery}
-          style={{ marginHorizontal: iconMargin }}
-          size={iconSize}
           icon={iconGallery}
-          iconStyle={iconStyle}
+          iconStyle={[styles.iconStyleDefault, iconStyle]}
         />
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
@@ -109,16 +73,12 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           />
         </ScrollView>
       </View>
-      {text ? (
+      {!!text && (
         <PressableIcon
-          style={{ marginHorizontal: iconMargin }}
+          iconStyle={[styles.iconStyleDefault, iconStyle]}
           onPress={() => onSend?.({ text: text }, true)}
-          size={iconSize}
           icon={iconSend}
-          iconStyle={iconStyle}
         />
-      ) : (
-        <View style={[styles.marginWrapperView, customViewStyle]} />
       )}
     </View>
   );
@@ -138,6 +98,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 20,
     flexDirection: 'row',
+    marginRight: 10,
   },
   textInput: {
     marginHorizontal: 20,
@@ -146,16 +107,11 @@ const styles = StyleSheet.create({
   marginWrapperView: {
     marginRight: 10,
   },
+  iconStyleDefault: {
+    width: 28,
+    height: 28,
+    marginHorizontal: 12,
+  },
 });
-
-InputToolbar.defaultProps = {
-  isShowCamera: true,
-  isShowPhotoGallery: true,
-  iconCamera: require('../../images/camera.png'),
-  iconGallery: require('../../images/gallery.png'),
-  iconSend: require('../../images/send.png'),
-  iconSize: 28,
-  iconMargin: 12,
-};
 
 export default InputToolbar;
