@@ -31,8 +31,6 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconGallery?: any;
   iconSend?: any;
   iconStyle?: StyleProp<ImageStyle>;
-  iconSize?: number;
-  iconMargin?: number;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({

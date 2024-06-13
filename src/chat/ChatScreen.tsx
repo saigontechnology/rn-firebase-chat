@@ -162,11 +162,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
-  const customInputToolbar = useCallback(
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
       if (renderComposer) return renderComposer(composeProps);
-      return <InputToolbar {...styleInputToolbar} />;
+      return <InputToolbar {...composeProps} {...styleInputToolbar} />;
     },
     [renderComposer, styleInputToolbar]
   );
