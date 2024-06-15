@@ -9,7 +9,7 @@ import {
   formatMessageData,
   formatSendMessage,
   generateKey,
-} from '../../Utilities';
+} from '../../utilities';
 import {
   ConversationProps,
   FireStoreCollection,
