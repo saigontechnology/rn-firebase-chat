@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
 import type { ChatState } from './reducer';
@@ -6,7 +7,7 @@ const useChat = () => {
   // const firebaseInstant
 };
 
-export const useChatContext = () => {
+const useChatContext = () => {
   return useContext(ChatContext);
 };
 
@@ -15,9 +16,65 @@ export const useChatContext = () => {
  * @param selector A function that takes the chat state and returns a specific part of it.
  * @returns The part of the chat state selected by the selector function.
  */
-export const useChatSelector = <T>(
-  selector: (chatState: ChatState) => T
-): T => {
+const useChatSelector = <T>(selector: (chatState: ChatState) => T): T => {
   const { chatState } = useChatContext();
   return selector(chatState);
 };
+/**
+ * Custom hook to manage typing indicator behavior based on user input.
+ * @param enableTyping Boolean flag indicating whether typing indicator should be enabled.
+ * @param changeUserConversationTyping Function to update typing indicator state in parent component.
+ * @param typingTimeoutSeconds Number of time out.
+ */
+
+const useTypingIndicator = (
+  enableTyping: boolean,
+  changeUserConversationTyping: (
+    isTyping: boolean,
+    callback?: () => void
+  ) => void,
+  typingTimeoutSeconds?: number
+) => {
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>();
+
+  const startTyping = useCallback(() => {
+    changeUserConversationTyping(true);
+    typingTimeoutRef.current = setTimeout(() => {
+      changeUserConversationTyping(false);
+    }, typingTimeoutSeconds);
+  }, [changeUserConversationTyping, typingTimeoutSeconds]);
+
+  const stopTyping = useCallback(() => {
+    changeUserConversationTyping(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = undefined;
+    }
+  }, [changeUserConversationTyping]);
+
+  const handleTextChange = useCallback(
+    (newText: string) => {
+      if (enableTyping) {
+        if (newText.trim().length > 0) {
+          if (!typingTimeoutRef.current) {
+            startTyping();
+          } else {
+            clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+              stopTyping();
+            }, typingTimeoutSeconds);
+          }
+        } else {
+          stopTyping();
+        }
+      }
+    },
+    [enableTyping, startTyping, stopTyping, typingTimeoutSeconds]
+  );
+
+  return {
+    handleTextChange,
+  };
+};
+
+export { useChatContext, useChatSelector, useTypingIndicator };
