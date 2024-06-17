@@ -5,6 +5,8 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  type Insets,
+  ImageResizeMode,
 } from 'react-native';
 
 const defaultHitSlop = {
@@ -19,9 +21,9 @@ export const PressableIcon: React.FC<{
   style?: StyleProp<ViewStyle>;
   iconStyle?: StyleProp<ImageStyle>;
   onPress?: () => void;
-  resizeMode?: 'contain' | 'cover' | 'stretch' | 'repeat' | 'center';
+  resizeMode?: ImageResizeMode;
   disabled?: boolean;
-  hitSlop?: { top?: number; right?: number; bottom?: number; left?: number };
+  hitSlop?: Insets;
   size?: number;
 }> = ({
   icon,

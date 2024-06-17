@@ -20,47 +20,55 @@ const ImageURL = {
   send: require('../../images/send.png'),
 };
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
-  isShowCamera?: boolean;
-  isShowPhotoGallery?: boolean;
-  togglePhotoGallery?: () => void;
+  isShowFirstIcon?: boolean;
+  isShowSecondIcon?: boolean;
+  onPressFirstAction?: () => void;
+  onPressSecondAction?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
   composerTextInputStyle?: StyleProp<ViewStyle>;
   customViewStyle?: StyleProp<ViewStyle>;
-  iconCamera?: any;
-  iconGallery?: any;
-  iconSend?: any;
+  firstIcon?: string;
+  secondIcon?: string;
+  iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
-  isShowCamera = true,
-  isShowPhotoGallery = true,
-  togglePhotoGallery,
+  isShowFirstIcon = true,
+  isShowSecondIcon = true,
+  onPressSecondAction,
+  onPressFirstAction,
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
-  iconCamera = ImageURL.camera,
-  iconGallery = ImageURL.gallery,
+  firstIcon = ImageURL.camera,
+  secondIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
   ...props
 }) => {
   const { onSend, text } = props;
 
+  const flattenedIconStyle = StyleSheet.flatten([
+    styles.iconStyleDefault,
+    iconStyle,
+  ]);
+
   return (
     <View style={[styles.container, containerStyle]}>
-      {isShowCamera && (
+      {isShowFirstIcon && (
         <PressableIcon
-          icon={iconCamera}
-          iconStyle={(styles.iconStyleDefault, iconStyle)}
+          icon={firstIcon}
+          iconStyle={flattenedIconStyle}
+          onPress={onPressFirstAction}
         />
       )}
-      {isShowPhotoGallery && (
+      {isShowSecondIcon && (
         <PressableIcon
-          onPress={togglePhotoGallery}
-          icon={iconGallery}
-          iconStyle={[styles.iconStyleDefault, iconStyle]}
+          onPress={onPressSecondAction}
+          icon={secondIcon}
+          iconStyle={flattenedIconStyle}
         />
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
@@ -73,7 +81,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       </View>
       {!!text && (
         <PressableIcon
-          iconStyle={[styles.iconStyleDefault, iconStyle]}
+          iconStyle={flattenedIconStyle}
           onPress={() => onSend?.({ text: text }, true)}
           icon={iconSend}
         />
