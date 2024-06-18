@@ -12,13 +12,18 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { GiftedChat, type GiftedChatProps } from 'react-native-gifted-chat';
+import {
+  type ComposerProps,
+  GiftedChat,
+  type GiftedChatProps,
+} from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
+import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -27,6 +32,8 @@ interface ChatScreenProps extends GiftedChatProps {
   onStartLoad?: () => void;
   onLoadEnd?: () => void;
   maxPageSize?: number;
+  inputToolbarProps?: IInputToolbar;
+  hasCamera?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -36,6 +43,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onStartLoad,
   onLoadEnd,
   maxPageSize = 20,
+  renderComposer,
+  inputToolbarProps,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -154,6 +163,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
+  const inputToolbar = useCallback(
+    (composeProps: ComposerProps) => {
+      if (renderComposer) return renderComposer(composeProps);
+      return (
+        <InputToolbar
+          {...composeProps}
+          hasCamera={props.hasCamera}
+          {...inputToolbarProps}
+        />
+      );
+    },
+    [props.hasCamera, renderComposer, inputToolbarProps]
+  );
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -169,6 +192,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
+          renderComposer={inputToolbar}
           {...props}
         />
       </KeyboardAvoidingView>
