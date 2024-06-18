@@ -20,8 +20,7 @@ const ImageURL = {
   send: require('../../images/send.png'),
 };
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
-  isShowFirstIcon?: boolean;
-  isShowSecondIcon?: boolean;
+  hasCamera?: boolean;
   onPressFirstAction?: () => void;
   onPressSecondAction?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
@@ -32,11 +31,12 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   secondIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  renderLeftCustomView?: React.ReactNode;
+  renderRightCustomView?: React.ReactNode;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
-  isShowFirstIcon = true,
-  isShowSecondIcon = true,
+  hasCamera,
   onPressSecondAction,
   onPressFirstAction,
   containerStyle,
@@ -57,20 +57,21 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {isShowFirstIcon && (
+      {hasCamera && (
         <PressableIcon
           icon={firstIcon}
           iconStyle={flattenedIconStyle}
           onPress={onPressFirstAction}
         />
       )}
-      {isShowSecondIcon && (
+      {hasCamera && (
         <PressableIcon
           onPress={onPressSecondAction}
           icon={secondIcon}
           iconStyle={flattenedIconStyle}
         />
       )}
+      {props.renderLeftCustomView}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
@@ -86,6 +87,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           icon={iconSend}
         />
       )}
+      {props.renderRightCustomView}
     </View>
   );
 };
@@ -94,8 +96,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    marginTop: 12,
+    paddingLeft: 4,
+    marginTop: 4,
   },
   composeWrapper: {
     flex: 1,
