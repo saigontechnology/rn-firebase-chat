@@ -2,7 +2,6 @@ import storage from '@react-native-firebase/storage';
 
 const uploadFileToFirebase = (
   path: string,
-  type: string,
   conversation: string,
   extension: string
 ) => {

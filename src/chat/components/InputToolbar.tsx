@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,6 +13,11 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
+import {
+  launchImageLibrary,
+  type ImageLibraryOptions,
+  type ImagePickerResponse,
+} from 'react-native-image-picker';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -21,6 +26,7 @@ const ImageURL = {
 };
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
+  hasGallery?: boolean;
   onPressFirstAction?: () => void;
   onPressSecondAction?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
@@ -37,6 +43,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
 
 const InputToolbar: React.FC<IInputToolbar> = ({
   hasCamera,
+  hasGallery,
   onPressSecondAction,
   onPressFirstAction,
   containerStyle,
@@ -55,6 +62,34 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
+  const openGallery = useCallback(async () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'mixed',
+    };
+    const result: ImagePickerResponse = await launchImageLibrary(options);
+    if (
+      result &&
+      !result.didCancel &&
+      !result.errorCode &&
+      result.assets &&
+      result?.assets.length > 0
+    ) {
+      const file = result.assets[0];
+      if (file) {
+        const mediaType = file.type?.startsWith('image') ? 'photo' : 'video';
+        const extension = mediaType === 'photo' ? 'jpg' : 'mp4';
+        onSend?.(
+          {
+            type: mediaType,
+            path: file.uri ?? '',
+            extension: extension,
+          },
+          true
+        );
+      }
+    }
+  }, [onSend]);
+
   return (
     <View style={[styles.container, containerStyle]}>
       {hasCamera && (
@@ -66,7 +101,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       )}
       {hasCamera && (
         <PressableIcon
-          onPress={onPressSecondAction}
+          onPress={hasGallery ? openGallery : onPressSecondAction}
           icon={secondIcon}
           iconStyle={flattenedIconStyle}
         />
@@ -96,8 +131,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 4,
-    marginTop: 4,
+    paddingLeft: 12,
+    marginTop: 12,
   },
   composeWrapper: {
     flex: 1,

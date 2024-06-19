@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -11,16 +18,14 @@ import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
 import { CaptureButton } from './CaptureButton';
 import Video from 'react-native-video';
-
-type MediaType = 'photo' | 'video';
+import type { MediaType, MessageProps } from '../../interfaces/message';
+import { v4 as uuidv4 } from 'uuid';
+import type { IUserInfo } from '../../interfaces';
 
 type CameraViewProps = {
-  visible?: boolean;
-  onSendMedia: (media: {
-    type: MediaType;
-    path: string;
-    extension: string;
-  }) => void;
+  onSend: (message: MessageProps) => void;
+  userInfo?: IUserInfo | null;
+  ref: any;
 };
 
 const iconPaths = {
@@ -29,6 +34,7 @@ const iconPaths = {
   cameraChange: require('../../images/camera_change.png'),
   flashOn: require('../../images/flash_on.png'),
   flashOff: require('../../images/flash_off.png'),
+  back: require('../../images/back.png'),
 };
 
 const initialMediaState = {
@@ -36,142 +42,125 @@ const initialMediaState = {
   path: '',
 };
 
-export const CameraView: React.FC<CameraViewProps> = ({
-  visible = true,
-  onSendMedia,
-}) => {
-  const camera = useRef<Camera>(null);
-  const [media, setMedia] = useState(initialMediaState);
-  const [isVideoPress, setIsVideoPress] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [isShowCamera, setIsShowCamera] = useState(true);
-  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
-    'back'
-  );
-  const [flash, setFlash] = useState<'off' | 'on'>('off');
-  const device = useCameraDevice(cameraPosition);
-
-  const supportsFlash = device?.hasFlash ?? false;
-
-  const onMediaCaptured = useCallback(
-    (data: PhotoFile | VideoFile, type: MediaType) => {
-      setMedia({ type, path: data.path });
-      setIsShowCamera(false);
-    },
-    []
-  );
-
-  const onFlipCameraPressed = useCallback(() => {
-    setCameraPosition((position) => (position === 'back' ? 'front' : 'back'));
-  }, []);
-
-  const onFlashPressed = useCallback(() => {
-    setFlash((currentFlash) => (currentFlash === 'off' ? 'on' : 'off'));
-  }, []);
-
-  const onSendPressed = useCallback(async () => {
-    const extension = media.type === 'photo' ? 'jpg' : 'mp4';
-
-    onSendMedia({ type: media.type, path: media.path, extension });
-  }, [media, onSendMedia]);
-
-  const startRecording = async () => {
-    setIsRecording(true);
-  };
-
-  const stopRecording = () => {
-    setIsRecording(false);
-    setTimer(0);
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    if (isRecording) {
-      interval = setInterval(
-        () => setTimer((prevTimer) => prevTimer + 1),
-        1000
-      );
-    } else if (!isRecording && timer !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording, timer]);
-
-  const renderMediaPage = useCallback(() => {
-    const source = { uri: media.path };
-    return (
-      <View style={styles.container}>
-        {media.type === 'photo' ? (
-          <Image
-            source={source}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-          />
-        ) : (
-          <Video source={source} style={StyleSheet.absoluteFill} />
-        )}
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => {
-            setMedia(initialMediaState);
-            setIsShowCamera(true);
-          }}
-        >
-          <Image source={iconPaths.close} style={styles.iconClose} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton} onPress={onSendPressed}>
-          <Image
-            source={iconPaths.send}
-            style={[styles.icon, styles.iconColor]}
-          />
-        </TouchableOpacity>
-      </View>
+export const CameraView: React.FC<CameraViewProps> = forwardRef(
+  (props, ref) => {
+    const { onSend, userInfo } = props;
+    const camera = useRef<Camera>(null);
+    const [media, setMedia] = useState(initialMediaState);
+    const [isVideoPress, setIsVideoPress] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [timer, setTimer] = useState(0);
+    const [isShowCamera, setIsShowCamera] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
+    const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
+      'back'
     );
-  }, [media, onSendPressed]);
+    const [flash, setFlash] = useState<'off' | 'on'>('off');
+    const device = useCameraDevice(cameraPosition);
 
-  const renderCamera = useCallback(
-    () => (
-      <View style={styles.container}>
-        {device && (
-          <Camera
-            style={StyleSheet.absoluteFill}
-            device={device}
-            isActive
-            ref={camera}
-            photo={!isVideoPress}
-            video={isVideoPress}
-          />
-        )}
-        {isVideoPress && (
-          <View style={styles.timerContainer}>
-            <Text style={[styles.timerText, isRecording && styles.redColor]}>
-              {new Date(timer * 1000).toISOString().slice(11, 19)}
-            </Text>
-          </View>
-        )}
-        <CaptureButton
-          style={styles.captureButton}
-          camera={camera}
-          onMediaCaptured={onMediaCaptured}
-          flash={supportsFlash ? flash : 'off'}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          isPhoto={!isVideoPress}
-        />
-        <View style={styles.rightButtonRow}>
-          <TouchableOpacity style={styles.button} onPress={onFlipCameraPressed}>
-            <Image style={styles.icon} source={iconPaths.cameraChange} />
-          </TouchableOpacity>
-          {supportsFlash && (
-            <TouchableOpacity style={styles.button} onPress={onFlashPressed}>
-              <Image
-                style={styles.icon}
-                source={flash === 'on' ? iconPaths.flashOn : iconPaths.flashOff}
-              />
-            </TouchableOpacity>
+    const supportsFlash = device?.hasFlash ?? false;
+
+    useImperativeHandle(ref, () => ({
+      show: () => setIsVisible(true),
+      hide: () => setIsVisible(false),
+    }));
+
+    const onMediaCaptured = useCallback(
+      (data: PhotoFile | VideoFile, type: MediaType) => {
+        setMedia({ type, path: data.path });
+        setIsShowCamera(false);
+      },
+      []
+    );
+
+    const onCloseCamera = useCallback(() => {
+      setIsVisible(false);
+    }, []);
+
+    const onFlipCameraPressed = useCallback(() => {
+      setCameraPosition((position) => (position === 'back' ? 'front' : 'back'));
+    }, []);
+
+    const onFlashPressed = useCallback(() => {
+      setFlash((currentFlash) => (currentFlash === 'off' ? 'on' : 'off'));
+    }, []);
+
+    const onSendPressed = useCallback(async () => {
+      const extension = media.type === 'photo' ? 'jpg' : 'mp4';
+      const id = uuidv4();
+      const message = {
+        id: id,
+        _id: id,
+        type: media.type,
+        path: media.path,
+        extension,
+      } as MessageProps;
+
+      const user = {
+        _id: userInfo?.id || '',
+        ...userInfo,
+      };
+      message.user = user;
+      onSend(message);
+      setIsVisible(false);
+    }, [media.path, media.type, onSend, userInfo]);
+
+    const startRecording = async () => {
+      setIsRecording(true);
+    };
+
+    const stopRecording = () => {
+      setIsRecording(false);
+      setTimer(0);
+    };
+
+    useEffect(() => {
+      let interval: NodeJS.Timeout | undefined;
+      if (isRecording) {
+        interval = setInterval(
+          () => setTimer((prevTimer) => prevTimer + 1),
+          1000
+        );
+      } else if (!isRecording && timer !== 0) {
+        clearInterval(interval);
+      }
+      return () => clearInterval(interval);
+    }, [isRecording, timer]);
+
+    const renderMediaPage = useCallback(() => {
+      const source = { uri: media.path };
+      return (
+        <View style={styles.container}>
+          {media.type === 'photo' ? (
+            <Image
+              source={source}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          ) : (
+            <Video source={source} style={StyleSheet.absoluteFill} />
           )}
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setMedia(initialMediaState);
+              setIsShowCamera(true);
+            }}
+          >
+            <Image source={iconPaths.close} style={styles.iconClose} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.saveButton} onPress={onSendPressed}>
+            <Image
+              source={iconPaths.send}
+              style={[styles.icon, styles.iconColor]}
+            />
+          </TouchableOpacity>
         </View>
+      );
+    }, [media, onSendPressed]);
+
+    const renderTimerView = useCallback(() => {
+      return (
         <View style={styles.bottomView}>
           <TouchableOpacity
             style={styles.photoButton}
@@ -206,27 +195,84 @@ export const CameraView: React.FC<CameraViewProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    ),
-    [
-      device,
-      flash,
-      isRecording,
-      isVideoPress,
-      onFlashPressed,
-      onFlipCameraPressed,
-      onMediaCaptured,
-      supportsFlash,
-      timer,
-    ]
-  );
+      );
+    }, [isVideoPress]);
 
-  return (
-    <Modal visible={visible}>
-      {isShowCamera ? renderCamera() : renderMediaPage()}
-    </Modal>
-  );
-};
+    const renderCamera = useCallback(
+      () => (
+        <View style={styles.container}>
+          {device && (
+            <Camera
+              style={StyleSheet.absoluteFill}
+              device={device}
+              isActive
+              ref={camera}
+              photo={!isVideoPress}
+              video={isVideoPress}
+            />
+          )}
+          <TouchableOpacity style={styles.backBtton} onPress={onCloseCamera}>
+            <Image source={iconPaths.back} style={styles.iconBack} />
+          </TouchableOpacity>
+          {isVideoPress && (
+            <View style={styles.timerContainer}>
+              <Text style={[styles.timerText, isRecording && styles.redColor]}>
+                {new Date(timer * 1000).toISOString().slice(11, 19)}
+              </Text>
+            </View>
+          )}
+          <CaptureButton
+            style={styles.captureButton}
+            camera={camera}
+            onMediaCaptured={onMediaCaptured}
+            flash={supportsFlash ? flash : 'off'}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            isPhoto={!isVideoPress}
+          />
+          <View style={styles.rightButtonRow}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={onFlipCameraPressed}
+            >
+              <Image style={styles.icon} source={iconPaths.cameraChange} />
+            </TouchableOpacity>
+            {supportsFlash && (
+              <TouchableOpacity style={styles.button} onPress={onFlashPressed}>
+                <Image
+                  style={styles.icon}
+                  source={
+                    flash === 'on' ? iconPaths.flashOn : iconPaths.flashOff
+                  }
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+          {renderTimerView()}
+        </View>
+      ),
+      [
+        device,
+        flash,
+        isRecording,
+        isVideoPress,
+        onCloseCamera,
+        onFlashPressed,
+        onFlipCameraPressed,
+        onMediaCaptured,
+        renderTimerView,
+        supportsFlash,
+        timer,
+      ]
+    );
+
+    return (
+      <Modal visible={isVisible}>
+        {isShowCamera ? renderCamera() : renderMediaPage()}
+      </Modal>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -263,6 +309,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backBtton: {
+    position: 'absolute',
+    top: 50,
+    left: 30,
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   saveButton: {
     position: 'absolute',
     bottom: 30,
@@ -280,6 +335,11 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   iconClose: {
+    width: 25,
+    height: 25,
+    tintColor: 'white',
+  },
+  iconBack: {
     width: 20,
     height: 20,
     tintColor: 'white',
@@ -316,11 +376,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   bottomText: {
-    color: 'white',
+    color: 'gray',
     fontSize: 20,
+    fontWeight: '400',
   },
   bottomTextSelected: {
-    fontWeight: '500',
+    fontWeight: 'bold',
+    color: 'white',
   },
 });
 

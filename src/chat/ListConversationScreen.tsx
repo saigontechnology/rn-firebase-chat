@@ -3,7 +3,8 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { ConversationItem } from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
-import { setConversation, getListConversation } from '../reducer';
+import { setConversation } from '../reducer';
+import { getListConversation } from '../reducer/selectors';
 
 type ListItem = {
   item: ConversationProps;

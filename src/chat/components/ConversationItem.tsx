@@ -58,7 +58,11 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               {data?.name}
             </Text>
             <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>
-              {data?.latestMessage?.text}
+              {data?.latestMessage?.type === 'text'
+                ? data?.latestMessage?.text
+                : data?.latestMessage?.type === 'photo'
+                ? 'Photo'
+                : 'Video'}
             </Text>
           </View>
         )}

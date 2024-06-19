@@ -8,6 +8,8 @@ import {
   type MessageProps,
   MessageStatus,
   type SendMessageProps,
+  type MediaType,
+  MessageTypes,
 } from '../interfaces';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
@@ -65,7 +67,10 @@ const formatEncryptedMessageData = async (
 
 const formatSendMessage = (
   userId: string,
-  message: string
+  text: string,
+  type?: MediaType,
+  path?: string,
+  extension?: string
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -73,18 +78,27 @@ const formatSendMessage = (
   status: MessageStatus.sent,
   senderId: userId,
   createdAt: Date.now(),
-  text: message,
+  text: text ?? '',
+  type: type ?? MessageTypes.text,
+  path: path ?? '',
+  extension: extension ?? '',
 });
 
 const formatLatestMessage = (
   userId: string,
-  message: string
+  message: string,
+  type?: MediaType,
+  path?: string,
+  extension?: string
 ): LatestMessageProps => ({
-  text: message,
+  text: message ?? '',
   senderId: userId,
   readBy: {
     [userId]: true,
   },
+  type: type ?? MessageTypes.text,
+  path: path ?? '',
+  extension: extension ?? '',
 });
 
 export {
