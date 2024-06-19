@@ -34,6 +34,8 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  sendNotificationChat?: () => void;
+  timeoutSendNotify?: number;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -45,6 +47,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  sendNotificationChat,
+  timeoutSendNotify = 3000,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -58,6 +62,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const isLoadingRef = useRef(false);
+  const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -111,8 +116,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
 
       await firebaseInstance.sendMessage(messages.text);
+
+      timeoutMessageRef.current = setTimeout(() => {
+        sendNotificationChat?.();
+      }, timeoutSendNotify);
     },
-    [firebaseInstance, memberIds, partners]
+    [
+      firebaseInstance,
+      timeoutSendNotify,
+      memberIds,
+      partners,
+      sendNotificationChat,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
@@ -134,8 +149,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
+      if (timeoutMessageRef.current) {
+        clearTimeout(timeoutMessageRef.current);
+      }
     };
   }, [firebaseInstance]);
+
+  useEffect(() => {
+    let userConversation: () => void;
+    userConversation = firebaseInstance.userConversationListener(
+      (data: ConversationData | undefined) => {
+        const memberId = partners[0]?.id;
+        const unReads = data?.unRead ?? {};
+        const hasUnreadMessages = Object.entries(unReads).some(
+          ([key, value]) => key !== memberId && value > 0
+        );
+        setUserUnreadMessage(hasUnreadMessages);
+        if (!hasUnreadMessages && timeoutMessageRef.current) {
+          clearTimeout(timeoutMessageRef.current);
+          timeoutMessageRef.current = null;
+        }
+      }
+    );
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners]);
 
   useEffect(() => {
     let receiveMessageRef: () => void;
