@@ -31,10 +31,21 @@ enum MessageTypes {
 }
 
 enum MessageStatus {
-  sending,
   sent,
+  received,
+  seen,
   failed,
-  read,
 }
 
-export { ConversationProps, MemberProps, MessageTypes, MessageStatus };
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
+}
+
+export {
+  ConversationProps,
+  MemberProps,
+  MessageTypes,
+  MessageStatus,
+  ConversationData,
+};

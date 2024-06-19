@@ -11,19 +11,28 @@ import {
   StyleSheet,
   View,
   type ViewStyle,
+  Keyboard,
+  Text,
 } from 'react-native';
 import {
   type ComposerProps,
   GiftedChat,
   type GiftedChatProps,
+  Bubble,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
-import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
+import type {
+  ConversationData,
+  ConversationProps,
+  IUserInfo,
+  MessageProps,
+} from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { CustomBubble } from './components/CustomBubble';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -58,6 +67,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const isLoadingRef = useRef(false);
+  const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -76,6 +86,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
         setHasMoreMessages(res.length === maxPageSize);
+        firebaseInstance.changeReadMessage();
         onLoadEnd?.();
       });
     }
@@ -138,6 +149,26 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   }, [firebaseInstance]);
 
   useEffect(() => {
+    let userConversation: () => void;
+    userConversation = firebaseInstance.userConversationListener(
+      (data: ConversationData | undefined) => {
+        const memberId = partners[0]?.id;
+        const unReads = data?.unRead ?? {};
+        const hasUnreadMessages = Object.entries(unReads).some(
+          ([key, value]) => key !== memberId && value > 0
+        );
+        setUserUnreadMessage(hasUnreadMessages);
+      }
+    );
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners]);
+
+  useEffect(() => {
     let receiveMessageRef: () => void;
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
@@ -151,6 +182,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             setMessagesList((previousMessages) =>
               GiftedChat.append(previousMessages, [formatMessage])
             );
+            firebaseInstance.changeReadMessage();
           }
         }
       );
@@ -177,6 +209,54 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [props.hasCamera, renderComposer, inputToolbarProps]
   );
 
+  const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
+    if (props.renderBubble) return props.renderBubble(bubble);
+    const imageUrl = bubble.currentMessage?.path;
+    const isMyLatestMessage =
+      !Object.keys(bubble?.nextMessage ?? {}).length &&
+      bubble.position === 'right';
+    const ViewRead = isMyLatestMessage && (
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusText}>
+          {userUnreadMessage ? 'Sent' : 'Seen'}
+        </Text>
+      </View>
+    );
+
+    if (!imageUrl) {
+      return (
+        <View>
+          <Bubble {...bubble} />
+          {ViewRead}
+        </View>
+      );
+    }
+
+    const styleBuble = {
+      left: { backgroundColor: 'transparent' },
+      right: { backgroundColor: 'transparent' },
+    };
+
+    return (
+      <Bubble
+        {...bubble}
+        renderCustomView={() =>
+          bubble.currentMessage && (
+            <View>
+              <CustomBubble
+                message={bubble.currentMessage}
+                position={bubble.position}
+                selectedImgVideoUrl={(url) => setImgVideoUrl(url)}
+              />
+              {ViewRead}
+            </View>
+          )
+        }
+        wrapperStyle={styleBuble}
+      />
+    );
+  };
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -193,6 +273,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
+          renderBubble={renderBubble}
           {...props}
         />
       </KeyboardAvoidingView>
@@ -203,5 +284,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  statusContainer: {
+    backgroundColor: '#a9a9a9',
+    borderRadius: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  statusText: {
+    fontSize: 12,
+    color: 'white',
   },
 });

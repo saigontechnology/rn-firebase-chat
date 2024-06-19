@@ -143,6 +143,7 @@ export class FirestoreServices {
     if (this.enableEncrypt && this.encryptKey) {
       message = await encryptData(text, this.encryptKey);
     }
+    await this.updateUnReadMessageInChannel();
     /** Format message */
     const messageData = formatSendMessage(this.userId, message);
     try {
@@ -187,6 +188,46 @@ export class FirestoreServices {
         { merge: true }
       )
       .then();
+  };
+
+  updateUnReadMessageInChannel = () => {
+    if (!this.userId || !this.conversationId) {
+      return;
+    }
+    let conversationRef = firestore()
+      .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+      .doc(this.conversationId);
+    return firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(conversationRef);
+      const unRead = doc?.data()?.unRead ?? {};
+      if (doc.exists) {
+        transaction.update(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead?.[memberId] ?? 0) + 1];
+              }
+            })
+          ),
+        });
+        return;
+      }
+      conversationRef
+        .update({
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, 1];
+              }
+            })
+          ),
+        })
+        .then();
+    });
   };
 
   changeReadMessage = () => {
