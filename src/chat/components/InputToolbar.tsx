@@ -13,6 +13,7 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
+import { filterBadWords } from '../../utilities';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -33,6 +34,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconStyle?: StyleProp<ImageStyle>;
   renderLeftCustomView?: React.ReactNode;
   renderRightCustomView?: React.ReactNode;
+  isFilterBadWords?: boolean;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -46,6 +48,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   secondIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  isFilterBadWords,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -83,7 +86,14 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       {!!text && (
         <PressableIcon
           iconStyle={flattenedIconStyle}
-          onPress={() => onSend?.({ text: text }, true)}
+          onPress={() => {
+            if (isFilterBadWords) {
+              const replaceBadWords = filterBadWords(text, 'en');
+              onSend?.({ text: replaceBadWords }, true);
+            } else {
+              onSend?.({ text }, true);
+            }
+          }}
           icon={iconSend}
         />
       )}

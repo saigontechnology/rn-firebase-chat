@@ -34,6 +34,7 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  isFilterBadWords?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -45,6 +46,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  isFilterBadWords = false,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -171,10 +173,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           {...composeProps}
           hasCamera={props.hasCamera}
           {...inputToolbarProps}
+          isFilterBadWords={isFilterBadWords}
         />
       );
     },
-    [props.hasCamera, renderComposer, inputToolbarProps]
+    [renderComposer, props.hasCamera, isFilterBadWords, inputToolbarProps]
   );
 
   return (
