@@ -43,6 +43,6 @@ interface SendMessageProps {
   extension?: string;
 }
 
-type MediaType = 'photo' | 'video' | 'text';
+type MediaType = 'image' | 'video' | 'text' | undefined;
 
 export { MessageProps, LatestMessageProps, SendMessageProps, MediaType };

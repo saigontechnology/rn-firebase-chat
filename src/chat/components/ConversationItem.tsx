@@ -11,7 +11,7 @@ import {
   TextStyle,
   Image,
 } from 'react-native';
-import type { ConversationProps } from '../../interfaces';
+import { MessageTypes, type ConversationProps } from '../../interfaces';
 import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
@@ -58,9 +58,9 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               {data?.name}
             </Text>
             <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>
-              {data?.latestMessage?.type === 'text'
+              {data?.latestMessage?.type === MessageTypes.text
                 ? data?.latestMessage?.text
-                : data?.latestMessage?.type === 'photo'
+                : data?.latestMessage?.type === MessageTypes.image
                 ? 'Photo'
                 : 'Video'}
             </Text>

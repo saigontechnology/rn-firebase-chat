@@ -20,13 +20,19 @@ import { CaptureButton } from './CaptureButton';
 import Video from 'react-native-video';
 import type { MediaType, MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
-import type { IUserInfo } from '../../interfaces';
+import { MessageTypes, type IUserInfo } from '../../interfaces';
+import { getMediaTypeFromExtension } from '../../utilities';
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
   userInfo?: IUserInfo | null;
   ref: any;
 };
+
+export interface CameraViewRef {
+  show: () => void;
+  hide: () => void;
+}
 
 const iconPaths = {
   close: require('../../images/close.png'),
@@ -38,11 +44,11 @@ const iconPaths = {
 };
 
 const initialMediaState = {
-  type: 'photo' as MediaType,
+  type: MessageTypes.image,
   path: '',
 };
 
-export const CameraView: React.FC<CameraViewProps> = forwardRef(
+export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
   (props, ref) => {
     const { onSend, userInfo } = props;
     const camera = useRef<Camera>(null);
@@ -66,7 +72,7 @@ export const CameraView: React.FC<CameraViewProps> = forwardRef(
     }));
 
     const onMediaCaptured = useCallback(
-      (data: PhotoFile | VideoFile, type: MediaType) => {
+      (data: PhotoFile | VideoFile, type: MessageTypes) => {
         setMedia({ type, path: data.path });
         setIsShowCamera(false);
       },
@@ -86,7 +92,7 @@ export const CameraView: React.FC<CameraViewProps> = forwardRef(
     }, []);
 
     const onSendPressed = useCallback(async () => {
-      const extension = media.type === 'photo' ? 'jpg' : 'mp4';
+      const extension = getMediaTypeFromExtension(media.path);
       const id = uuidv4();
       const message = {
         id: id,
@@ -131,7 +137,7 @@ export const CameraView: React.FC<CameraViewProps> = forwardRef(
       const source = { uri: media.path };
       return (
         <View style={styles.container}>
-          {media.type === 'photo' ? (
+          {media.type === MessageTypes.image ? (
             <Image
               source={source}
               style={StyleSheet.absoluteFill}

@@ -18,6 +18,8 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
+import { MessageTypes } from '../../interfaces';
+import { getMediaTypeFromExtension } from '../../utilities';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -26,7 +28,6 @@ const ImageURL = {
 };
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
-  hasGallery?: boolean;
   onPressFirstAction?: () => void;
   onPressSecondAction?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
@@ -43,7 +44,6 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
 
 const InputToolbar: React.FC<IInputToolbar> = ({
   hasCamera,
-  hasGallery,
   onPressSecondAction,
   onPressFirstAction,
   containerStyle,
@@ -63,30 +63,31 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   ]);
 
   const openGallery = useCallback(async () => {
-    const options: ImageLibraryOptions = {
-      mediaType: 'mixed',
-    };
-    const result: ImagePickerResponse = await launchImageLibrary(options);
-    if (
-      result &&
-      !result.didCancel &&
-      !result.errorCode &&
-      result.assets &&
-      result?.assets.length > 0
-    ) {
-      const file = result.assets[0];
-      if (file) {
-        const mediaType = file.type?.startsWith('image') ? 'photo' : 'video';
-        const extension = mediaType === 'photo' ? 'jpg' : 'mp4';
+    try {
+      const options: ImageLibraryOptions = {
+        mediaType: 'mixed',
+      };
+
+      const result: ImagePickerResponse = await launchImageLibrary(options);
+
+      if (result?.assets) {
+        const file = result?.assets[0];
+        const mediaType = file?.type?.startsWith('image')
+          ? MessageTypes.image
+          : MessageTypes.video;
+        const extension = getMediaTypeFromExtension(file?.uri ?? '');
+
         onSend?.(
           {
             type: mediaType,
-            path: file.uri ?? '',
+            path: file?.uri ?? '',
             extension: extension,
           },
           true
         );
       }
+    } catch (error) {
+      console.error('Error while opening gallery:', error);
     }
   }, [onSend]);
 
@@ -101,7 +102,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       )}
       {hasCamera && (
         <PressableIcon
-          onPress={hasGallery ? openGallery : onPressSecondAction}
+          onPress={onPressSecondAction || openGallery}
           icon={secondIcon}
           iconStyle={flattenedIconStyle}
         />

@@ -144,13 +144,17 @@
     ]
   },
   "dependencies": {
-    "@react-native-firebase/app": "^18.6.1",
-    "@react-native-firebase/firestore": "^18.6.1",
-    "@react-native-firebase/storage": "^18.6.1",
+    "@react-native-firebase/app": "^20.1.0",
+    "@react-native-firebase/firestore": "^20.1.0",
+    "@react-native-firebase/storage": "^20.1.0",
+    "@types/uuid": "^9.0.8",
     "randomcolor": "^0.6.2",
     "react-native-aes-crypto": "^2.1.1",
+    "react-native-fast-image": "^8.6.3",
     "react-native-gifted-chat": "^2.4.0",
+    "react-native-image-picker": "^7.1.2",
     "react-native-video": "^6.2.0",
-    "react-native-vision-camera": "^4.1.0"
+    "react-native-vision-camera": "^4.1.0",
+    "uuid": "^10.0.0"
   }
 }

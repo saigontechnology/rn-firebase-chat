@@ -2,16 +2,14 @@ import React, { useCallback, useRef } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
+import { MessageTypes } from '../../interfaces';
 export const CAPTURE_BUTTON_SIZE = 78;
 
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
 
 interface Props extends ViewProps {
   camera: React.RefObject<Camera>;
-  onMediaCaptured: (
-    media: PhotoFile | VideoFile,
-    type: 'photo' | 'video'
-  ) => void;
+  onMediaCaptured: (media: PhotoFile | VideoFile, type: MessageTypes) => void;
   flash: 'off' | 'on';
   isPhoto: boolean;
   onStartRecording: () => void;
@@ -37,7 +35,7 @@ const _CaptureButton: React.FC<Props> = ({
         flash: flash,
         enableShutterSound: false,
       });
-      onMediaCaptured(photo, 'photo');
+      onMediaCaptured(photo, MessageTypes.image);
     } catch (e) {
       console.error('Failed to take photo!', e);
     }
@@ -64,7 +62,7 @@ const _CaptureButton: React.FC<Props> = ({
           console.error('Recording failed!', error);
         },
         onRecordingFinished: (video) => {
-          onMediaCaptured(video, 'video');
+          onMediaCaptured(video, MessageTypes.video);
         },
       });
     } catch (e) {

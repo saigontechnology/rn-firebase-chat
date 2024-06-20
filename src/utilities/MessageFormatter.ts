@@ -11,6 +11,7 @@ import {
   type MediaType,
   MessageTypes,
 } from '../interfaces';
+import type { Asset } from 'react-native-image-picker';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
   return {
@@ -100,6 +101,19 @@ const formatLatestMessage = (
   path: path ?? '',
   extension: extension ?? '',
 });
+
+export const getMediaTypeFromExtension = (path: string): MediaType => {
+  const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
+  const extension = path.split('.').pop();
+  if (extension && photoExtensions.includes(extension)) {
+    return MessageTypes.image;
+  } else if (extension && videoExtensions.includes(extension)) {
+    return MessageTypes.video;
+  } else {
+    return undefined;
+  }
+};
 
 export {
   formatMessageData,

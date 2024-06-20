@@ -25,7 +25,7 @@ import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
-import { CameraView } from '../chat_obs/components/CameraView';
+import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 
 interface ChatScreenProps extends GiftedChatProps {
@@ -62,7 +62,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const isLoadingRef = useRef(false);
-  const cameraViewRef = useRef<any>();
+  const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
 
   const conversationRef = useRef<ConversationProps | undefined>(
@@ -170,7 +170,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
   const onPressCamera = useCallback(() => {
-    if (props.onPressCamera) return props.onPressCamera?.();
+    if (props.onPressCamera) return props.onPressCamera();
     if (Keyboard.isVisible()) {
       Keyboard.dismiss();
       return;

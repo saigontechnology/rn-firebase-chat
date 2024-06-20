@@ -13,6 +13,7 @@ import {
 import {
   ConversationProps,
   FireStoreCollection,
+  MessageTypes,
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
@@ -184,7 +185,10 @@ export class FirestoreServices {
     const { text, type, path, extension } = message;
     let messageData;
 
-    if (message.type === 'photo' || message.type === 'video') {
+    if (
+      message.type === MessageTypes.image ||
+      message.type === MessageTypes.video
+    ) {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
       this.sendMessageWithFile(messageData);
     } else {
