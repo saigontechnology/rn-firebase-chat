@@ -20,7 +20,12 @@ import {
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
-import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
+import type {
+  ConversationProps,
+  EncryptionOptions,
+  IUserInfo,
+  MessageProps,
+} from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
@@ -34,6 +39,7 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  optionAEScrypto: EncryptionOptions;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -45,6 +51,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  optionAEScrypto,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -71,13 +78,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.setConversationInfo(
         conversationInfo?.id,
         memberIds,
-        partners
+        partners,
+        optionAEScrypto
       );
-      firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
-        setMessagesList(res);
-        setHasMoreMessages(res.length === maxPageSize);
-        onLoadEnd?.();
-      });
+      firebaseInstance
+        .getMessageHistory(maxPageSize, optionAEScrypto)
+        .then((res) => {
+          setMessagesList(res);
+          setHasMoreMessages(res.length === maxPageSize);
+          onLoadEnd?.();
+        });
     }
   }, [
     conversationInfo?.id,
@@ -87,6 +97,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     memberIds,
     partners,
     maxPageSize,
+    optionAEScrypto,
   ]);
 
   const onSend = useCallback(
@@ -102,7 +113,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         firebaseInstance.setConversationInfo(
           conversationRef.current?.id,
           memberIds,
-          partners
+          partners,
+          optionAEScrypto
         );
       }
       /** Add new message to message list  */
@@ -112,7 +124,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages.text);
     },
-    [firebaseInstance, memberIds, partners]
+    [firebaseInstance, memberIds, optionAEScrypto, partners]
   );
 
   const onLoadEarlier = useCallback(async () => {
@@ -121,7 +133,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
     isLoadingRef.current = true;
     if (conversationRef.current?.id) {
-      const res = await firebaseInstance.getMoreMessage(maxPageSize);
+      const res = await firebaseInstance.getMoreMessage(
+        maxPageSize,
+        optionAEScrypto
+      );
       const isMoreMessage = res.length === maxPageSize;
       setHasMoreMessages(isMoreMessage);
       isLoadingRef.current = !isMoreMessage;
@@ -129,7 +144,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         GiftedChat.prepend(previousMessages, res)
       );
     }
-  }, [maxPageSize, firebaseInstance]);
+  }, [firebaseInstance, maxPageSize, optionAEScrypto]);
 
   useEffect(() => {
     return () => {
@@ -152,7 +167,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [formatMessage])
             );
           }
-        }
+        },
+        optionAEScrypto
       );
     }
 
@@ -161,7 +177,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         receiveMessageRef();
       }
     };
-  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+  }, [
+    firebaseInstance,
+    userInfo,
+    conversationRef.current?.id,
+    optionAEScrypto,
+  ]);
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {

@@ -1,13 +1,14 @@
 /**
  * Created by NL on 6/1/23.
  */
-import { decryptData, generateKey } from './AESCrypto';
+import { encryptedMessageData } from './AESCrypto';
 import {
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
   MessageStatus,
   type SendMessageProps,
+  type EncryptionOptions,
 } from '../interfaces';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
@@ -24,43 +25,11 @@ const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
 };
 
 const formatEncryptedMessageData = async (
-  message: MessageProps,
-  userName: string
+  text: string,
+  conversationId: string,
+  options: EncryptionOptions = {}
 ) => {
-  return generateKey('Arnold', 'salt', 5000, 256).then((key) => {
-    return decryptData(message.text, key)
-      .then((decryptedMessage) => {
-        return {
-          _id: message.id,
-          text: decryptedMessage ? decryptedMessage : message.text,
-          user: {
-            _id: message.senderId,
-            name: userName,
-            avatar:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
-          },
-          senderId: message.senderId,
-          readBy: message.readBy,
-          id: message.id,
-        };
-      })
-      .catch(() => {
-        return {
-          _id: message.id,
-          // if fail to decrypt, return the original text
-          text: message.text,
-          user: {
-            _id: message.senderId,
-            name: userName,
-            avatar:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
-          },
-          senderId: message.senderId,
-          readBy: message.readBy,
-          id: message.id,
-        };
-      });
-  });
+  return await encryptedMessageData(text, conversationId, options);
 };
 
 const formatSendMessage = (

@@ -7,3 +7,4 @@ export * from './firestore';
 export * from './message';
 export * from './user';
 export * from './chat';
+export * from './AESCrypto';
