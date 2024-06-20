@@ -11,11 +11,13 @@ import {
   StyleSheet,
   View,
   type ViewStyle,
+  Keyboard,
 } from 'react-native';
 import {
   type ComposerProps,
   GiftedChat,
   type GiftedChatProps,
+  Bubble,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -24,6 +26,7 @@ import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { CustomImageVideoBubble } from './components/CustomImageVideoBubble';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -177,6 +180,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [props.hasCamera, renderComposer, inputToolbarProps]
   );
 
+  const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
+    if (props.renderBubble) return props.renderBubble(bubble);
+    const imageUrl = bubble.currentMessage?.path;
+    if (!imageUrl) {
+      return <Bubble {...bubble} />;
+    }
+
+    const styleBuble = {
+      left: { backgroundColor: 'transparent' },
+      right: { backgroundColor: 'transparent' },
+    };
+
+    return (
+      <Bubble
+        {...bubble}
+        renderCustomView={() =>
+          bubble.currentMessage && (
+            <CustomImageVideoBubble
+              message={bubble.currentMessage}
+              position={bubble.position}
+              selectedImgVideoUrl={(url) => setImgVideoUrl(url)}
+            />
+          )
+        }
+        wrapperStyle={styleBuble}
+      />
+    );
+  };
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -193,6 +225,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
+          renderBubble={renderBubble}
           {...props}
         />
       </KeyboardAvoidingView>
