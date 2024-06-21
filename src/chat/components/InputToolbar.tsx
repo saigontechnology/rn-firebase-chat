@@ -19,7 +19,7 @@ import {
   type ImagePickerResponse,
 } from 'react-native-image-picker';
 import { MessageTypes } from '../../interfaces';
-import { getMediaTypeFromExtension } from '../../utilities';
+import { convertExtension } from '../../utilities';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -75,7 +75,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         const mediaType = file?.type?.startsWith('image')
           ? MessageTypes.image
           : MessageTypes.video;
-        const extension = getMediaTypeFromExtension(file?.uri ?? '');
+        const extension = convertExtension(file);
 
         onSend?.(
           {

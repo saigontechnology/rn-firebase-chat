@@ -115,6 +115,14 @@ export const getMediaTypeFromExtension = (path: string): MediaType => {
   }
 };
 
+export const convertExtension = (file: Asset | undefined): string => {
+  if (!file || file.type?.startsWith('image')) {
+    return 'jpg';
+  } else {
+    return 'mp4';
+  }
+};
+
 export {
   formatMessageData,
   formatEncryptedMessageData,
