@@ -16,9 +16,9 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
-import { CaptureButton } from './CaptureButton';
+import { CaptureCameraButton } from './CaptureButton';
 import Video from 'react-native-video';
-import type { MediaType, MessageProps } from '../../interfaces/message';
+import type { MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTypes, type IUserInfo } from '../../interfaces';
 import { getMediaTypeFromExtension } from '../../utilities';
@@ -227,7 +227,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
               </Text>
             </View>
           )}
-          <CaptureButton
+          <CaptureCameraButton
             style={styles.captureButton}
             camera={camera}
             onMediaCaptured={onMediaCaptured}

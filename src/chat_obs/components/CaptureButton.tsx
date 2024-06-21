@@ -16,7 +16,7 @@ interface Props extends ViewProps {
   onStopRecording: () => void;
 }
 
-const _CaptureButton: React.FC<Props> = ({
+const CaptureButton: React.FC<Props> = ({
   camera,
   onMediaCaptured,
   onStopRecording,
@@ -93,7 +93,7 @@ const _CaptureButton: React.FC<Props> = ({
   );
 };
 
-export const CaptureButton = React.memo(_CaptureButton);
+export const CaptureCameraButton = React.memo(CaptureButton);
 
 const styles = StyleSheet.create({
   flex: {
