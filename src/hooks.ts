@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
 import type { ChatState } from './reducer';
@@ -20,4 +21,55 @@ export const useChatSelector = <T>(
 ): T => {
   const { chatState } = useChatContext();
   return selector(chatState);
+};
+/**
+ * Custom hook to manage typing indicator behavior based on user input.
+ * @param enableTyping Boolean flag indicating whether typing indicator should be enabled.
+ * @param changeUserConversationTyping Function to update typing indicator state in parent component.
+ * @param typingTimeoutSeconds Number of time out.
+ */
+
+export const useTypingIndicator = (
+  enableTyping: boolean,
+  changeUserConversationTyping: (
+    isTyping: boolean,
+    callback?: () => void
+  ) => void,
+  typingTimeoutSeconds?: number
+) => {
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>();
+
+  const startTyping = useCallback(() => {
+    changeUserConversationTyping(true);
+    typingTimeoutRef.current = setTimeout(() => {
+      changeUserConversationTyping(false);
+    }, typingTimeoutSeconds);
+  }, [changeUserConversationTyping, typingTimeoutSeconds]);
+
+  const stopTyping = useCallback(() => {
+    changeUserConversationTyping(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = undefined;
+    }
+  }, [changeUserConversationTyping]);
+
+  const handleTextChange = useCallback(
+    (newText: string) => {
+      if (!enableTyping) return;
+
+      if (newText.trim().length > 0) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(stopTyping, typingTimeoutSeconds);
+        startTyping();
+        return;
+      }
+      stopTyping();
+    },
+    [enableTyping, startTyping, stopTyping, typingTimeoutSeconds]
+  );
+
+  return {
+    handleTextChange,
+  };
 };

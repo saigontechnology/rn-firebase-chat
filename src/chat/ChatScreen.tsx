@@ -19,11 +19,17 @@ import {
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
-import { useChatContext, useChatSelector } from '../hooks';
-import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
-import { formatMessageData } from '../utilities';
+import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
+import type {
+  ConversationData,
+  ConversationProps,
+  IUserInfo,
+  MessageProps,
+} from '../interfaces';
+import { formatMessageData, isOtherUserTyping } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { TYPING_TIMEOUT_SECONDS } from '../chat_obs/constanst';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -34,6 +40,8 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  enableTyping?: boolean;
+  typingTimeoutSeconds?: number;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -45,6 +53,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  enableTyping = true,
+  typingTimeoutSeconds = TYPING_TIMEOUT_SECONDS,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -57,6 +67,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const isLoadingRef = useRef(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
@@ -88,6 +99,25 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     partners,
     maxPageSize,
   ]);
+
+  useEffect(() => {
+    let userConversation: () => void;
+    userConversation = firebaseInstance.userConversationListener(
+      (data: ConversationData | undefined) => {
+        const memberId = partners[0]?.id;
+        if (memberId && data?.typing) {
+          const isOthersTyping = isOtherUserTyping(data.typing, memberId);
+          setIsTyping(isOthersTyping);
+        }
+      }
+    );
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners]);
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
@@ -177,6 +207,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [props.hasCamera, renderComposer, inputToolbarProps]
   );
 
+  const changeUserConversationTyping = useCallback(
+    (value: boolean, callback?: () => void) => {
+      firebaseInstance.setUserConversationTyping(value).then(callback);
+    },
+    [firebaseInstance]
+  );
+
+  const { handleTextChange } = useTypingIndicator(
+    enableTyping,
+    changeUserConversationTyping,
+    typingTimeoutSeconds
+  );
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -187,12 +230,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             _id: userInfo?.id || '',
             ...userInfo,
           }}
-          keyboardShouldPersistTaps={'always'}
+          keyboardShouldPersistTaps={'never'}
           infiniteScroll
           loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
+          onInputTextChanged={handleTextChange}
+          isTyping={isTyping}
           {...props}
         />
       </KeyboardAvoidingView>

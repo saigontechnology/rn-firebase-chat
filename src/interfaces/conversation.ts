@@ -37,4 +37,15 @@ enum MessageStatus {
   read,
 }
 
-export { ConversationProps, MemberProps, MessageTypes, MessageStatus };
+interface ConversationData {
+  groupOnline?: string[];
+  typing?: { [key: string]: boolean };
+}
+
+export {
+  ConversationProps,
+  MemberProps,
+  MessageTypes,
+  MessageStatus,
+  ConversationData,
+};
