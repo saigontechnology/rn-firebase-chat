@@ -54,20 +54,15 @@ const useTypingIndicator = (
 
   const handleTextChange = useCallback(
     (newText: string) => {
-      if (enableTyping) {
-        if (newText.trim().length > 0) {
-          if (!typingTimeoutRef.current) {
-            startTyping();
-          } else {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = setTimeout(() => {
-              stopTyping();
-            }, typingTimeoutSeconds);
-          }
-        } else {
-          stopTyping();
-        }
+      if (!enableTyping) return;
+
+      if (newText.trim().length > 0) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(stopTyping, typingTimeoutSeconds);
+        startTyping();
+        return;
       }
+      stopTyping();
     },
     [enableTyping, startTyping, stopTyping, typingTimeoutSeconds]
   );
