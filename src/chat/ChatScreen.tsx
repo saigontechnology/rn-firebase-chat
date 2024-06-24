@@ -27,6 +27,7 @@ import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
+import { useCameraPermission } from 'react-native-vision-camera';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -64,6 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const isLoadingRef = useRef(false);
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
+  const { hasPermission, requestPermission } = useCameraPermission();
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -171,12 +173,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const onPressCamera = useCallback(() => {
     if (props.onPressCamera) return props.onPressCamera();
+    if (!hasPermission) {
+      requestPermission();
+      return;
+    }
     if (Keyboard.isVisible()) {
       Keyboard.dismiss();
       return;
     }
+
     cameraViewRef.current?.show();
-  }, [props]);
+  }, [hasPermission, props, requestPermission]);
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
