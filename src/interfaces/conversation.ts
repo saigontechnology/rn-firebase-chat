@@ -3,7 +3,7 @@
  */
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { BaseEntity } from './base';
-import type { LatestMessageProps } from './message';
+import type { LatestMessageProps, MediaType } from './message';
 
 interface MemberProps {
   [userId: string]: FirebaseFirestoreTypes.DocumentReference;
@@ -37,4 +37,16 @@ enum MessageStatus {
   read,
 }
 
-export { ConversationProps, MemberProps, MessageTypes, MessageStatus };
+interface MediaFile {
+  id: string;
+  path: string;
+  type: MediaType;
+}
+
+export {
+  ConversationProps,
+  MemberProps,
+  MessageTypes,
+  MessageStatus,
+  MediaFile,
+};

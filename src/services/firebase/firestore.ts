@@ -11,6 +11,7 @@ import {
 import {
   ConversationProps,
   FireStoreCollection,
+  MediaFile,
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
@@ -386,5 +387,29 @@ export class FirestoreServices {
           });
         }
       });
+  };
+
+  getMediaFilesByConversationId = async (): Promise<MediaFile[]> => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before sending the first message!'
+      );
+    }
+
+    const listRef = storage().ref(this.conversationId);
+    const result = await listRef.listAll();
+
+    const filePromises = result.items.map(async (fileRef) => {
+      const filePath = await fileRef.getDownloadURL();
+      const id = fileRef.name?.split('.')[0];
+      return {
+        id: id || new Date().getTime().toString(),
+        path: filePath,
+        type: getMediaTypeFromExtension(fileRef.name),
+      };
+    });
+    const fileURLs: MediaFile[] = await Promise.all(filePromises);
+
+    return fileURLs;
   };
 }
