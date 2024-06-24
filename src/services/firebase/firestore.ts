@@ -1,6 +1,8 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+
 import {
   encryptData,
   formatLatestMessage,
@@ -11,11 +13,13 @@ import {
 import {
   ConversationProps,
   FireStoreCollection,
+  MessageTypes,
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
+import { uploadFileToFirebase } from './storage';
 
 interface FirestoreProps {
   userInfo: IUserInfo;
@@ -99,12 +103,15 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    let conversationData = {
+    let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      image,
       updatedAt: Date.now(),
     };
+
+    if (image) {
+      conversationData.image = image;
+    }
     /** Create the conversation to the user who create the chat */
     const conversationRef = await firestore()
       .collection<Partial<ConversationProps>>(
@@ -125,42 +132,92 @@ export class FirestoreServices {
 
     this.conversationId = conversationRef.id;
     this.memberIds = memberIds;
-    return { ...conversationData, id: conversationRef.id };
+    return { ...conversationData, id: conversationRef.id } as ConversationProps;
+  };
+
+  sendMessageWithFile = async (message: SendMessageProps) => {
+    const { path, extension, type } = message;
+
+    if (!path || !extension || this.conversationId === null) {
+      throw new Error('Please provide path and extension');
+    }
+
+    try {
+      const uploadResult = await uploadFileToFirebase(
+        path,
+        this.conversationId,
+        extension
+      );
+      const imgURL = await storage()
+        .ref(uploadResult.metadata.fullPath)
+        .getDownloadURL();
+
+      const messageRef = firestore()
+        .collection<SendMessageProps>(
+          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+        )
+        .add(message);
+
+      const snapShot = await messageRef;
+      await snapShot.update({ path: imgURL });
+
+      this.memberIds?.forEach((memberId) => {
+        this.updateUserConversation(
+          memberId,
+          formatLatestMessage(this.userId, '', type, path, extension)
+        );
+      });
+    } catch (error) {
+      console.error('Error sending message with file:', error);
+    }
   };
 
   /**
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (text: string) => {
+  sendMessage = async (message: MessageProps) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
       );
     }
-    let message = text;
-    /** Encrypt the message before store to firestore */
-    if (this.enableEncrypt && this.encryptKey) {
-      message = await encryptData(text, this.encryptKey);
-    }
-    /** Format message */
-    const messageData = formatSendMessage(this.userId, message);
-    try {
-      /** Send message to collection conversation by id */
-      await firestore()
-        .collection<SendMessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-        .add(messageData);
-      /** Update last message to members */
+    const { text, type, path, extension } = message;
+    let messageData;
 
-      /** Format latest message data */
-      const latestMessageData = formatLatestMessage(this.userId, message);
-      this.memberIds?.forEach((memberId) => {
-        this.updateUserConversation(memberId, latestMessageData);
-      });
-    } catch (e) {
-      console.log(e);
+    if (
+      message.type === MessageTypes.image ||
+      message.type === MessageTypes.video
+    ) {
+      messageData = formatSendMessage(this.userId, text, type, path, extension);
+      this.sendMessageWithFile(messageData);
+    } else {
+      /** Format message */
+      messageData = formatSendMessage(this.userId, text);
+      /** Encrypt the message before store to firestore */
+      if (this.enableEncrypt && this.encryptKey) {
+        messageData.text = await encryptData(text, this.encryptKey);
+      }
+
+      try {
+        /** Send message to collection conversation by id */
+        await firestore()
+          .collection<SendMessageProps>(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+          .add(messageData);
+
+        /** Format latest message data */
+        const latestMessageData = formatLatestMessage(
+          this.userId,
+          messageData.text
+        );
+        this.memberIds?.forEach((memberId) => {
+          this.updateUserConversation(memberId, latestMessageData);
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
   };
 
