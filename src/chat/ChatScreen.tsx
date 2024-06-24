@@ -47,7 +47,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onStartLoad,
   onLoadEnd,
   maxPageSize = 20,
-  renderComposer,
+  renderComposer: renderCustomTool,
   inputToolbarProps,
   ...props
 }) => {
@@ -180,18 +180,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
-      if (renderComposer) return renderComposer(composeProps);
       return (
         <InputToolbar
-          onPressFirstAction={onPressCamera}
+          onPressCamera={onPressCamera}
           onSend={onSend}
           {...composeProps}
           hasCamera={props.hasCamera}
           {...inputToolbarProps}
+          renderCustomTool={renderCustomTool}
         />
       );
     },
-    [renderComposer, onPressCamera, onSend, props.hasCamera, inputToolbarProps]
+    [
+      renderCustomTool,
+      onPressCamera,
+      onSend,
+      props.hasCamera,
+      inputToolbarProps,
+    ]
   );
 
   return (

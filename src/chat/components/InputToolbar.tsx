@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {
   Composer,
+  ComposerProps,
   InputToolbarProps,
   SendProps,
 } from 'react-native-gifted-chat';
@@ -28,14 +29,16 @@ const ImageURL = {
 };
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
-  onPressFirstAction?: () => void;
-  onPressSecondAction?: () => void;
+  hasGallery?: boolean;
+  onPressCamera?: () => void;
+  onPressGallery?: () => void;
+  renderCustomTool: ((props: ComposerProps) => React.ReactNode) | undefined;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
   composerTextInputStyle?: StyleProp<ViewStyle>;
   customViewStyle?: StyleProp<ViewStyle>;
-  firstIcon?: string;
-  secondIcon?: string;
+  cameraIcon?: string;
+  galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
   renderLeftCustomView?: React.ReactNode;
@@ -44,13 +47,15 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
 
 const InputToolbar: React.FC<IInputToolbar> = ({
   hasCamera,
-  onPressSecondAction,
-  onPressFirstAction,
+  hasGallery,
+  onPressCamera,
+  onPressGallery,
+  renderCustomTool,
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
-  firstIcon = ImageURL.camera,
-  secondIcon = ImageURL.gallery,
+  cameraIcon = ImageURL.camera,
+  galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
   ...props
@@ -93,37 +98,43 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {hasCamera && (
-        <PressableIcon
-          icon={firstIcon}
-          iconStyle={flattenedIconStyle}
-          onPress={onPressFirstAction}
-        />
+      {renderCustomTool ? (
+        renderCustomTool(props)
+      ) : (
+        <View>
+          {hasCamera && (
+            <PressableIcon
+              icon={cameraIcon}
+              iconStyle={flattenedIconStyle}
+              onPress={onPressCamera}
+            />
+          )}
+          {hasGallery && (
+            <PressableIcon
+              onPress={onPressGallery || openGallery}
+              icon={galleryIcon}
+              iconStyle={flattenedIconStyle}
+            />
+          )}
+          {props.renderLeftCustomView}
+          <View style={[styles.composeWrapper, composeWrapperStyle]}>
+            <ScrollView scrollEnabled={false}>
+              <Composer
+                {...props}
+                textInputStyle={[styles.textInput, composerTextInputStyle]}
+              />
+            </ScrollView>
+          </View>
+          {!!text && (
+            <PressableIcon
+              iconStyle={flattenedIconStyle}
+              onPress={() => onSend?.({ text: text }, true)}
+              icon={iconSend}
+            />
+          )}
+          {props.renderRightCustomView}
+        </View>
       )}
-      {hasCamera && (
-        <PressableIcon
-          onPress={onPressSecondAction || openGallery}
-          icon={secondIcon}
-          iconStyle={flattenedIconStyle}
-        />
-      )}
-      {props.renderLeftCustomView}
-      <View style={[styles.composeWrapper, composeWrapperStyle]}>
-        <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={[styles.textInput, composerTextInputStyle]}
-          />
-        </ScrollView>
-      </View>
-      {!!text && (
-        <PressableIcon
-          iconStyle={flattenedIconStyle}
-          onPress={() => onSend?.({ text: text }, true)}
-          icon={iconSend}
-        />
-      )}
-      {props.renderRightCustomView}
     </View>
   );
 };
