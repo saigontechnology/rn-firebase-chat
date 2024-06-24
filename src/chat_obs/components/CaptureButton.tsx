@@ -82,13 +82,10 @@ const CaptureButton: React.FC<Props> = ({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={1}
-      style={[styles.flex, style]}
+      style={style}
       {...props}
     >
-      <View style={styles.flex}>
-        <View style={styles.shadow} />
-        <View style={styles.button} />
-      </View>
+      <View style={styles.button} />
     </TouchableOpacity>
   );
 };
@@ -96,21 +93,12 @@ const CaptureButton: React.FC<Props> = ({
 export const CaptureCameraButton = React.memo(CaptureButton);
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  shadow: {
-    position: 'absolute',
-    width: CAPTURE_BUTTON_SIZE,
-    height: CAPTURE_BUTTON_SIZE,
-    borderRadius: CAPTURE_BUTTON_SIZE / 2,
-    backgroundColor: '#e34077',
-  },
   button: {
     width: CAPTURE_BUTTON_SIZE,
     height: CAPTURE_BUTTON_SIZE,
     borderRadius: CAPTURE_BUTTON_SIZE / 2,
     borderWidth: BORDER_WIDTH,
     borderColor: 'white',
+    backgroundColor: '#e34077',
   },
 });
