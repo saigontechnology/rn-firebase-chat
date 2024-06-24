@@ -38,6 +38,7 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  hasGallery?: boolean;
   onPressCamera?: () => void;
 }
 
@@ -48,7 +49,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onStartLoad,
   onLoadEnd,
   maxPageSize = 20,
-  renderComposer: renderCustomTool,
+  renderComposer,
   inputToolbarProps,
   ...props
 }) => {
@@ -187,22 +188,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
+      if (renderComposer) return renderComposer(composeProps);
       return (
         <InputToolbar
           onPressCamera={onPressCamera}
           onSend={onSend}
           {...composeProps}
           hasCamera={props.hasCamera}
+          hasGallery={props.hasGallery}
           {...inputToolbarProps}
-          renderCustomTool={renderCustomTool}
         />
       );
     },
     [
-      renderCustomTool,
+      renderComposer,
       onPressCamera,
       onSend,
       props.hasCamera,
+      props.hasGallery,
       inputToolbarProps,
     ]
   );

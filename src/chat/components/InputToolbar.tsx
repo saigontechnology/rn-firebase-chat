@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import {
   Composer,
-  ComposerProps,
   InputToolbarProps,
   SendProps,
 } from 'react-native-gifted-chat';
@@ -32,7 +31,6 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasGallery?: boolean;
   onPressCamera?: () => void;
   onPressGallery?: () => void;
-  renderCustomTool: ((props: ComposerProps) => React.ReactNode) | undefined;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
   composerTextInputStyle?: StyleProp<ViewStyle>;
@@ -50,7 +48,6 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   hasGallery,
   onPressCamera,
   onPressGallery,
-  renderCustomTool,
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
@@ -58,6 +55,8 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  renderLeftCustomView,
+  renderRightCustomView,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -98,43 +97,39 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {renderCustomTool ? (
-        renderCustomTool(props)
-      ) : (
-        <View>
-          {hasCamera && (
-            <PressableIcon
-              icon={cameraIcon}
-              iconStyle={flattenedIconStyle}
-              onPress={onPressCamera}
+      <View>
+        {renderLeftCustomView}
+        {hasCamera && (
+          <PressableIcon
+            icon={cameraIcon}
+            iconStyle={flattenedIconStyle}
+            onPress={onPressCamera}
+          />
+        )}
+        {hasGallery && (
+          <PressableIcon
+            onPress={onPressGallery || openGallery}
+            icon={galleryIcon}
+            iconStyle={flattenedIconStyle}
+          />
+        )}
+        <View style={[styles.composeWrapper, composeWrapperStyle]}>
+          <ScrollView scrollEnabled={false}>
+            <Composer
+              {...props}
+              textInputStyle={[styles.textInput, composerTextInputStyle]}
             />
-          )}
-          {hasGallery && (
-            <PressableIcon
-              onPress={onPressGallery || openGallery}
-              icon={galleryIcon}
-              iconStyle={flattenedIconStyle}
-            />
-          )}
-          {props.renderLeftCustomView}
-          <View style={[styles.composeWrapper, composeWrapperStyle]}>
-            <ScrollView scrollEnabled={false}>
-              <Composer
-                {...props}
-                textInputStyle={[styles.textInput, composerTextInputStyle]}
-              />
-            </ScrollView>
-          </View>
-          {!!text && (
-            <PressableIcon
-              iconStyle={flattenedIconStyle}
-              onPress={() => onSend?.({ text: text }, true)}
-              icon={iconSend}
-            />
-          )}
-          {props.renderRightCustomView}
+          </ScrollView>
         </View>
-      )}
+        {!!text && (
+          <PressableIcon
+            iconStyle={flattenedIconStyle}
+            onPress={() => onSend?.({ text: text }, true)}
+            icon={iconSend}
+          />
+        )}
+        {renderRightCustomView}
+      </View>
     </View>
   );
 };
