@@ -39,8 +39,8 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  renderLeftCustomView?: React.ReactNode;
-  renderRightCustomView?: React.ReactNode;
+  renderLeftCustomView?: () => React.ReactNode;
+  renderRightCustomView?: () => React.ReactNode;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -98,7 +98,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       <View>
-        {renderLeftCustomView}
+        {renderLeftCustomView && renderLeftCustomView()}
         {hasCamera && (
           <PressableIcon
             icon={cameraIcon}
@@ -128,7 +128,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
             icon={iconSend}
           />
         )}
-        {renderRightCustomView}
+        {renderRightCustomView && renderRightCustomView()}
       </View>
     </View>
   );
