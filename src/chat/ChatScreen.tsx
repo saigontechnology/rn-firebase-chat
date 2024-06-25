@@ -17,6 +17,7 @@ import {
   type ComposerProps,
   GiftedChat,
   type GiftedChatProps,
+  MessageTextProps,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -28,6 +29,7 @@ import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
+import { PreviewLink } from '../chat/components/PreviewLink';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -210,6 +212,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     ]
   );
 
+  const renderMessageText = (messageProp: MessageTextProps<MessageProps>) => {
+    if (props.renderMessageText) return props.renderMessageText(messageProp);
+    return <PreviewLink {...messageProp} />;
+  };
+
   return (
     <View style={[styles.container, style]}>
       <KeyboardAvoidingView style={styles.container}>
@@ -226,6 +233,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
+          renderMessageText={renderMessageText}
           {...props}
         />
       </KeyboardAvoidingView>
