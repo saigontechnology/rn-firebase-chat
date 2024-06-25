@@ -2132,23 +2132,23 @@
   resolved "https://registry.npmjs.org/@react-native-community/eslint-plugin/-/eslint-plugin-1.3.0.tgz"
   integrity sha512-+zDZ20NUnSWghj7Ku5aFphMzuM9JulqCW+aPXT6IfIXFbb8tzYTTOSeRFOtuekJ99ibW2fUCSsjuKNlwDIbHFg==
 
-"@react-native-firebase/app@^18.6.1":
-  version "18.6.1"
-  resolved "https://registry.npmjs.org/@react-native-firebase/app/-/app-18.6.1.tgz"
-  integrity sha512-lqINQLLTCmBSeln/cSPfvuJNQuwsPY9n6QyxSRRCTjyZdEPI3EY2df7isOCp8BwuxqYmkR9YhTNw2yFI72th+w==
+"@react-native-firebase/app@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-20.1.0.tgz#86b9371290f92d51821b7299eede95336949f214"
+  integrity sha512-FCcTtmfz/Bk2laOEKOiUrQUkAnzerkRml7d3kZzJSxaBWLFxpWJQnnXqGZmD8hNWio2QEauB8llUD71KiDk+sw==
   dependencies:
     opencollective-postinstall "^2.0.3"
     superstruct "^0.6.2"
 
-"@react-native-firebase/firestore@^18.6.1":
-  version "18.6.1"
-  resolved "https://registry.npmjs.org/@react-native-firebase/firestore/-/firestore-18.6.1.tgz"
-  integrity sha512-D3jGxNUMJg2D4CF7bdsXGfBAvs1F1XPOJMSqWJNFZnS/3voxiNclqrm4yxIn9ptFAsJHmXqMUHDA0vASxhZDWA==
+"@react-native-firebase/firestore@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/firestore/-/firestore-20.1.0.tgz#8124aa286108a7e1c61c366d619bdfa4e4718947"
+  integrity sha512-g8na4jm7V+nBctzjeSyraK9hygOTPDv3nfkl4E+Nh7nB9DEgS74FrXXezRPVJKdkE0Nw9cWSJ1gU1tTA50ZEpg==
 
-"@react-native-firebase/storage@^18.6.1":
-  version "18.6.1"
-  resolved "https://registry.npmjs.org/@react-native-firebase/storage/-/storage-18.6.1.tgz"
-  integrity sha512-/MWn8EZ0OBqlE+B6XiwUdZYMCoPuh7oWxvw9GStBB4d5FUNt9jAkqSYDsfEGUjGSLjJ9iLBTyjK1PfXcH7EdZw==
+"@react-native-firebase/storage@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/storage/-/storage-20.1.0.tgz#36f2a4ade38f780add423f8d9c54735964bc79b7"
+  integrity sha512-VntPX054ukkGhmsfCYFY7Bqras2UxvQUODKx56Ak3sZzzn7HUODnm2pUV7VxZ4SajGxtJtVu30cBdp8Tz7j1Sw==
 
 "@react-native/assets@1.0.0":
   version "1.0.0"
@@ -2407,6 +2407,11 @@
   version "2.0.1"
   resolved "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-2.0.1.tgz"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
+
+"@types/uuid@^9.0.8":
+  version "9.0.8"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.8.tgz#7545ba4fc3c003d6c756f651f3bf163d8f0f29ba"
+  integrity sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==
 
 "@types/yargs-parser@*":
   version "21.0.0"
@@ -8442,6 +8447,11 @@ react-native-communications@2.2.1:
   resolved "https://registry.npmjs.org/react-native-communications/-/react-native-communications-2.2.1.tgz"
   integrity sha512-5+C0X9mopI0+qxyQHzOPEi5v5rxNBQjxydPPiKMQSlX1RBIcJ8uTcqUPssQ9Mo8p6c1IKIWJUSqCj4jAmD0qVQ==
 
+react-native-fast-image@^8.6.3:
+  version "8.6.3"
+  resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.6.3.tgz#6edc3f9190092a909d636d93eecbcc54a8822255"
+  integrity sha512-Sdw4ESidXCXOmQ9EcYguNY2swyoWmx53kym2zRsvi+VeFCHEdkO+WG1DK+6W81juot40bbfLNhkc63QnWtesNg==
+
 react-native-gifted-chat@^2.4.0:
   version "2.4.0"
   resolved "https://registry.npmjs.org/react-native-gifted-chat/-/react-native-gifted-chat-2.4.0.tgz"
@@ -8462,6 +8472,11 @@ react-native-gradle-plugin@^0.71.18:
   version "0.71.19"
   resolved "https://registry.npmjs.org/react-native-gradle-plugin/-/react-native-gradle-plugin-0.71.19.tgz"
   integrity sha512-1dVk9NwhoyKHCSxcrM6vY6cxmojeATsBobDicX0ZKr7DgUF2cBQRTKsimQFvzH8XhOVXyH8p4HyDSZNIFI8OlQ==
+
+react-native-image-picker@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-7.1.2.tgz#383849d1953caf4578874a1f5e5dd11c737bd5cd"
+  integrity sha512-b5y5nP60RIPxlAXlptn2QwlIuZWCUDWa/YPUVjgHc0Ih60mRiOg1PSzf0IjHSLeOZShCpirpvSPGnDExIpTRUg==
 
 react-native-iphone-x-helper@1.3.1:
   version "1.3.1"
@@ -8484,6 +8499,16 @@ react-native-typing-animation@0.1.7:
   version "0.1.7"
   resolved "https://registry.npmjs.org/react-native-typing-animation/-/react-native-typing-animation-0.1.7.tgz"
   integrity sha512-4H3rF9M+I2yAZpYJcY0Mb29TXkn98QK12rrKSY6LZj1BQD9NNmRZuNXzwX4XHapsIz+N/J8M3p27FOQPbfzqeg==
+
+react-native-video@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.2.0.tgz#4a22dd836ee3992383992cd9fb561d52fc69d2ec"
+  integrity sha512-7TWKGBkKrwR9V+SI6NB9YWWDZbto3fpT/02s8RnrFEac0h5aEJYe6NqTmz3TcFmIRSNepg2UsEvWGKNpWn4sCA==
+
+react-native-vision-camera@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.1.0.tgz#fbc0b3505d16b66b353e71d47ae588e3ab8bfbf7"
+  integrity sha512-ap3dzMh9ixASvr/19kbpCzaCBJp75ebEIAwVXd42sD8UdUNLVkYI2P4eTdU43k9nFhgEE3gDpXE0nFNzvFmcZA==
 
 react-native@0.71.8:
   version "0.71.8"
@@ -10028,6 +10053,11 @@ uuid@3.4.0:
   version "3.4.0"
   resolved "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
+
+uuid@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-10.0.0.tgz#5a95aa454e6e002725c79055fd42aaba30ca6294"
+  integrity sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

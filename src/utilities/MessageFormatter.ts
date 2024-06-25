@@ -8,7 +8,10 @@ import {
   type MessageProps,
   MessageStatus,
   type SendMessageProps,
+  type MediaType,
+  MessageTypes,
 } from '../interfaces';
+import type { Asset } from 'react-native-image-picker';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
   return {
@@ -65,7 +68,10 @@ const formatEncryptedMessageData = async (
 
 const formatSendMessage = (
   userId: string,
-  message: string
+  text: string,
+  type?: MediaType,
+  path?: string,
+  extension?: string
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -73,19 +79,49 @@ const formatSendMessage = (
   status: MessageStatus.sent,
   senderId: userId,
   createdAt: Date.now(),
-  text: message,
+  text: text ?? '',
+  type: type ?? MessageTypes.text,
+  path: path ?? '',
+  extension: extension ?? '',
 });
 
 const formatLatestMessage = (
   userId: string,
-  message: string
+  message: string,
+  type?: MediaType,
+  path?: string,
+  extension?: string
 ): LatestMessageProps => ({
-  text: message,
+  text: message ?? '',
   senderId: userId,
   readBy: {
     [userId]: true,
   },
+  type: type ?? MessageTypes.text,
+  path: path ?? '',
+  extension: extension ?? '',
 });
+
+export const getMediaTypeFromExtension = (path: string): MediaType => {
+  const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
+  const extension = path.split('.').pop();
+  if (extension && photoExtensions.includes(extension)) {
+    return MessageTypes.image;
+  } else if (extension && videoExtensions.includes(extension)) {
+    return MessageTypes.video;
+  } else {
+    return undefined;
+  }
+};
+
+export const convertExtension = (file: Asset | undefined): string => {
+  if (!file || file.type?.startsWith('image')) {
+    return 'jpg';
+  } else {
+    return 'mp4';
+  }
+};
 
 export {
   formatMessageData,

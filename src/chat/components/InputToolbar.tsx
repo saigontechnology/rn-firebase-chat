@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TextStyle,
 } from 'react-native';
 import {
   Composer,
@@ -13,39 +14,56 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
+import {
+  launchImageLibrary,
+  type ImageLibraryOptions,
+  type ImagePickerResponse,
+} from 'react-native-image-picker';
+import { MessageTypes } from '../../interfaces';
+import { convertExtension } from '../../utilities';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
   gallery: require('../../images/gallery.png'),
   send: require('../../images/send.png'),
 };
+
+const defaultLibraryOptions: ImageLibraryOptions = {
+  mediaType: 'mixed',
+};
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
-  onPressFirstAction?: () => void;
-  onPressSecondAction?: () => void;
+  hasGallery?: boolean;
+  onPressCamera?: () => void;
+  onPressGallery?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
-  composerTextInputStyle?: StyleProp<ViewStyle>;
+  composerTextInputStyle?: StyleProp<TextStyle>;
   customViewStyle?: StyleProp<ViewStyle>;
-  firstIcon?: string;
-  secondIcon?: string;
+  cameraIcon?: string;
+  galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  renderLeftCustomView?: React.ReactNode;
-  renderRightCustomView?: React.ReactNode;
+  libraryOptions?: ImageLibraryOptions;
+  renderLeftCustomView?: () => React.ReactNode;
+  renderRightCustomView?: () => React.ReactNode;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
   hasCamera,
-  onPressSecondAction,
-  onPressFirstAction,
+  hasGallery,
+  onPressCamera,
+  onPressGallery,
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
-  firstIcon = ImageURL.camera,
-  secondIcon = ImageURL.gallery,
+  cameraIcon = ImageURL.camera,
+  galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  libraryOptions = defaultLibraryOptions,
+  renderLeftCustomView,
+  renderRightCustomView,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -55,23 +73,50 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
+  const openGallery = useCallback(async () => {
+    try {
+      const result: ImagePickerResponse = await launchImageLibrary(
+        libraryOptions
+      );
+
+      if (result?.assets) {
+        const file = result?.assets[0];
+        const mediaType = file?.type?.startsWith('image')
+          ? MessageTypes.image
+          : MessageTypes.video;
+        const extension = convertExtension(file);
+
+        onSend?.(
+          {
+            type: mediaType,
+            path: file?.uri ?? '',
+            extension: extension,
+          },
+          true
+        );
+      }
+    } catch (error) {
+      console.error('Error while opening gallery:', error);
+    }
+  }, [libraryOptions, onSend]);
+
   return (
     <View style={[styles.container, containerStyle]}>
+      {renderLeftCustomView && renderLeftCustomView()}
       {hasCamera && (
         <PressableIcon
-          icon={firstIcon}
+          icon={cameraIcon}
           iconStyle={flattenedIconStyle}
-          onPress={onPressFirstAction}
+          onPress={onPressCamera}
         />
       )}
-      {hasCamera && (
+      {hasGallery && (
         <PressableIcon
-          onPress={onPressSecondAction}
-          icon={secondIcon}
+          onPress={onPressGallery || openGallery}
+          icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />
       )}
-      {props.renderLeftCustomView}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
@@ -87,7 +132,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           icon={iconSend}
         />
       )}
-      {props.renderRightCustomView}
+      {renderRightCustomView && renderRightCustomView()}
     </View>
   );
 };
@@ -96,8 +141,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 4,
-    marginTop: 4,
+    paddingLeft: 12,
+    marginTop: 12,
   },
   composeWrapper: {
     flex: 1,

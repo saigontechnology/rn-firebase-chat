@@ -12,6 +12,10 @@ interface LatestMessageProps {
   };
   senderId: string;
   text: string;
+  status?: MessageStatus;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
 }
 
 interface MessageProps extends BaseEntity, IMessage {
@@ -21,13 +25,9 @@ interface MessageProps extends BaseEntity, IMessage {
     [userId: string]: boolean;
   };
   status?: MessageStatus;
-  // imageUrl?: string;
-  // type?: 'file' | 'image';
-  // fileUrl?: string;
-  // fileName?: string;
-  // fileSize?: number;
-  // mine?: string;
-  // extension?: string;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
 }
 
 interface SendMessageProps {
@@ -38,6 +38,11 @@ interface SendMessageProps {
     [userId: string]: boolean;
   };
   status?: MessageStatus;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
 }
 
-export { MessageProps, LatestMessageProps, SendMessageProps };
+type MediaType = 'image' | 'video' | 'text' | undefined;
+
+export { MessageProps, LatestMessageProps, SendMessageProps, MediaType };

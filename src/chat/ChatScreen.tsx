@@ -27,6 +27,9 @@ import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CustomImageVideoBubble } from './components/CustomImageVideoBubble';
+import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
+import SelectedImageModal from './components/SelectedImage';
+import { useCameraPermission } from 'react-native-vision-camera';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -37,6 +40,8 @@ interface ChatScreenProps extends GiftedChatProps {
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
   hasCamera?: boolean;
+  hasGallery?: boolean;
+  onPressCamera?: () => void;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -61,6 +66,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const isLoadingRef = useRef(false);
+  const cameraViewRef = useRef<CameraViewRef>(null);
+  const [isImgVideoUrl, setImgVideoUrl] = useState('');
+  const { hasPermission, requestPermission } = useCameraPermission();
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -113,7 +121,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         GiftedChat.append(previousMessages, [messages])
       );
 
-      await firebaseInstance.sendMessage(messages.text);
+      await firebaseInstance.sendMessage(messages);
     },
     [firebaseInstance, memberIds, partners]
   );
@@ -166,18 +174,42 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
+  const onPressCamera = useCallback(() => {
+    if (props.onPressCamera) return props.onPressCamera();
+    if (!hasPermission) {
+      requestPermission();
+      return;
+    }
+    if (Keyboard.isVisible()) {
+      Keyboard.dismiss();
+      return;
+    }
+
+    cameraViewRef.current?.show();
+  }, [hasPermission, props, requestPermission]);
+
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
       if (renderComposer) return renderComposer(composeProps);
       return (
         <InputToolbar
+          onPressCamera={onPressCamera}
+          onSend={onSend}
           {...composeProps}
           hasCamera={props.hasCamera}
+          hasGallery={props.hasGallery}
           {...inputToolbarProps}
         />
       );
     },
-    [props.hasCamera, renderComposer, inputToolbarProps]
+    [
+      renderComposer,
+      onPressCamera,
+      onSend,
+      props.hasCamera,
+      props.hasGallery,
+      inputToolbarProps,
+    ]
   );
 
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
@@ -219,7 +251,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             _id: userInfo?.id || '',
             ...userInfo,
           }}
-          keyboardShouldPersistTaps={'always'}
+          keyboardShouldPersistTaps={'never'}
           infiniteScroll
           loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
@@ -229,6 +261,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           {...props}
         />
       </KeyboardAvoidingView>
+      <SelectedImageModal
+        imageUrl={isImgVideoUrl}
+        onClose={() => setImgVideoUrl('')}
+      />
+      <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
     </View>
   );
 };
