@@ -6,6 +6,7 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TextStyle,
 } from 'react-native';
 import {
   Composer,
@@ -26,6 +27,10 @@ const ImageURL = {
   gallery: require('../../images/gallery.png'),
   send: require('../../images/send.png'),
 };
+
+const defaultLibraryOptions: ImageLibraryOptions = {
+  mediaType: 'mixed',
+};
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
   hasGallery?: boolean;
@@ -33,12 +38,13 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   onPressGallery?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
-  composerTextInputStyle?: StyleProp<ViewStyle>;
+  composerTextInputStyle?: StyleProp<TextStyle>;
   customViewStyle?: StyleProp<ViewStyle>;
   cameraIcon?: string;
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  libraryOptions?: ImageLibraryOptions;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
 }
@@ -55,6 +61,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  libraryOptions = defaultLibraryOptions,
   renderLeftCustomView,
   renderRightCustomView,
   ...props
@@ -68,11 +75,9 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   const openGallery = useCallback(async () => {
     try {
-      const options: ImageLibraryOptions = {
-        mediaType: 'mixed',
-      };
-
-      const result: ImagePickerResponse = await launchImageLibrary(options);
+      const result: ImagePickerResponse = await launchImageLibrary(
+        libraryOptions
+      );
 
       if (result?.assets) {
         const file = result?.assets[0];
@@ -93,7 +98,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     } catch (error) {
       console.error('Error while opening gallery:', error);
     }
-  }, [onSend]);
+  }, [libraryOptions, onSend]);
 
   return (
     <View style={[styles.container, containerStyle]}>
