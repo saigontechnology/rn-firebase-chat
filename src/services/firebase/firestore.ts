@@ -13,6 +13,7 @@ import {
 import {
   ConversationProps,
   FireStoreCollection,
+  FirestoreReference,
   MessageTypes,
   type IUserInfo,
   type LatestMessageProps,
@@ -115,9 +116,7 @@ export class FirestoreServices {
       conversationData.image = image;
     }
 
-    let conversationRef:
-      | FirebaseFirestoreTypes.CollectionReference
-      | FirebaseFirestoreTypes.DocumentReference = firestore().collection<
+    let conversationRef: FirestoreReference = firestore().collection<
       Partial<ConversationProps>
     >(
       `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
