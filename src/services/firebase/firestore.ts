@@ -120,10 +120,9 @@ export class FirestoreServices {
     );
 
     if (conversationId) {
-      conversationRef.doc(conversationId).set(conversationData);
+      await conversationRef.doc(conversationId).set(conversationData);
     } else {
-      conversationRef.add(conversationData);
-      newConversationId = conversationRef.id;
+      newConversationId = (await conversationRef.add(conversationData)).id;
     }
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
