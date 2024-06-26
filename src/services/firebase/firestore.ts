@@ -99,10 +99,12 @@ export class FirestoreServices {
    * @param image conversation's image
    */
   createConversation = async (
+    conversationId: string,
     memberIds: string[],
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
+    let newConversationId = conversationId;
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
@@ -113,11 +115,16 @@ export class FirestoreServices {
       conversationData.image = image;
     }
     /** Create the conversation to the user who create the chat */
-    const conversationRef = await firestore()
-      .collection<Partial<ConversationProps>>(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-      )
-      .add(conversationData);
+    const conversationRef = firestore().collection<Partial<ConversationProps>>(
+      `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+    );
+
+    if (conversationId) {
+      conversationRef.doc(conversationId).set(conversationData);
+    } else {
+      conversationRef.add(conversationData);
+      newConversationId = conversationRef.id;
+    }
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
       memberIds.map((memberId) => {
@@ -125,14 +132,14 @@ export class FirestoreServices {
           .collection(
             `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
           )
-          .doc(conversationRef.id)
+          .doc(newConversationId)
           .set(conversationData);
       }),
     ]);
 
-    this.conversationId = conversationRef.id;
+    this.conversationId = newConversationId;
     this.memberIds = memberIds;
-    return { ...conversationData, id: conversationRef.id } as ConversationProps;
+    return { ...conversationData, id: newConversationId } as ConversationProps;
   };
 
   sendMessageWithFile = async (message: SendMessageProps) => {
