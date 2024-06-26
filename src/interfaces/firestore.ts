@@ -1,4 +1,4 @@
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { type FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 /**
  * Created by NL on 6/27/23.
