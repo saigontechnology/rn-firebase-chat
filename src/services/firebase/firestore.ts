@@ -101,11 +101,13 @@ export class FirestoreServices {
   createConversation = async (
     memberIds: string[],
     name?: string,
-    image?: string
+    image?: string,
+    extraData?: any
   ): Promise<ConversationProps> => {
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
+      extraData,
       updatedAt: Date.now(),
     };
 

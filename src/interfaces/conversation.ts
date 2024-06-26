@@ -21,6 +21,7 @@ interface ConversationProps extends BaseEntity {
   unRead?: {
     [userId: string]: number;
   };
+  extraData?: any;
 }
 
 enum MessageTypes {

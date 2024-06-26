@@ -40,6 +40,8 @@ interface ChatScreenProps extends GiftedChatProps {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
+  conversationName?: string;
+  conversationExtraData?: any;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -51,6 +53,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  conversationName,
+  conversationExtraData,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -105,8 +109,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       if (!conversationRef.current?.id) {
         conversationRef.current = await firebaseInstance.createConversation(
           memberIds,
-          partners[0]?.name,
-          partners[0]?.avatar
+          conversationName || partners[0]?.name,
+          partners[0]?.avatar,
+          conversationExtraData
         );
         firebaseInstance.setConversationInfo(
           conversationRef.current?.id,
@@ -121,7 +126,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages);
     },
-    [firebaseInstance, memberIds, partners]
+    [
+      conversationExtraData,
+      conversationName,
+      firebaseInstance,
+      memberIds,
+      partners,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
