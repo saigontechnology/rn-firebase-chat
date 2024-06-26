@@ -11,8 +11,8 @@ interface MemberProps {
 
 interface CustomConversationInfo {
   id: string;
-  name: string;
-  image: string;
+  name?: string;
+  image?: string;
 }
 
 interface ConversationProps extends BaseEntity {
