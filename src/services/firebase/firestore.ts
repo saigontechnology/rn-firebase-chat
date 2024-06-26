@@ -115,8 +115,11 @@ export class FirestoreServices {
       conversationData.image = image;
     }
 
-    let conversationRef;
-    conversationRef = firestore().collection<Partial<ConversationProps>>(
+    let conversationRef:
+      | FirebaseFirestoreTypes.CollectionReference
+      | FirebaseFirestoreTypes.DocumentReference = firestore().collection<
+      Partial<ConversationProps>
+    >(
       `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
     );
     /** Create the conversation to the user who create the chat */
