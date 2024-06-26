@@ -94,6 +94,7 @@ export class FirestoreServices {
 
   /**
    *
+   * @param conversationId pre-defined ID for the conversation
    * @param memberIds list member id in the conversation
    * @param name conversation's name
    * @param image conversation's image
@@ -104,7 +105,6 @@ export class FirestoreServices {
     name?: string,
     image?: string
   ): Promise<ConversationProps> => {
-    let newConversationId = conversationId;
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
@@ -114,15 +114,17 @@ export class FirestoreServices {
     if (image) {
       conversationData.image = image;
     }
-    /** Create the conversation to the user who create the chat */
-    const conversationRef = firestore().collection<Partial<ConversationProps>>(
+
+    let conversationRef;
+    conversationRef = firestore().collection<Partial<ConversationProps>>(
       `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
     );
-
+    /** Create the conversation to the user who create the chat */
     if (conversationId) {
-      await conversationRef.doc(conversationId).set(conversationData);
+      conversationRef = conversationRef.doc(conversationId);
+      await conversationRef.set(conversationData);
     } else {
-      newConversationId = (await conversationRef.add(conversationData)).id;
+      conversationRef = await conversationRef.add(conversationData);
     }
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
@@ -131,14 +133,14 @@ export class FirestoreServices {
           .collection(
             `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
           )
-          .doc(newConversationId)
+          .doc(conversationRef.id)
           .set(conversationData);
       }),
     ]);
 
-    this.conversationId = newConversationId;
+    this.conversationId = conversationRef.id;
     this.memberIds = memberIds;
-    return { ...conversationData, id: newConversationId } as ConversationProps;
+    return { ...conversationData, id: conversationRef.id } as ConversationProps;
   };
 
   sendMessageWithFile = async (message: SendMessageProps) => {
