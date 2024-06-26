@@ -94,11 +94,13 @@ export class FirestoreServices {
 
   /**
    *
+   * @param conversationId pre-defined ID for the conversation
    * @param memberIds list member id in the conversation
    * @param name conversation's name
    * @param image conversation's image
    */
   createConversation = async (
+    conversationId: string,
     memberIds: string[],
     name?: string,
     image?: string
@@ -112,12 +114,18 @@ export class FirestoreServices {
     if (image) {
       conversationData.image = image;
     }
+
+    let conversationRef;
+    conversationRef = firestore().collection<Partial<ConversationProps>>(
+      `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+    );
     /** Create the conversation to the user who create the chat */
-    const conversationRef = await firestore()
-      .collection<Partial<ConversationProps>>(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-      )
-      .add(conversationData);
+    if (conversationId) {
+      conversationRef = conversationRef.doc(conversationId);
+      await conversationRef.set(conversationData);
+    } else {
+      conversationRef = await conversationRef.add(conversationData);
+    }
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
       memberIds.map((memberId) => {
