@@ -21,7 +21,12 @@ import {
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
-import type { ConversationProps, IUserInfo, MessageProps } from '../interfaces';
+import type {
+  ConversationProps,
+  CustomConversationInfo,
+  IUserInfo,
+  MessageProps,
+} from '../interfaces';
 import { formatMessageData } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
@@ -40,6 +45,7 @@ interface ChatScreenProps extends GiftedChatProps {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
+  customConversationInfo?: CustomConversationInfo;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -51,6 +57,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   maxPageSize = 20,
   renderComposer,
   inputToolbarProps,
+  customConversationInfo,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -104,9 +111,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       isLoadingRef.current = false;
       if (!conversationRef.current?.id) {
         conversationRef.current = await firebaseInstance.createConversation(
+          customConversationInfo?.id || '',
           memberIds,
-          partners[0]?.name,
-          partners[0]?.avatar
+          customConversationInfo?.name || partners[0]?.name,
+          customConversationInfo?.image || partners[0]?.avatar
         );
         firebaseInstance.setConversationInfo(
           conversationRef.current?.id,
@@ -121,7 +129,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages);
     },
-    [firebaseInstance, memberIds, partners]
+    [firebaseInstance, customConversationInfo, memberIds, partners]
   );
 
   const onLoadEarlier = useCallback(async () => {
