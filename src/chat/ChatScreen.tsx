@@ -177,10 +177,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   useEffect(() => {
     let receiveMessageRef: () => void;
+    const currentTime = Date.now();
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
-          if (userInfo && message.senderId !== userInfo.id) {
+          if (
+            userInfo &&
+            message.senderId !== userInfo.id &&
+            message.createdAt >= new Date(currentTime)
+          ) {
             const userInfoIncomming = {
               id: message.id,
               name: message.senderId,
