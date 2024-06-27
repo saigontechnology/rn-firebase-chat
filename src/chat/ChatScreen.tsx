@@ -48,6 +48,8 @@ interface ChatScreenProps extends GiftedChatProps {
   hasGallery?: boolean;
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
+  sendMessageNotification?: () => void;
+  timeoutSendNotification?: number;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -60,6 +62,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   renderComposer,
   inputToolbarProps,
   customConversationInfo,
+  sendMessageNotification,
+  timeoutSendNotification = 0,
   ...props
 }) => {
   const { userInfo } = useChatContext();
@@ -76,6 +80,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -130,8 +135,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
 
       await firebaseInstance.sendMessage(messages);
+
+      timeoutMessageRef.current = setTimeout(() => {
+        sendMessageNotification?.();
+        if (timeoutMessageRef.current) {
+          clearTimeout(timeoutMessageRef.current);
+        }
+      }, timeoutSendNotification);
     },
-    [firebaseInstance, customConversationInfo, memberIds, partners]
+    [
+      firebaseInstance,
+      sendMessageNotification,
+      customConversationInfo,
+      memberIds,
+      partners,
+      timeoutSendNotification,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
