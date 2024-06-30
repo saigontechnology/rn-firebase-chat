@@ -6,6 +6,7 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  Alert,
 } from 'react-native';
 import {
   Composer,
@@ -18,8 +19,8 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
-import { MessageTypes } from '../../interfaces';
-import { convertExtension } from '../../utilities';
+import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
+import type { FileAttachmentModalRef } from './FileAttachmentModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -39,8 +40,13 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  renderLeftCustomView?: () => React.ReactNode;
+  renderLeftCustomView?: ({
+    documentRef,
+  }: {
+    documentRef: FileAttachmentModalRef | null;
+  }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  documentRef: FileAttachmentModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -57,6 +63,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  documentRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -76,10 +83,8 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
       if (result?.assets) {
         const file = result?.assets[0];
-        const mediaType = file?.type?.startsWith('image')
-          ? MessageTypes.image
-          : MessageTypes.video;
-        const extension = convertExtension(file);
+        const mediaType = getMediaTypeFromExtension(file?.uri);
+        const extension = convertExtension(file?.uri);
 
         onSend?.(
           {
@@ -91,45 +96,43 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         );
       }
     } catch (error) {
-      console.error('Error while opening gallery:', error);
+      Alert.alert('Error while opening gallery:');
     }
   }, [onSend]);
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <View>
-        {renderLeftCustomView && renderLeftCustomView()}
-        {hasCamera && (
-          <PressableIcon
-            icon={cameraIcon}
-            iconStyle={flattenedIconStyle}
-            onPress={onPressCamera}
+      {renderLeftCustomView && renderLeftCustomView({ documentRef })}
+      {hasCamera && (
+        <PressableIcon
+          icon={cameraIcon}
+          iconStyle={flattenedIconStyle}
+          onPress={onPressCamera}
+        />
+      )}
+      {hasGallery && (
+        <PressableIcon
+          onPress={onPressGallery || openGallery}
+          icon={galleryIcon}
+          iconStyle={flattenedIconStyle}
+        />
+      )}
+      <View style={[styles.composeWrapper, composeWrapperStyle]}>
+        <ScrollView scrollEnabled={false}>
+          <Composer
+            {...props}
+            textInputStyle={[styles.textInput, composerTextInputStyle]}
           />
-        )}
-        {hasGallery && (
-          <PressableIcon
-            onPress={onPressGallery || openGallery}
-            icon={galleryIcon}
-            iconStyle={flattenedIconStyle}
-          />
-        )}
-        <View style={[styles.composeWrapper, composeWrapperStyle]}>
-          <ScrollView scrollEnabled={false}>
-            <Composer
-              {...props}
-              textInputStyle={[styles.textInput, composerTextInputStyle]}
-            />
-          </ScrollView>
-        </View>
-        {!!text && (
-          <PressableIcon
-            iconStyle={flattenedIconStyle}
-            onPress={() => onSend?.({ text: text }, true)}
-            icon={iconSend}
-          />
-        )}
-        {renderRightCustomView && renderRightCustomView()}
+        </ScrollView>
       </View>
+      {!!text && (
+        <PressableIcon
+          iconStyle={flattenedIconStyle}
+          onPress={() => onSend?.({ text: text }, true)}
+          icon={iconSend}
+        />
+      )}
+      {renderRightCustomView && renderRightCustomView()}
     </View>
   );
 };

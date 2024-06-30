@@ -38,6 +38,19 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     return undefined;
   }, [data.image, data.name]);
 
+  const getLatestTextMessage = () => {
+    switch (data.latestMessage?.type) {
+      case MessageTypes.image:
+        return 'Image';
+      case MessageTypes.video:
+        return 'Video';
+      case MessageTypes.document:
+        return 'File Attachment';
+      default:
+        return data?.latestMessage?.text;
+    }
+  };
+
   return (
     <TouchableOpacity onPress={() => onPress?.(data)} style={styles.container}>
       <View style={styles.row}>
@@ -58,11 +71,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               {data?.name}
             </Text>
             <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>
-              {data?.latestMessage?.type === MessageTypes.text
-                ? data?.latestMessage?.text
-                : data?.latestMessage?.type === MessageTypes.image
-                ? 'Photo'
-                : 'Video'}
+              {getLatestTextMessage()}
             </Text>
           </View>
         )}

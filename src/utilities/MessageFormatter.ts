@@ -71,7 +71,9 @@ const formatSendMessage = (
   text: string,
   type?: MediaType,
   path?: string,
-  extension?: string
+  extension?: string,
+  name?: string,
+  size?: string
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -83,6 +85,8 @@ const formatSendMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  name: name ?? '',
+  size: size ?? '',
 });
 
 const formatLatestMessage = (
@@ -90,7 +94,9 @@ const formatLatestMessage = (
   message: string,
   type?: MediaType,
   path?: string,
-  extension?: string
+  extension?: string,
+  name?: string,
+  size?: string
 ): LatestMessageProps => ({
   text: message ?? '',
   senderId: userId,
@@ -100,27 +106,44 @@ const formatLatestMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  name: name ?? '',
+  size: size ?? '',
 });
 
-export const getMediaTypeFromExtension = (path: string): MediaType => {
+export const getMediaTypeFromExtension = (
+  path: string | undefined
+): MediaType => {
   const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
   const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
-  const extension = path.split('.').pop();
+  const documentExtensions = [
+    'pdf',
+    'zip',
+    'doc',
+    'docx',
+    'pptx',
+    'ppt',
+    'xls',
+    'xlsx',
+  ];
+
+  const extension = path?.split('.').pop();
   if (extension && photoExtensions.includes(extension)) {
     return MessageTypes.image;
   } else if (extension && videoExtensions.includes(extension)) {
     return MessageTypes.video;
+  } else if (extension && documentExtensions.includes(extension)) {
+    return MessageTypes.document;
   } else {
     return undefined;
   }
 };
 
-export const convertExtension = (file: Asset | undefined): string => {
-  if (!file || file.type?.startsWith('image')) {
+export const convertExtension = (path: string | undefined): string => {
+  if (!path) {
     return 'jpg';
-  } else {
-    return 'mp4';
   }
+  const extension = path.split('.').pop();
+  return extension ? extension : 'jpg';
 };
 
 export {

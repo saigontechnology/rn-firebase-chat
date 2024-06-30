@@ -148,7 +148,7 @@ export class FirestoreServices {
   sendMessageWithFile = async (message: SendMessageProps) => {
     const { path, extension, type } = message;
 
-    if (!path || !extension || this.conversationId === null) {
+    if (!path || !extension || this.conversationId === null || !type) {
       throw new Error('Please provide path and extension');
     }
 
@@ -156,7 +156,8 @@ export class FirestoreServices {
       const uploadResult = await uploadFileToFirebase(
         path,
         this.conversationId,
-        extension
+        extension,
+        type
       );
       const imgURL = await storage()
         .ref(uploadResult.metadata.fullPath)
@@ -195,13 +196,7 @@ export class FirestoreServices {
     const { text, type, path, extension } = message;
     let messageData;
 
-    if (
-      message.type === MessageTypes.image ||
-      message.type === MessageTypes.video
-    ) {
-      messageData = formatSendMessage(this.userId, text, type, path, extension);
-      this.sendMessageWithFile(messageData);
-    } else {
+    if (message.type === MessageTypes.text) {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
@@ -228,6 +223,18 @@ export class FirestoreServices {
       } catch (e) {
         console.log(e);
       }
+    } else {
+      messageData = formatSendMessage(
+        this.userId,
+        text,
+        type,
+        path,
+        extension,
+        message.name,
+        message.size
+      );
+      console.log('messageData: ', messageData);
+      this.sendMessageWithFile(messageData);
     }
   };
 

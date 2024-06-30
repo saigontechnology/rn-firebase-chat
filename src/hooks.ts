@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useRef } from 'react';
 import { ChatContext } from './chat';
 import type { ChatState } from './reducer';
 
@@ -20,4 +20,30 @@ export const useChatSelector = <T>(
 ): T => {
   const { chatState } = useChatContext();
   return selector(chatState);
+};
+
+export const useTap = (
+  onSingleTap: () => void,
+  onDoubleTap: () => void,
+  delay: number = 300
+) => {
+  const lastTap = useRef<number | null>(null);
+  const timeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTap = () => {
+    const now = Date.now();
+    if (lastTap.current && now - lastTap.current < delay) {
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
+      onDoubleTap();
+    } else {
+      lastTap.current = now;
+      timeout.current = setTimeout(() => {
+        onSingleTap();
+      }, delay);
+    }
+  };
+
+  return handleTap;
 };
