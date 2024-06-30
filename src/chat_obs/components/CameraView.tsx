@@ -22,7 +22,7 @@ import Video from 'react-native-video';
 import type { MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTypes, type IUserInfo } from '../../interfaces';
-import { getMediaTypeFromExtension } from '../../utilities';
+import { convertExtension } from '../../utilities';
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
@@ -93,7 +93,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
     }, []);
 
     const onSendPressed = useCallback(async () => {
-      const extension = getMediaTypeFromExtension(media.path);
+      const extension = convertExtension(media.path);
       const id = uuidv4();
       const message = {
         id: id,
