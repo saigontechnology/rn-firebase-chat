@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ConversationItem } from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
 import { getListConversation } from '../reducer/selectors';
+import { FirestoreServices } from 'src/services/firebase';
 
 type ListItem = {
   item: ConversationProps;
@@ -14,7 +15,12 @@ type ListItem = {
 export interface IListConversationProps {
   hasSearchBar?: boolean;
   onPress?: (conversation: ConversationProps) => void;
-  renderCustomItem?: ({ item, index }: ListItem) => JSX.Element | null;
+  renderCustomItem?: ({
+    item,
+    index,
+  }: ListItem & {
+    onDeleteConversation: (softDelete?: boolean) => Promise<void>;
+  }) => JSX.Element | null;
 }
 
 export const ListConversationScreen: React.FC<IListConversationProps> = ({
@@ -24,6 +30,7 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
 }) => {
   const { chatDispatch } = useChatContext();
   const listConversation = useChatSelector(getListConversation);
+  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
 
   const data = useMemo(() => {
     //TODO: handle search
@@ -38,14 +45,27 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
     [chatDispatch, onPress]
   );
 
+  const handleDeleteConversation = useCallback(
+    async (item: ConversationProps, softDelete?: boolean) => {
+      await firebaseInstance.deleteConversation(item.id, softDelete);
+    },
+    [firebaseInstance]
+  );
+
   const renderItem = useCallback(
     ({ item, index }: ListItem) => {
-      if (renderCustomItem) return renderCustomItem({ item, index });
+      if (renderCustomItem)
+        return renderCustomItem({
+          item,
+          index,
+          onDeleteConversation: (softDelete) =>
+            handleDeleteConversation(item, softDelete),
+        });
       return (
         <ConversationItem data={item} onPress={handleConversationPressed} />
       );
     },
-    [handleConversationPressed, renderCustomItem]
+    [handleConversationPressed, handleDeleteConversation, renderCustomItem]
   );
 
   return (
