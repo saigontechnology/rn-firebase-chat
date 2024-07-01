@@ -5,7 +5,7 @@ import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
 import { getListConversation } from '../reducer/selectors';
-import { FirestoreServices } from 'src/services/firebase';
+import { FirestoreServices } from '../services/firebase';
 
 type ListItem = {
   item: ConversationProps;
