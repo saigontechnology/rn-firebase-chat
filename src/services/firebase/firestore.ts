@@ -454,4 +454,49 @@ export class FirestoreServices {
         }
       });
   };
+
+  checkConversationExist = async (id: string) => {
+    const conversation = await firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .doc(id)
+      .get();
+
+    return conversation?.exists;
+  };
+
+  /**
+   * delete conversation from list
+   * @param softDelete indicates whether to completely remove conversation or simply remove from user's list
+   */
+  deleteConversation = async (
+    conversationId: string,
+    softDelete?: boolean
+  ): Promise<void> => {
+    const isConversationExist = await this.checkConversationExist(
+      conversationId
+    );
+    if (!isConversationExist) return;
+
+    await firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .doc(conversationId)
+      .delete();
+    if (softDelete) return;
+
+    const batch = firestore().batch();
+    const collectionRef = firestore()
+      .collection(`${FireStoreCollection.conversations}`)
+      .doc(conversationId);
+    const messages = await collectionRef
+      .collection(FireStoreCollection.messages)
+      .get();
+    messages.forEach((message) => batch.delete(message.ref));
+
+    await batch.commit();
+    await collectionRef.delete();
+  };
 }
