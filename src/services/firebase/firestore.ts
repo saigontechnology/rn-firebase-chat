@@ -32,7 +32,10 @@ interface FirestoreProps {
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
-  /** User configuration*/
+  /** Base configuration */
+  envPrefix = '';
+
+  /** User configuration */
   userInfo: IUserInfo | undefined;
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
@@ -78,6 +81,10 @@ export class FirestoreServices {
     }
   };
 
+  setEnvPrefix = (prefix: string) => {
+    this.envPrefix = prefix;
+  };
+
   setConversationInfo = (
     conversationId: string,
     memberIds: string[],
@@ -87,6 +94,7 @@ export class FirestoreServices {
     this.memberIds = [this.userId, ...memberIds];
     this.partners = partners.reduce((a, b) => ({ ...a, [b.id]: b }), {});
   };
+
   clearConversationInfo = () => {
     this.conversationId = null;
     this.memberIds = [];
@@ -133,7 +141,9 @@ export class FirestoreServices {
       memberIds.map((memberId) => {
         return firestore()
           .collection(
-            `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
+            `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+              FireStoreCollection.users
+            }/${memberId}/${FireStoreCollection.conversations}`
           )
           .doc(conversationRef.id)
           .set(conversationData);
@@ -243,7 +253,9 @@ export class FirestoreServices {
     /** Update latest message for each member */
     firestore()
       .collection(
-        `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+          FireStoreCollection.users
+        }/${userId}/${FireStoreCollection.conversations}`
       )
       .doc(this.conversationId)
       .set(
@@ -264,7 +276,11 @@ export class FirestoreServices {
     }
     if (this.userId) {
       firestore()
-        .collection(`${FireStoreCollection.conversations}`)
+        .collection(
+          `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+            FireStoreCollection.conversations
+          }`
+        )
         .doc(this.conversationId)
         .set(
           {
@@ -362,7 +378,11 @@ export class FirestoreServices {
       );
     }
     return firestore()
-      .collection(`${FireStoreCollection.conversations}`)
+      .collection(
+        `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+          FireStoreCollection.conversations
+        }`
+      )
       .doc(this.conversationId)
       .onSnapshot((snapshot) => {
         if (snapshot) {
@@ -397,7 +417,11 @@ export class FirestoreServices {
     }
     if (this.userId) {
       return firestore()
-        .collection(`${FireStoreCollection.conversations}`)
+        .collection(
+          `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+            FireStoreCollection.conversations
+          }`
+        )
         .doc(this.conversationId)
         .set(
           {
@@ -439,7 +463,9 @@ export class FirestoreServices {
   listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
     firestore()
       .collection(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        `${this.envPrefix ? `${this.envPrefix}/` : ''}${
+          FireStoreCollection.users
+        }/${this.userId}/${FireStoreCollection.conversations}`
       )
       .onSnapshot(function (snapshot) {
         if (snapshot) {
