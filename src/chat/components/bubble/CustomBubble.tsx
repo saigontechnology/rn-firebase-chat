@@ -11,7 +11,7 @@ import { CustomDocumentBubble } from './CustomDocumentBubble';
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
 }
 

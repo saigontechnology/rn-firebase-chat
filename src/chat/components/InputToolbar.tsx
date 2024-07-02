@@ -52,7 +52,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
     documentRef: FileAttachmentModalRef | null;
   }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
-  documentRef: FileAttachmentModalRef | null;
+  documentRef?: FileAttachmentModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -107,7 +107,9 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {renderLeftCustomView && renderLeftCustomView({ documentRef })}
+      {renderLeftCustomView &&
+        documentRef &&
+        renderLeftCustomView({ documentRef })}
       {hasCamera && (
         <PressableIcon
           icon={cameraIcon}
