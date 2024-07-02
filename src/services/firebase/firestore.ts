@@ -117,6 +117,9 @@ export class FirestoreServices {
     if (prefix) {
       this.prefix = prefix;
     }
+    if (prefix) {
+      this.prefix = prefix;
+    }
   };
 
   getRegexBlacklist = () => {
