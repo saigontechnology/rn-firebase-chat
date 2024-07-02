@@ -10,6 +10,7 @@ export interface IUserInfo {
 export interface IChatContext {
   userInfo: IUserInfo | null;
   enableEncrypt?: boolean;
+  prefix?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
 }

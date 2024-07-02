@@ -23,19 +23,21 @@ import {
 import { uploadFileToFirebase } from './storage';
 
 interface FirestoreProps {
-  userInfo: IUserInfo;
+  userInfo?: IUserInfo;
   enableEncrypt?: boolean;
   encryptKey?: string;
   memberIds?: string[];
+  prefix?: string;
 }
 
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
-  /** User configuration*/
+  /** User configuration */
   userInfo: IUserInfo | undefined;
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
+  prefix = '';
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -66,7 +68,12 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
-  configuration = ({ userInfo, enableEncrypt, encryptKey }: FirestoreProps) => {
+  configuration = ({
+    userInfo,
+    enableEncrypt,
+    encryptKey,
+    prefix,
+  }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
     }
@@ -76,7 +83,12 @@ export class FirestoreServices {
         this.encryptKey = res;
       });
     }
+    if (prefix) {
+      this.prefix = prefix;
+    }
   };
+
+  getConfiguration = <K extends keyof FirestoreProps>(key: K) => this[key];
 
   setConversationInfo = (
     conversationId: string,
@@ -87,6 +99,7 @@ export class FirestoreServices {
     this.memberIds = [this.userId, ...memberIds];
     this.partners = partners.reduce((a, b) => ({ ...a, [b.id]: b }), {});
   };
+
   clearConversationInfo = () => {
     this.conversationId = null;
     this.memberIds = [];
@@ -119,7 +132,11 @@ export class FirestoreServices {
     let conversationRef: FirestoreReference = firestore().collection<
       Partial<ConversationProps>
     >(
-      `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      `${
+        this.prefix
+          ? `${this.prefix}-${FireStoreCollection.users}`
+          : FireStoreCollection.users
+      }/${this.userId}/${FireStoreCollection.conversations}`
     );
     /** Create the conversation to the user who create the chat */
     if (conversationId) {
@@ -133,7 +150,11 @@ export class FirestoreServices {
       memberIds.map((memberId) => {
         return firestore()
           .collection(
-            `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
+            `${
+              this.prefix
+                ? `${this.prefix}-${FireStoreCollection.users}`
+                : FireStoreCollection.users
+            }/${memberId}/${FireStoreCollection.conversations}`
           )
           .doc(conversationRef.id)
           .set(conversationData);
@@ -164,7 +185,11 @@ export class FirestoreServices {
 
       const messageRef = firestore()
         .collection<SendMessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.conversations}`
+              : FireStoreCollection.conversations
+          }/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .add(message);
 
@@ -213,7 +238,11 @@ export class FirestoreServices {
         /** Send message to collection conversation by id */
         await firestore()
           .collection<SendMessageProps>(
-            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            `${
+              this.prefix
+                ? `${this.prefix}-${FireStoreCollection.conversations}`
+                : FireStoreCollection.conversations
+            }/${this.conversationId}/${FireStoreCollection.messages}`
           )
           .add(messageData);
 
@@ -243,7 +272,11 @@ export class FirestoreServices {
     /** Update latest message for each member */
     firestore()
       .collection(
-        `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        `${
+          this.prefix
+            ? `${this.prefix}-${FireStoreCollection.users}`
+            : FireStoreCollection.users
+        }/${userId}/${FireStoreCollection.conversations}`
       )
       .doc(this.conversationId)
       .set(
@@ -264,7 +297,13 @@ export class FirestoreServices {
     }
     if (this.userId) {
       firestore()
-        .collection(`${FireStoreCollection.conversations}`)
+        .collection(
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.conversations}`
+              : FireStoreCollection.conversations
+          }`
+        )
         .doc(this.conversationId)
         .set(
           {
@@ -287,7 +326,11 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.conversations}`
+              : FireStoreCollection.conversations
+          }/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
@@ -316,7 +359,11 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.conversations}`
+              : FireStoreCollection.conversations
+          }/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
@@ -340,7 +387,11 @@ export class FirestoreServices {
   receiveMessageListener = (callBack: (message: any) => void) => {
     return firestore()
       .collection<MessageProps>(
-        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+        `${
+          this.prefix
+            ? `${this.prefix}-${FireStoreCollection.conversations}`
+            : FireStoreCollection.conversations
+        }/${this.conversationId}/${FireStoreCollection.messages}`
       )
       .onSnapshot((snapshot) => {
         if (snapshot) {
@@ -362,7 +413,13 @@ export class FirestoreServices {
       );
     }
     return firestore()
-      .collection(`${FireStoreCollection.conversations}`)
+      .collection(
+        `${
+          this.prefix
+            ? `${this.prefix}-${FireStoreCollection.conversations}`
+            : FireStoreCollection.conversations
+        }`
+      )
       .doc(this.conversationId)
       .onSnapshot((snapshot) => {
         if (snapshot) {
@@ -376,7 +433,11 @@ export class FirestoreServices {
       if (this.conversationId) {
         firestore()
           .collection<MessageProps>(
-            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            `${
+              this.prefix
+                ? `${this.prefix}-${FireStoreCollection.conversations}`
+                : FireStoreCollection.conversations
+            }/${this.conversationId}/${FireStoreCollection.messages}`
           )
           .count()
           .get()
@@ -397,7 +458,13 @@ export class FirestoreServices {
     }
     if (this.userId) {
       return firestore()
-        .collection(`${FireStoreCollection.conversations}`)
+        .collection(
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.conversations}`
+              : FireStoreCollection.conversations
+          }`
+        )
         .doc(this.conversationId)
         .set(
           {
@@ -420,7 +487,11 @@ export class FirestoreServices {
     return new Promise((resolve) =>
       firestore()
         .collection<Partial<ConversationProps>>(
-          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          `${
+            this.prefix
+              ? `${this.prefix}-${FireStoreCollection.users}`
+              : FireStoreCollection.users
+          }/${this.userId}/${FireStoreCollection.conversations}`
         )
         .orderBy('updatedAt', 'desc')
         .get()
@@ -436,10 +507,14 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (callback: (_: ConversationProps) => void) =>
     firestore()
       .collection(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        `${
+          this.prefix
+            ? `${this.prefix}-${FireStoreCollection.users}`
+            : FireStoreCollection.users
+        }/${this.userId}/${FireStoreCollection.conversations}`
       )
       .onSnapshot(function (snapshot) {
         if (snapshot) {
@@ -453,5 +528,4 @@ export class FirestoreServices {
           });
         }
       });
-  };
 }

@@ -1,11 +1,13 @@
 import React, { createContext, useEffect, useReducer } from 'react';
-import { FirestoreServices } from '../services/firebase';
+import { FirestoreServices, createUserProfile } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
   setListConversation,
   updateConversation,
 } from '../reducer';
+
+const firestoreServices = FirestoreServices.getInstance();
 
 interface ChatProviderProps
   extends Omit<IChatContext, 'chatState' | 'chatDispatch'> {
@@ -17,22 +19,37 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   userInfo,
   children,
   enableEncrypt = false,
+  prefix = '',
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
+    let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      const firestoreServices = FirestoreServices.getInstance();
-      firestoreServices.configuration({ userInfo, enableEncrypt });
-      firestoreServices.getListConversation().then((res) => {
-        dispatch(setListConversation(res));
-      });
-
-      firestoreServices.listenConversationUpdate((data) => {
-        dispatch(updateConversation(data));
+      firestoreServices.configuration({ userInfo });
+      createUserProfile(userInfo.id, userInfo.name).then(() => {
+        firestoreServices.getListConversation().then((res) => {
+          dispatch(setListConversation(res));
+        });
+        unsubscribeListener = firestoreServices.listenConversationUpdate(
+          (data) => {
+            dispatch(updateConversation(data));
+          }
+        );
       });
     }
-  }, [enableEncrypt, userInfo]);
+    return () => {
+      unsubscribeListener();
+    };
+  }, [userInfo]);
+
+  useEffect(() => {
+    firestoreServices.configuration({ enableEncrypt });
+  }, [enableEncrypt]);
+
+  useEffect(() => {
+    firestoreServices.configuration({ prefix });
+  }, [prefix]);
 
   return (
     <ChatContext.Provider
