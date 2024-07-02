@@ -14,6 +14,7 @@ import {
   Image,
   Text,
 } from 'react-native';
+import 'react-native-get-random-values';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
 import { CaptureCameraButton } from './CaptureButton';
@@ -134,7 +135,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
     }, [isRecording, timer]);
 
     const renderMediaPage = useCallback(() => {
-      const source = { uri: media.path };
+      const source = { uri: 'file://' + media.path };
       return (
         <View style={styles.container}>
           {media.type === MessageTypes.image ? (
@@ -321,6 +322,7 @@ const styles = StyleSheet.create({
     left: 30,
     width: 35,
     height: 35,
+    zIndex: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
