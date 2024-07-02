@@ -455,6 +455,22 @@ export class FirestoreServices {
       });
   };
 
+  listenConversationDelete = (callback: (id: string) => void) => {
+    firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .onSnapshot(function (snapshot) {
+        if (snapshot) {
+          snapshot.docChanges().forEach(function (change) {
+            if (change.type === 'removed') {
+              callback?.(change.doc.id);
+            }
+          });
+        }
+      });
+  };
+
   checkConversationExist = async (id: string) => {
     const conversation = await firestore()
       .collection(

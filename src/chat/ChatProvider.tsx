@@ -3,6 +3,7 @@ import { FirestoreServices } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
+  removeConversation,
   setListConversation,
   updateConversation,
 } from '../reducer';
@@ -30,6 +31,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
       firestoreServices.listenConversationUpdate((data) => {
         dispatch(updateConversation(data));
+      });
+
+      firestoreServices.listenConversationDelete((conversationId) => {
+        dispatch(removeConversation(conversationId));
       });
     }
   }, [enableEncrypt, userInfo]);
