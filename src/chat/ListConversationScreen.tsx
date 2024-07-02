@@ -19,7 +19,10 @@ export interface IListConversationProps {
     item,
     index,
   }: ListItem & {
-    onDeleteConversation: (softDelete?: boolean) => Promise<void>;
+    onDeleteConversation: (
+      id: string,
+      softDelete?: boolean
+    ) => Promise<boolean>;
   }) => JSX.Element | null;
 }
 
@@ -46,8 +49,8 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   );
 
   const handleDeleteConversation = useCallback(
-    async (item: ConversationProps, softDelete?: boolean) => {
-      await firebaseInstance.deleteConversation(item.id, softDelete);
+    async (id: string, softDelete?: boolean) => {
+      return await firebaseInstance.deleteConversation(id, softDelete);
     },
     [firebaseInstance]
   );
@@ -58,8 +61,8 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
         return renderCustomItem({
           item,
           index,
-          onDeleteConversation: (softDelete) =>
-            handleDeleteConversation(item, softDelete),
+          onDeleteConversation: (id, softDelete) =>
+            handleDeleteConversation(id, softDelete),
         });
       return (
         <ConversationItem data={item} onPress={handleConversationPressed} />

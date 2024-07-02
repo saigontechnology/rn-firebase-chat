@@ -473,30 +473,35 @@ export class FirestoreServices {
   deleteConversation = async (
     conversationId: string,
     softDelete?: boolean
-  ): Promise<void> => {
-    const isConversationExist = await this.checkConversationExist(
-      conversationId
-    );
-    if (!isConversationExist) return;
+  ): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) return false;
 
-    await firestore()
-      .collection(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-      )
-      .doc(conversationId)
-      .delete();
-    if (softDelete) return;
+      await firestore()
+        .collection(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+        .doc(conversationId)
+        .delete();
+      if (softDelete) return true;
 
-    const batch = firestore().batch();
-    const collectionRef = firestore()
-      .collection(`${FireStoreCollection.conversations}`)
-      .doc(conversationId);
-    const messages = await collectionRef
-      .collection(FireStoreCollection.messages)
-      .get();
-    messages.forEach((message) => batch.delete(message.ref));
+      const batch = firestore().batch();
+      const collectionRef = firestore()
+        .collection(`${FireStoreCollection.conversations}`)
+        .doc(conversationId);
+      const messages = await collectionRef
+        .collection(FireStoreCollection.messages)
+        .get();
+      messages.forEach((message) => batch.delete(message.ref));
 
-    await batch.commit();
-    await collectionRef.delete();
+      await batch.commit();
+      await collectionRef.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
   };
 }
