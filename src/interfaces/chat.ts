@@ -12,6 +12,7 @@ export interface IChatContext {
   enableEncrypt?: boolean;
   blackListWords?: string[] | null;
   encryptKey?: string;
+  prefix?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
 }
