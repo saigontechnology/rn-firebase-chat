@@ -15,6 +15,7 @@ export interface IChatContext {
   encryptionOptions?: EncryptionOptions;
   encryptionFuncProps?: EncryptionFunctions;
   encryptKey?: string;
+  prefix?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
 }
