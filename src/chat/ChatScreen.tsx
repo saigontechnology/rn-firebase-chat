@@ -12,12 +12,16 @@ import {
   View,
   type ViewStyle,
   Keyboard,
+  Text,
 } from 'react-native';
 import {
   type ComposerProps,
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  isSameUser,
+  isSameDay,
+  type IMessage,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -248,7 +252,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     if (props.renderBubble) return props.renderBubble(bubble);
     const imageUrl = bubble.currentMessage?.path;
     if (!imageUrl) {
-      return <Bubble {...bubble} />;
+      if (
+        firebaseInstance.userId === bubble.currentMessage?.user?._id ||
+        (isSameUser(
+          bubble.currentMessage as IMessage,
+          bubble.previousMessage
+        ) &&
+          isSameDay(bubble.currentMessage as IMessage, bubble.previousMessage))
+      ) {
+        return <Bubble {...bubble} />;
+      }
+      return (
+        <View>
+          <Text style={styles.messageUsername}>
+            {bubble?.currentMessage?.user?.name}
+          </Text>
+          <Bubble {...bubble} />
+        </View>
+      );
     }
 
     const styleBuble = {
@@ -305,5 +326,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  messageUsername: {
+    color: '#fff',
+    marginBottom: 4,
   },
 });
