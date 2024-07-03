@@ -1,6 +1,8 @@
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -40,6 +42,10 @@ import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 
+export interface ChatScreenRef {
+  sendMessage: (message: MessageProps) => void;
+}
+
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
@@ -56,272 +62,291 @@ interface ChatScreenProps extends GiftedChatProps {
   timeoutSendNotification?: number;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({
-  style,
-  memberIds,
-  partners,
-  onStartLoad,
-  onLoadEnd,
-  maxPageSize = 20,
-  renderComposer,
-  inputToolbarProps,
-  customConversationInfo,
-  sendMessageNotification,
-  timeoutSendNotification = 0,
-  ...props
-}) => {
-  const { userInfo } = useChatContext();
-  const conversation = useChatSelector(getConversation);
+export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
+  (
+    {
+      style,
+      memberIds,
+      partners,
+      onStartLoad,
+      onLoadEnd,
+      maxPageSize = 20,
+      renderComposer,
+      inputToolbarProps,
+      customConversationInfo,
+      sendMessageNotification,
+      timeoutSendNotification = 0,
+      ...props
+    },
+    ref
+  ) => {
+    const { userInfo } = useChatContext();
+    const conversation = useChatSelector(getConversation);
 
-  const conversationInfo = useMemo(() => {
-    return conversation;
-  }, [conversation]);
+    const conversationInfo = useMemo(() => {
+      return conversation;
+    }, [conversation]);
 
-  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
-  const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
-  const [hasMoreMessages, setHasMoreMessages] = useState(false);
-  const isLoadingRef = useRef(false);
-  const cameraViewRef = useRef<CameraViewRef>(null);
-  const [isImgVideoUrl, setImgVideoUrl] = useState('');
-  const { hasPermission, requestPermission } = useCameraPermission();
-  const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
+    const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
+    const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
+    const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const isLoadingRef = useRef(false);
+    const cameraViewRef = useRef<CameraViewRef>(null);
+    const [isImgVideoUrl, setImgVideoUrl] = useState('');
+    const { hasPermission, requestPermission } = useCameraPermission();
+    const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
-  const conversationRef = useRef<ConversationProps | undefined>(
-    conversationInfo
-  );
-  const messageRef = useRef<MessageProps[]>(messagesList);
-  messageRef.current = messagesList;
+    const conversationRef = useRef<ConversationProps | undefined>(
+      conversationInfo
+    );
+    const messageRef = useRef<MessageProps[]>(messagesList);
+    messageRef.current = messagesList;
 
-  useEffect(() => {
-    if (conversationInfo?.id) {
-      onStartLoad?.();
-      firebaseInstance.setConversationInfo(
-        conversationInfo?.id,
-        memberIds,
-        partners
-      );
-      firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
-        setMessagesList(res);
-        setHasMoreMessages(res.length === maxPageSize);
-        onLoadEnd?.();
-      });
-    }
-  }, [
-    conversationInfo?.id,
-    firebaseInstance,
-    onLoadEnd,
-    onStartLoad,
-    memberIds,
-    partners,
-    maxPageSize,
-  ]);
-
-  const onSend = useCallback(
-    async (messages: MessageProps) => {
-      /** If the conversation not created yet. it will create at the first message sent */
-      isLoadingRef.current = false;
-      if (!conversationRef.current?.id) {
-        conversationRef.current = await firebaseInstance.createConversation(
-          customConversationInfo?.id || '',
-          memberIds,
-          customConversationInfo?.name || partners[0]?.name,
-          customConversationInfo?.image || partners[0]?.avatar
-        );
+    useEffect(() => {
+      if (conversationInfo?.id) {
+        onStartLoad?.();
         firebaseInstance.setConversationInfo(
-          conversationRef.current?.id,
+          conversationInfo?.id,
           memberIds,
           partners
         );
+        firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
+          setMessagesList(res);
+          setHasMoreMessages(res.length === maxPageSize);
+          onLoadEnd?.();
+        });
       }
-      /** Add new message to message list  */
-      setMessagesList((previousMessages) =>
-        GiftedChat.append(previousMessages, [messages])
-      );
-
-      await firebaseInstance.sendMessage(messages);
-
-      timeoutMessageRef.current = setTimeout(() => {
-        sendMessageNotification?.();
-        if (timeoutMessageRef.current) {
-          clearTimeout(timeoutMessageRef.current);
-        }
-      }, timeoutSendNotification);
-    },
-    [
+    }, [
+      conversationInfo?.id,
       firebaseInstance,
-      sendMessageNotification,
-      customConversationInfo,
+      onLoadEnd,
+      onStartLoad,
       memberIds,
       partners,
-      timeoutSendNotification,
-    ]
-  );
+      maxPageSize,
+    ]);
 
-  const onLoadEarlier = useCallback(async () => {
-    if (isLoadingRef.current) {
-      return;
-    }
-    isLoadingRef.current = true;
-    if (conversationRef.current?.id) {
-      const res = await firebaseInstance.getMoreMessage(maxPageSize);
-      const isMoreMessage = res.length === maxPageSize;
-      setHasMoreMessages(isMoreMessage);
-      isLoadingRef.current = !isMoreMessage;
-      setMessagesList((previousMessages) =>
-        GiftedChat.prepend(previousMessages, res)
-      );
-    }
-  }, [maxPageSize, firebaseInstance]);
-
-  useEffect(() => {
-    return () => {
-      firebaseInstance.clearConversationInfo();
-    };
-  }, [firebaseInstance]);
-
-  useEffect(() => {
-    let receiveMessageRef: () => void;
-    const currentTime = Date.now();
-    if (conversationRef.current?.id) {
-      receiveMessageRef = firebaseInstance.receiveMessageListener(
-        (message: MessageProps) => {
-          if (
-            userInfo &&
-            message.senderId !== userInfo.id &&
-            message.createdAt >= new Date(currentTime)
-          ) {
-            const userInfoIncomming = {
-              id: message.id,
-              name: message.senderId,
-            } as IUserInfo;
-            const formatMessage = formatMessageData(message, userInfoIncomming);
-            setMessagesList((previousMessages) =>
-              GiftedChat.append(previousMessages, [formatMessage])
-            );
-          }
+    const onSend = useCallback(
+      async (messages: MessageProps) => {
+        /** If the conversation not created yet. it will create at the first message sent */
+        isLoadingRef.current = false;
+        if (!conversationRef.current?.id) {
+          conversationRef.current = await firebaseInstance.createConversation(
+            customConversationInfo?.id || '',
+            memberIds,
+            customConversationInfo?.name || partners[0]?.name,
+            customConversationInfo?.image || partners[0]?.avatar
+          );
+          firebaseInstance.setConversationInfo(
+            conversationRef.current?.id,
+            memberIds,
+            partners
+          );
         }
-      );
-    }
+        /** Add new message to message list  */
+        setMessagesList((previousMessages) =>
+          GiftedChat.append(previousMessages, [messages])
+        );
 
-    return () => {
-      if (receiveMessageRef) {
-        receiveMessageRef();
+        await firebaseInstance.sendMessage(messages);
+
+        timeoutMessageRef.current = setTimeout(() => {
+          sendMessageNotification?.();
+          if (timeoutMessageRef.current) {
+            clearTimeout(timeoutMessageRef.current);
+          }
+        }, timeoutSendNotification);
+      },
+      [
+        firebaseInstance,
+        sendMessageNotification,
+        customConversationInfo,
+        memberIds,
+        partners,
+        timeoutSendNotification,
+      ]
+    );
+
+    const onLoadEarlier = useCallback(async () => {
+      if (isLoadingRef.current) {
+        return;
       }
-    };
-  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+      isLoadingRef.current = true;
+      if (conversationRef.current?.id) {
+        const res = await firebaseInstance.getMoreMessage(maxPageSize);
+        const isMoreMessage = res.length === maxPageSize;
+        setHasMoreMessages(isMoreMessage);
+        isLoadingRef.current = !isMoreMessage;
+        setMessagesList((previousMessages) =>
+          GiftedChat.prepend(previousMessages, res)
+        );
+      }
+    }, [maxPageSize, firebaseInstance]);
 
-  const onPressCamera = useCallback(() => {
-    if (props.onPressCamera) return props.onPressCamera();
-    if (!hasPermission) {
-      requestPermission();
-      return;
-    }
-    if (Keyboard.isVisible()) {
-      Keyboard.dismiss();
-      return;
-    }
+    useEffect(() => {
+      return () => {
+        firebaseInstance.clearConversationInfo();
+      };
+    }, [firebaseInstance]);
 
-    cameraViewRef.current?.show();
-  }, [hasPermission, props, requestPermission]);
+    useEffect(() => {
+      let receiveMessageRef: () => void;
+      const currentTime = Date.now();
+      if (conversationRef.current?.id) {
+        receiveMessageRef = firebaseInstance.receiveMessageListener(
+          (message: MessageProps) => {
+            if (
+              userInfo &&
+              message.senderId !== userInfo.id &&
+              message.createdAt >= new Date(currentTime)
+            ) {
+              const userInfoIncomming = {
+                id: message.id,
+                name: message.senderId,
+              } as IUserInfo;
+              const formatMessage = formatMessageData(
+                message,
+                userInfoIncomming
+              );
+              setMessagesList((previousMessages) =>
+                GiftedChat.append(previousMessages, [formatMessage])
+              );
+            }
+          }
+        );
+      }
 
-  const inputToolbar = useCallback(
-    (composeProps: ComposerProps) => {
-      if (renderComposer) return renderComposer(composeProps);
+      return () => {
+        if (receiveMessageRef) {
+          receiveMessageRef();
+        }
+      };
+    }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+
+    const onPressCamera = useCallback(() => {
+      if (props.onPressCamera) return props.onPressCamera();
+      if (!hasPermission) {
+        requestPermission();
+        return;
+      }
+      if (Keyboard.isVisible()) {
+        Keyboard.dismiss();
+        return;
+      }
+
+      cameraViewRef.current?.show();
+    }, [hasPermission, props, requestPermission]);
+
+    const inputToolbar = useCallback(
+      (composeProps: ComposerProps) => {
+        if (renderComposer) return renderComposer(composeProps);
+        return (
+          <InputToolbar
+            onPressCamera={onPressCamera}
+            onSend={onSend}
+            {...composeProps}
+            hasCamera={props.hasCamera}
+            hasGallery={props.hasGallery}
+            {...inputToolbarProps}
+          />
+        );
+      },
+      [
+        renderComposer,
+        onPressCamera,
+        onSend,
+        props.hasCamera,
+        props.hasGallery,
+        inputToolbarProps,
+      ]
+    );
+
+    const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
+      if (props.renderBubble) return props.renderBubble(bubble);
+      const imageUrl = bubble.currentMessage?.path;
+      if (!imageUrl) {
+        if (
+          firebaseInstance.userId === bubble.currentMessage?.user?._id ||
+          (isSameUser(
+            bubble.currentMessage as IMessage,
+            bubble.previousMessage
+          ) &&
+            isSameDay(
+              bubble.currentMessage as IMessage,
+              bubble.previousMessage
+            ))
+        ) {
+          return <Bubble {...bubble} />;
+        }
+        return (
+          <View>
+            <Text style={styles.messageUsername}>
+              {bubble?.currentMessage?.user?.name}
+            </Text>
+            <Bubble {...bubble} />
+          </View>
+        );
+      }
+
+      const styleBuble = {
+        left: { backgroundColor: 'transparent' },
+        right: { backgroundColor: 'transparent' },
+      };
+
       return (
-        <InputToolbar
-          onPressCamera={onPressCamera}
-          onSend={onSend}
-          {...composeProps}
-          hasCamera={props.hasCamera}
-          hasGallery={props.hasGallery}
-          {...inputToolbarProps}
+        <Bubble
+          {...bubble}
+          renderCustomView={() =>
+            bubble.currentMessage && (
+              <CustomImageVideoBubble
+                message={bubble.currentMessage}
+                position={bubble.position}
+                selectedImgVideoUrl={(url) => setImgVideoUrl(url)}
+              />
+            )
+          }
+          wrapperStyle={styleBuble}
         />
       );
-    },
-    [
-      renderComposer,
-      onPressCamera,
-      onSend,
-      props.hasCamera,
-      props.hasGallery,
-      inputToolbarProps,
-    ]
-  );
-
-  const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
-    if (props.renderBubble) return props.renderBubble(bubble);
-    const imageUrl = bubble.currentMessage?.path;
-    if (!imageUrl) {
-      if (
-        firebaseInstance.userId === bubble.currentMessage?.user?._id ||
-        (isSameUser(
-          bubble.currentMessage as IMessage,
-          bubble.previousMessage
-        ) &&
-          isSameDay(bubble.currentMessage as IMessage, bubble.previousMessage))
-      ) {
-        return <Bubble {...bubble} />;
-      }
-      return (
-        <View>
-          <Text style={styles.messageUsername}>
-            {bubble?.currentMessage?.user?.name}
-          </Text>
-          <Bubble {...bubble} />
-        </View>
-      );
-    }
-
-    const styleBuble = {
-      left: { backgroundColor: 'transparent' },
-      right: { backgroundColor: 'transparent' },
     };
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        sendMessage: onSend,
+      }),
+      [onSend]
+    );
 
     return (
-      <Bubble
-        {...bubble}
-        renderCustomView={() =>
-          bubble.currentMessage && (
-            <CustomImageVideoBubble
-              message={bubble.currentMessage}
-              position={bubble.position}
-              selectedImgVideoUrl={(url) => setImgVideoUrl(url)}
-            />
-          )
-        }
-        wrapperStyle={styleBuble}
-      />
-    );
-  };
-
-  return (
-    <View style={[styles.container, style]}>
-      <KeyboardAvoidingView style={styles.container}>
-        <GiftedChat
-          messages={messagesList}
-          onSend={(messages) => onSend(messages[0] as MessageProps)}
-          user={{
-            _id: userInfo?.id || '',
-            ...userInfo,
-          }}
-          keyboardShouldPersistTaps={'never'}
-          infiniteScroll
-          loadEarlier={hasMoreMessages}
-          renderChatFooter={() => <TypingIndicator />}
-          onLoadEarlier={onLoadEarlier}
-          renderComposer={inputToolbar}
-          renderBubble={renderBubble}
-          {...props}
+      <View style={[styles.container, style]}>
+        <KeyboardAvoidingView style={styles.container}>
+          <GiftedChat
+            messages={messagesList}
+            onSend={(messages) => onSend(messages[0] as MessageProps)}
+            user={{
+              _id: userInfo?.id || '',
+              ...userInfo,
+            }}
+            keyboardShouldPersistTaps={'never'}
+            infiniteScroll
+            loadEarlier={hasMoreMessages}
+            renderChatFooter={() => <TypingIndicator />}
+            onLoadEarlier={onLoadEarlier}
+            renderComposer={inputToolbar}
+            renderBubble={renderBubble}
+            {...props}
+          />
+        </KeyboardAvoidingView>
+        <SelectedImageModal
+          imageUrl={isImgVideoUrl}
+          onClose={() => setImgVideoUrl('')}
         />
-      </KeyboardAvoidingView>
-      <SelectedImageModal
-        imageUrl={isImgVideoUrl}
-        onClose={() => setImgVideoUrl('')}
-      />
-      <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
-    </View>
-  );
-};
+        <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
