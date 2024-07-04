@@ -202,7 +202,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             ) {
               const userInfoIncomming = {
                 id: message.id,
-                name: message.senderId,
+                name: message.user?.name,
               } as IUserInfo;
               const formatMessage = formatMessageData(
                 message,
