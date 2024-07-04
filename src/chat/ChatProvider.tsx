@@ -45,6 +45,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         snapshotRefs[ConversationActions.delete]?.();
       };
     }
+    return;
   }, [enableEncrypt, snapshotRefs, userInfo]);
 
   return (
