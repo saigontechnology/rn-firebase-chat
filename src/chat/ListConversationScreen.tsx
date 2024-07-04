@@ -19,10 +19,7 @@ export interface IListConversationProps {
     item,
     index,
   }: ListItem & {
-    onDeleteConversation: (
-      id: string,
-      softDelete?: boolean
-    ) => Promise<boolean>;
+    deleteConversation: (softDelete?: boolean) => Promise<boolean>;
   }) => JSX.Element | null;
 }
 
@@ -61,8 +58,8 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
         return renderCustomItem({
           item,
           index,
-          onDeleteConversation: (id, softDelete) =>
-            handleDeleteConversation(id, softDelete),
+          deleteConversation: (softDelete) =>
+            handleDeleteConversation(item?.id, softDelete),
         });
       return (
         <ConversationItem data={item} onPress={handleConversationPressed} />
