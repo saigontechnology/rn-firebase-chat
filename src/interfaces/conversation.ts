@@ -43,10 +43,16 @@ enum MessageStatus {
   read,
 }
 
+enum ConversationActions {
+  update = 'update',
+  delete = 'delete',
+}
+
 export {
   ConversationProps,
   MemberProps,
   MessageTypes,
   MessageStatus,
+  ConversationActions,
   CustomConversationInfo,
 };

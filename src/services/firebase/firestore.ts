@@ -436,7 +436,7 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (callback: (_: ConversationProps) => void) =>
     firestore()
       .collection(
         `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
@@ -453,9 +453,8 @@ export class FirestoreServices {
           });
         }
       });
-  };
 
-  listenConversationDelete = (callback: (id: string) => void) => {
+  listenConversationDelete = (callback: (id: string) => void) =>
     firestore()
       .collection(
         `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
@@ -469,7 +468,6 @@ export class FirestoreServices {
           });
         }
       });
-  };
 
   checkConversationExist = async (id: string) => {
     const conversation = await firestore()

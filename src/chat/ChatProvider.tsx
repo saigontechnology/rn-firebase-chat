@@ -1,6 +1,6 @@
-import React, { createContext, useEffect, useReducer } from 'react';
+import React, { createContext, useEffect, useReducer, useRef } from 'react';
 import { FirestoreServices } from '../services/firebase';
-import type { IChatContext } from '../interfaces';
+import { ConversationActions, type IChatContext } from '../interfaces';
 import {
   chatReducer,
   removeConversation,
@@ -20,6 +20,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   enableEncrypt = false,
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
+  const snapshotRefs = useRef<{ [key: string]: () => void }>({}).current;
 
   useEffect(() => {
     if (userInfo?.id) {
@@ -29,15 +30,22 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         dispatch(setListConversation(res));
       });
 
-      firestoreServices.listenConversationUpdate((data) => {
-        dispatch(updateConversation(data));
-      });
+      snapshotRefs[ConversationActions.update] =
+        firestoreServices.listenConversationUpdate((data) => {
+          dispatch(updateConversation(data));
+        });
 
-      firestoreServices.listenConversationDelete((conversationId) => {
-        dispatch(removeConversation(conversationId));
-      });
+      snapshotRefs[ConversationActions.delete] =
+        firestoreServices.listenConversationDelete((conversationId) => {
+          dispatch(removeConversation(conversationId));
+        });
+
+      return () => {
+        snapshotRefs[ConversationActions.update]?.();
+        snapshotRefs[ConversationActions.delete]?.();
+      };
     }
-  }, [enableEncrypt, userInfo]);
+  }, [enableEncrypt, snapshotRefs, userInfo]);
 
   return (
     <ChatContext.Provider
