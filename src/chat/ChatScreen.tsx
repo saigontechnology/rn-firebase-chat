@@ -201,8 +201,8 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
               message.createdAt >= new Date(currentTime)
             ) {
               const userInfoIncomming = {
-                id: message.id,
-                name: message.user?.name,
+                id: message.senderId,
+                name: partners?.find((e) => e.id === message.senderId)?.name,
               } as IUserInfo;
               const formatMessage = formatMessageData(
                 message,
@@ -221,7 +221,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           receiveMessageRef();
         }
       };
-    }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+    }, [firebaseInstance, userInfo, partners, conversationRef.current?.id]);
 
     const onPressCamera = useCallback(() => {
       if (props.onPressCamera) return props.onPressCamera();
