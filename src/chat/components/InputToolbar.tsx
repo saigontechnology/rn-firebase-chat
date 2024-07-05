@@ -118,12 +118,10 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         />
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
-        <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={[styles.textInput, composerTextInputStyle]}
-          />
-        </ScrollView>
+        <Composer
+          {...props}
+          textInputStyle={[styles.textInput, composerTextInputStyle]}
+        />
       </View>
       {!!text && (
         <PressableIcon
