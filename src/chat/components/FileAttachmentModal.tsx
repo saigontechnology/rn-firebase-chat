@@ -18,7 +18,9 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+import DocumentPicker, {
+  DocumentPickerResponse,
+} from 'react-native-document-picker';
 import type { IUserInfo, MessageProps } from '../../interfaces';
 import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
 import uuid from 'react-native-uuid';
@@ -39,12 +41,6 @@ interface FileAttachmentModalProps {
   onSend: (message: MessageProps) => void;
   userInfo?: IUserInfo | null;
 }
-
-type IDocument = {
-  uri: string;
-  type: string;
-  name: string;
-};
 
 export interface FileAttachmentModalRef {
   show: () => void;
@@ -85,12 +81,11 @@ const FileAttachmentModal = forwardRef<
   };
 
   const onSendMessage = useCallback(
-    async (media: IDocument) => {
+    async (media: DocumentPickerResponse) => {
       try {
         const extension = convertExtension(media.uri);
         const type = getMediaTypeFromExtension(media.uri);
-        const fileSize = await RNFS.stat(media.uri);
-        const size = formatSize(fileSize.size);
+        const size = formatSize(media.size || 0);
         const id = uuid.v4();
         const message = {
           id: id,
@@ -128,16 +123,21 @@ const FileAttachmentModal = forwardRef<
           DocumentPicker.types.xlsx,
         ],
       });
-      const media = result[0] as IDocument;
+      const media = result[0] as DocumentPickerResponse;
       if (media) {
+        if (media.uri.startsWith('content://')) {
+          const destPath = `${RNFS.DocumentDirectoryPath}/${media.name}`;
+          await RNFS.copyFile(media.uri, destPath);
+          media.uri = destPath;
+        }
         onSendMessage(media);
       } else {
-        Alert.alert('Error', 'Something wrong.Please try again');
+        Alert.alert('Error', 'Something wrong. Please try again');
       }
       setModalVisible(false);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
-        Alert.alert('Warning', 'Document Picker was cancelled');
+        // Alert.alert('Warning', 'Document Picker was cancelled');
       } else {
         throw err;
       }

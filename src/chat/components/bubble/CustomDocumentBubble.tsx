@@ -17,6 +17,7 @@ import {
 import type { MessageProps } from '../../../interfaces';
 import OpenFile from 'react-native-doc-viewer';
 import RNFS from 'react-native-fs';
+import { getAbsoluteFilePath } from '../../../utilities';
 
 export interface CustomDocumentBubbleProps {
   message: MessageProps;
@@ -87,7 +88,7 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
       OpenFile.openDoc(
         [
           {
-            url: downloadDest,
+            url: getAbsoluteFilePath(downloadDest),
             fileNameOptional: message.name,
             fileName: message.name,
             fileType: message.type,
