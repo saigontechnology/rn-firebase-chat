@@ -231,7 +231,8 @@ export class FirestoreServices {
         path,
         extension,
         message.name,
-        message.size
+        message.size,
+        message.duration
       );
       console.log('messageData: ', messageData);
       this.sendMessageWithFile(messageData);

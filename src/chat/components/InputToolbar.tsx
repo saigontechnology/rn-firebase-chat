@@ -7,7 +7,6 @@ import {
   ViewStyle,
   ImageStyle,
   TextStyle,
-  Alert,
 } from 'react-native';
 import {
   Composer,
@@ -22,6 +21,7 @@ import {
 } from 'react-native-image-picker';
 import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
 import type { FileAttachmentModalRef } from './FileAttachmentModal';
+import type { VoiceRecorderModalRef } from './VoiceRecorderModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -46,13 +46,16 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
   libraryOptions?: ImageLibraryOptions;
+  documentRef?: FileAttachmentModalRef | null;
   renderLeftCustomView?: ({
     documentRef,
+    voiceRef,
   }: {
     documentRef: FileAttachmentModalRef | null;
+    voiceRef: VoiceRecorderModalRef | null;
   }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
-  documentRef?: FileAttachmentModalRef | null;
+  voiceRef?: VoiceRecorderModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -71,6 +74,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   renderLeftCustomView,
   renderRightCustomView,
   documentRef,
+  voiceRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -101,7 +105,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         );
       }
     } catch (error) {
-      Alert.alert('Error while opening gallery:');
+      console.log('Error while opening gallery:');
     }
   }, [libraryOptions, onSend]);
 
@@ -109,7 +113,8 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView &&
         documentRef &&
-        renderLeftCustomView({ documentRef })}
+        voiceRef &&
+        renderLeftCustomView({ documentRef, voiceRef })}
       {hasCamera && (
         <PressableIcon
           icon={cameraIcon}
