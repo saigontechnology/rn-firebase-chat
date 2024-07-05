@@ -161,8 +161,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         (message: MessageProps) => {
           if (userInfo && message.senderId !== userInfo.id) {
             const userInfoIncomming = {
-              id: message.id,
-              name: message.senderId,
+              id: message.senderId,
+              name: partners?.find((e) => e.id === message.senderId)?.name,
             } as IUserInfo;
             const formatMessage = formatMessageData(message, userInfoIncomming);
             setMessagesList((previousMessages) =>
@@ -178,7 +178,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         receiveMessageRef();
       }
     };
-  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+  }, [firebaseInstance, userInfo, conversationRef.current?.id, partners]);
 
   const onPressCamera = useCallback(() => {
     if (props.onPressCamera) return props.onPressCamera();
