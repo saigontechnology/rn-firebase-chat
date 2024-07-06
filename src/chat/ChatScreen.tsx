@@ -28,19 +28,24 @@ import {
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
+
+import { formatMessageData } from '../utilities';
+import { getConversation } from '../reducer/selectors';
+import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
+import SelectedBubbleModal from './components/SelectedBubbleModal';
+import FileAttachmentModal, {
+  FileAttachmentModalRef,
+} from './components/FileAttachmentModal';
 import type {
   ConversationProps,
   CustomConversationInfo,
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageData } from '../utilities';
-import { getConversation } from '../reducer/selectors';
-import InputToolbar, { IInputToolbar } from './components/InputToolbar';
-import { CustomImageVideoBubble } from './components/CustomImageVideoBubble';
-import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
-import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
+import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
+import { CustomBubble } from './components/bubble';
 
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
@@ -60,6 +65,7 @@ interface ChatScreenProps extends GiftedChatProps {
   customConversationInfo?: CustomConversationInfo;
   sendMessageNotification?: () => void;
   timeoutSendNotification?: number;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
 }
 
 export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
@@ -76,6 +82,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       customConversationInfo,
       sendMessageNotification,
       timeoutSendNotification = 0,
+      customImageVideoBubbleProps,
       ...props
     },
     ref
@@ -92,8 +99,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     const [hasMoreMessages, setHasMoreMessages] = useState(false);
     const isLoadingRef = useRef(false);
     const cameraViewRef = useRef<CameraViewRef>(null);
-    const [isImgVideoUrl, setImgVideoUrl] = useState('');
+    const fileAttachmentRef = useRef<FileAttachmentModalRef>(null);
+
     const { hasPermission, requestPermission } = useCameraPermission();
+    const [selectedMessage, setSelectedMessage] = useState<MessageProps | null>(
+      null
+    );
     const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
     const conversationRef = useRef<ConversationProps | undefined>(
@@ -248,6 +259,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             hasCamera={props.hasCamera}
             hasGallery={props.hasGallery}
             {...inputToolbarProps}
+            documentRef={fileAttachmentRef.current}
           />
         );
       },
@@ -263,60 +275,15 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
 
     const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
       if (props.renderBubble) return props.renderBubble(bubble);
-      const imageUrl = bubble.currentMessage?.path;
-      if (!imageUrl) {
-        if (
-          firebaseInstance.userId === bubble.currentMessage?.user?._id ||
-          (isSameUser(
-            bubble.currentMessage as IMessage,
-            bubble.previousMessage
-          ) &&
-            isSameDay(
-              bubble.currentMessage as IMessage,
-              bubble.previousMessage
-            ))
-        ) {
-          return <Bubble {...bubble} />;
-        }
-        return (
-          <View>
-            <Text style={styles.messageUsername}>
-              {bubble?.currentMessage?.user?.name}
-            </Text>
-            <Bubble {...bubble} />
-          </View>
-        );
-      }
-
-      const styleBuble = {
-        left: { backgroundColor: 'transparent' },
-        right: { backgroundColor: 'transparent' },
-      };
-
       return (
-        <Bubble
-          {...bubble}
-          renderCustomView={() =>
-            bubble.currentMessage && (
-              <CustomImageVideoBubble
-                message={bubble.currentMessage}
-                position={bubble.position}
-                selectedImgVideoUrl={(url) => setImgVideoUrl(url)}
-              />
-            )
-          }
-          wrapperStyle={styleBuble}
+        <CustomBubble
+          bubbleMessage={bubble}
+          onSelectedMessage={setSelectedMessage}
+          customImageVideoBubbleProps={customImageVideoBubbleProps}
+          position={bubble.position}
         />
       );
     };
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        sendMessage: onSend,
-      }),
-      [onSend]
-    );
 
     return (
       <View style={[styles.container, style]}>
@@ -338,11 +305,16 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             {...props}
           />
         </KeyboardAvoidingView>
-        <SelectedImageModal
-          imageUrl={isImgVideoUrl}
-          onClose={() => setImgVideoUrl('')}
+        <SelectedBubbleModal
+          message={selectedMessage}
+          onClose={() => setSelectedMessage(null)}
         />
         <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+        <FileAttachmentModal
+          userInfo={userInfo}
+          ref={fileAttachmentRef}
+          onSend={onSend}
+        />
       </View>
     );
   }

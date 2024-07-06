@@ -7,6 +7,7 @@ import {
   ViewStyle,
   ImageStyle,
   TextStyle,
+  Alert,
 } from 'react-native';
 import {
   Composer,
@@ -19,8 +20,8 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
-import { MessageTypes } from '../../interfaces';
-import { convertExtension } from '../../utilities';
+import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
+import type { FileAttachmentModalRef } from './FileAttachmentModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -45,8 +46,13 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
   libraryOptions?: ImageLibraryOptions;
-  renderLeftCustomView?: () => React.ReactNode;
+  renderLeftCustomView?: ({
+    documentRef,
+  }: {
+    documentRef: FileAttachmentModalRef | null;
+  }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  documentRef?: FileAttachmentModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -64,6 +70,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   libraryOptions = defaultLibraryOptions,
   renderLeftCustomView,
   renderRightCustomView,
+  documentRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -81,10 +88,8 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
       if (result?.assets) {
         const file = result?.assets[0];
-        const mediaType = file?.type?.startsWith('image')
-          ? MessageTypes.image
-          : MessageTypes.video;
-        const extension = convertExtension(file);
+        const mediaType = getMediaTypeFromExtension(file?.uri);
+        const extension = convertExtension(file?.uri);
 
         onSend?.(
           {
@@ -96,13 +101,15 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         );
       }
     } catch (error) {
-      console.error('Error while opening gallery:', error);
+      Alert.alert('Error while opening gallery:');
     }
   }, [libraryOptions, onSend]);
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {renderLeftCustomView && renderLeftCustomView()}
+      {renderLeftCustomView &&
+        documentRef &&
+        renderLeftCustomView({ documentRef })}
       {hasCamera && (
         <PressableIcon
           icon={cameraIcon}
