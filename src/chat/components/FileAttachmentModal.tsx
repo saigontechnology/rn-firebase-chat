@@ -137,6 +137,7 @@ const FileAttachmentModal = forwardRef<
       setModalVisible(false);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
+        setModalVisible(false);
         // Alert.alert('Warning', 'Document Picker was cancelled');
       } else {
         throw err;
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     height: 340,
-    backgroundColor: '#222222',
+    backgroundColor: '#323F4B',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   },
   modalDescription: {
     fontSize: 16,
-    color: '#868686',
+    color: '#CBD2D9',
     textAlign: 'center',
     marginBottom: 45,
   },

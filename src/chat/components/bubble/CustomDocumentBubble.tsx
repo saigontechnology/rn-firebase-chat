@@ -115,7 +115,11 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
         {loading ? (
           <ActivityIndicator color={'green'} animating size="small" />
         ) : (
-          <Image source={icon} style={[styles.icon, iconStyle]} />
+          <Image
+            source={icon}
+            style={[styles.icon, iconStyle]}
+            resizeMode="contain"
+          />
         )}
         <View style={[styles.groupText]}>
           <Text style={[styles.text, textStyle]}>{message.name}</Text>
