@@ -16,7 +16,11 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
   const renderFullScreenImage = () => {
     if (!message || !message.path) return <View />;
     return (
-      <TouchableOpacity style={styles.modalContainer} onPress={onClose}>
+      <TouchableOpacity
+        style={styles.modalContainer}
+        activeOpacity={1}
+        onPress={onClose}
+      >
         <FastImage
           style={styles.image}
           source={{
@@ -65,7 +69,7 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: '#323F4B',
     justifyContent: 'center',
     alignItems: 'center',
   },
