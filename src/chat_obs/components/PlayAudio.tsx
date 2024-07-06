@@ -73,9 +73,9 @@ export const PlayAudio: React.FC<PlayAudioProps> = (props) => {
           maximumValue={currentDurationSec}
           value={currentPositionSec}
           onSlidingComplete={onSlide}
-          minimumTrackTintColor="blue"
-          maximumTrackTintColor="white"
-          thumbTintColor="blue"
+          minimumTrackTintColor="white"
+          maximumTrackTintColor="#323F4B"
+          thumbTintColor="white"
           disabled
         />
       </View>
