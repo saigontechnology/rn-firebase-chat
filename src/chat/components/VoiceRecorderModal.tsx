@@ -50,7 +50,7 @@ export interface VoiceRecorderModalRef {
 
 const ImageURL = {
   delete: require('../../images/delete.png'),
-  playAudio: require('../../images/play_audio.png'),
+  recordAudio: require('../../images/record_icon.png'),
   sendAudio: require('../../images/send_audio.png'),
   replay: require('../../images/replay.png'),
 };
@@ -226,7 +226,7 @@ const VoiceRecorderModal = forwardRef<
         <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
           <View style={styles.iconViewContainer}>
             <Image
-              source={isRecord ? ImageURL.sendAudio : ImageURL.playAudio}
+              source={isRecord ? ImageURL.sendAudio : ImageURL.recordAudio}
               style={styles.iconRecord}
             />
           </View>
