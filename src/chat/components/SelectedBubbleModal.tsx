@@ -65,7 +65,7 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: '#323F4B',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -193,10 +193,22 @@ export class FirestoreServices {
         'Please create conversation before send the first message!'
       );
     }
-    const { text, type, path, extension } = message;
+    const { text, type, path, extension, name, size, duration } = message;
     let messageData;
 
-    if (message.type === MessageTypes.text) {
+    if (!!message.type && message.type !== MessageTypes.text) {
+      messageData = formatSendMessage(
+        this.userId,
+        text,
+        type,
+        path,
+        extension,
+        name,
+        size,
+        duration
+      );
+      this.sendMessageWithFile(messageData);
+    } else {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
@@ -223,19 +235,6 @@ export class FirestoreServices {
       } catch (e) {
         console.log(e);
       }
-    } else {
-      messageData = formatSendMessage(
-        this.userId,
-        text,
-        type,
-        path,
-        extension,
-        message.name,
-        message.size,
-        message.duration
-      );
-      console.log('messageData: ', messageData);
-      this.sendMessageWithFile(messageData);
     }
   };
 

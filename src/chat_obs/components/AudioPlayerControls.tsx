@@ -1,10 +1,18 @@
 import React from 'react';
-import { View, TouchableOpacity, Image, StyleSheet, Text } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import Slider from '@react-native-community/slider';
 import { formatTime } from '../../utilities';
 
 interface AudioPlayerControlsProps {
   isPlaying: boolean;
+  downloading: boolean;
   playPause: () => void;
   currentPositionSec: number;
   currentDurationSec: number;
@@ -19,18 +27,23 @@ const ImageURL = {
 export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
   isPlaying,
   playPause,
+  downloading,
   currentPositionSec,
   currentDurationSec,
   onSlide,
 }) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.buttonPlaying} onPress={playPause}>
-        <Image
-          source={isPlaying ? ImageURL.pauseIcon : ImageURL.playIcon}
-          style={styles.icon}
-        />
-      </TouchableOpacity>
+      {downloading ? (
+        <ActivityIndicator color={'white'} animating size="small" />
+      ) : (
+        <TouchableOpacity style={styles.buttonPlaying} onPress={playPause}>
+          <Image
+            source={isPlaying ? ImageURL.pauseIcon : ImageURL.playIcon}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      )}
       <View style={styles.controls}>
         <Slider
           style={styles.slider}

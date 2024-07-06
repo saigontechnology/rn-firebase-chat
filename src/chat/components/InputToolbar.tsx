@@ -157,7 +157,9 @@ const InputToolbar: React.FC<IInputToolbar> = ({
             textInputProps={{
               onFocus: () => handleShowLeftView(true),
               onBlur: () => handleShowLeftView(false),
+              onPressIn: () => handleShowLeftView(true),
             }}
+            placeholder="Aa"
             textInputStyle={[styles.textInput, composerTextInputStyle]}
           />
         </ScrollView>

@@ -14,6 +14,7 @@ interface CustomBubbleVoiceProps {
 
 export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
   const { currentMessage, isCurrentlyPlaying, onSetCurrentId } = props;
+  const [downloading, setDownloading] = useState(false);
   const [currentPositionSec, setCurrentPositionSec] = useState(0);
   const [currentDurationSec, setCurrentDurationSec] = useState(0);
   const [localPath, setLocalPath] = useState<string | null>(null);
@@ -30,11 +31,14 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
     try {
       const exists = await RNFS.exists(path);
       if (!exists) {
+        setDownloading(true);
         await RNFS.downloadFile({ fromUrl: url, toFile: path }).promise;
       }
       setLocalPath(path);
     } catch (error) {
       console.error('Error downloading audio:', error);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -102,6 +106,7 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
       key={currentMessage.id}
       isPlaying={isCurrentlyPlaying}
       playPause={playPause}
+      downloading={downloading}
       currentDurationSec={currentDurationSec}
       currentPositionSec={currentPositionSec}
       onSlide={onSlide}
