@@ -14,6 +14,7 @@ import {
   View,
   type ViewStyle,
   Keyboard,
+  Platform,
 } from 'react-native';
 import {
   type ComposerProps,
