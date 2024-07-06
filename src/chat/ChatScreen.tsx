@@ -65,7 +65,7 @@ interface ChatScreenProps extends GiftedChatProps {
   customConversationInfo?: CustomConversationInfo;
   sendMessageNotification?: () => void;
   timeoutSendNotification?: number;
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
 }
 
 export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(

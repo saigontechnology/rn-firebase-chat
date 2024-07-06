@@ -146,9 +146,10 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
 
 const styles = StyleSheet.create({
   bubbleContainer: {
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#323F4B',
     borderRadius: 10,
     paddingHorizontal: 5,
+    marginBottom: 4,
   },
   flexEnd: {
     justifyContent: 'flex-end',
@@ -170,12 +171,12 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 15,
-    color: 'black',
+    color: 'white',
     fontWeight: 'bold',
   },
   size: {
     fontSize: 13,
-    color: 'gray',
+    color: '#9C9CA3',
     marginTop: 5,
   },
 });

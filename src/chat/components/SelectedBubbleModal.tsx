@@ -55,7 +55,7 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
   };
 
   return (
-    <Modal visible={!!message} transparent={true} onRequestClose={onClose}>
+    <Modal visible={!!message} transparent={false} onRequestClose={onClose}>
       {message && renderFullScreenBubble(message)}
       {renderCloseIcon()}
     </Modal>
