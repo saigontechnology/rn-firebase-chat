@@ -283,11 +283,6 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
 
     const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
       if (props.renderBubble) return props.renderBubble(bubble);
-      console.log(
-        'renderBubble: ',
-        bubble.currentMessage?.text,
-        bubble.currentMessage?.name
-      );
       return (
         <CustomBubble
           bubbleMessage={bubble}
@@ -314,6 +309,14 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       }
       return false;
     };
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        sendMessage: () => onSend,
+      }),
+      [onSend]
+    );
 
     return (
       <View style={[styles.container, style]}>

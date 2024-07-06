@@ -32,7 +32,7 @@ const WaveForm: React.FC<WaveFormProps> = ({ data, isRecording }) => {
 
           return (
             <Rect
-              key={index}
+              key={index.toString()}
               x={x}
               y={y}
               width={barWidth}
@@ -47,7 +47,7 @@ const WaveForm: React.FC<WaveFormProps> = ({ data, isRecording }) => {
 
   return (
     <View style={styles.waveformContainer}>
-      <View style={styles.viewWave}>{renderChart()}</View>
+      {/* <View style={styles.viewWave}>{renderChart()}</View> */}
       <DurationTimer
         isRecording={isRecording}
         getDuration={(number) => {

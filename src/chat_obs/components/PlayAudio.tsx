@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Slider from '@react-native-community/slider';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import { formatTime } from '../../utilities';
 import { audioRecorderPlayer } from '../../chat/components/VoiceRecorderModal';
 
@@ -74,9 +73,10 @@ export const PlayAudio: React.FC<PlayAudioProps> = (props) => {
           maximumValue={currentDurationSec}
           value={currentPositionSec}
           onSlidingComplete={onSlide}
-          minimumTrackTintColor="white"
-          maximumTrackTintColor="#1FB28A"
-          thumbTintColor="white"
+          minimumTrackTintColor="blue"
+          maximumTrackTintColor="white"
+          thumbTintColor="blue"
+          disabled
         />
       </View>
       <Text style={styles.timer}>{formatTime(currentPositionSec / 1000)}</Text>

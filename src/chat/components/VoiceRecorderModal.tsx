@@ -213,14 +213,14 @@ const VoiceRecorderModal = forwardRef<
   const renderPlayRecord = () => (
     <View style={styles.modalContainer}>
       {isRecord && <WaveForm isRecording={isRecord} data={waveform} />}
-      <Text style={styles.modeText}>Press to record</Text>
+      {!isRecord && <Text style={styles.modeText}>Press to record</Text>}
       <View style={styles.buttonContainer}>
         {isRecord && (
           <TouchableOpacity style={styles.button} onPress={handleDelete}>
             <View style={styles.iconViewContainer}>
               <Image source={ImageURL.delete} style={[styles.icon]} />
             </View>
-            <Text>Delete</Text>
+            <Text style={styles.label}>Delete</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
@@ -236,7 +236,7 @@ const VoiceRecorderModal = forwardRef<
             <View style={styles.iconViewContainer}>
               <Image source={ImageURL.replay} style={styles.icon} />
             </View>
-            <Text>Replay</Text>
+            <Text style={styles.label}>Replay</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -253,13 +253,13 @@ const VoiceRecorderModal = forwardRef<
           <View style={styles.iconViewContainer}>
             <Image source={ImageURL.delete} style={styles.icon} />
           </View>
-          <Text>Delete</Text>
+          <Text style={styles.label}>Delete</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleSend}>
           <View style={styles.iconViewContainer}>
             <Image source={ImageURL.sendAudio} style={styles.iconSend} />
           </View>
-          <Text>Send</Text>
+          <Text style={styles.label}>Send</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#323F4B',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -314,8 +314,9 @@ const styles = StyleSheet.create({
   },
   modeText: {
     marginBottom: 30,
-    color: '#000',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -369,6 +370,9 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     resizeMode: 'contain',
+  },
+  label: {
+    color: 'white',
   },
 });
 

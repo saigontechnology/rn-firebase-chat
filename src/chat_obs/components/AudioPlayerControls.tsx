@@ -38,9 +38,10 @@ export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
           maximumValue={currentDurationSec}
           value={currentPositionSec}
           onSlidingComplete={onSlide}
-          minimumTrackTintColor="#1FB28A"
-          maximumTrackTintColor="#d3d3d3"
-          thumbTintColor="#1FB28A"
+          minimumTrackTintColor="white"
+          maximumTrackTintColor="#8190C8"
+          thumbTintColor="white"
+          disabled
         />
       </View>
       <Text style={styles.timer}>{formatTime(currentPositionSec / 1000)}</Text>
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     fexDirection: 'row',
-    backgroundColor: '#e1ffc7',
+    backgroundColor: '#2F80ED',
     borderRadius: 20,
     overflow: 'hidden',
     borderColor: '#d3d3d3',
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 25,
     height: 25,
-    tintColor: 'black',
+    tintColor: 'white',
   },
   controls: {
     width: 140,
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
   },
   timer: {
     width: 50,
+    color: 'white',
     textAlign: 'center',
   },
 });

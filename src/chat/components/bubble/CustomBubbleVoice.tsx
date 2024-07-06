@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import type { MessageProps } from '../../../interfaces';
 import RNFS from 'react-native-fs';
 import { AudioPlayerControls } from '../../../chat_obs/components/AudioPlayerControls';
@@ -15,7 +14,6 @@ interface CustomBubbleVoiceProps {
 
 export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
   const { currentMessage, isCurrentlyPlaying, onSetCurrentId } = props;
-  console.log('CustomBubbleVoice: ', currentMessage.id);
   const [currentPositionSec, setCurrentPositionSec] = useState(0);
   const [currentDurationSec, setCurrentDurationSec] = useState(0);
   const [localPath, setLocalPath] = useState<string | null>(null);
@@ -54,11 +52,11 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
     if (!localPath) return;
     try {
       if (isPlayingLocal) {
-        await audioRecorderPlayer.stopPlayer();
         setPlayingLocal(false);
+        await audioRecorderPlayer.stopPlayer();
       } else {
-        await audioRecorderPlayer.stopPlayer();
         setPlayingLocal(false);
+        await audioRecorderPlayer.stopPlayer();
         setCurrentPositionSec(0);
 
         setPlayingLocal(true);
@@ -67,6 +65,7 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
           setCurrentPositionSec(e.currentPosition);
           setCurrentDurationSec(e.duration);
           if (e.currentPosition >= e.duration) {
+            onSetCurrentId('');
             audioRecorderPlayer.stopPlayer();
             setPlayingLocal(false);
             setCurrentPositionSec(0);
@@ -98,7 +97,6 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
       audioRecorderPlayer.removePlayBackListener();
     };
   }, []);
-  console.log('isCurrentlyPlaying: ', isCurrentlyPlaying, currentMessage.id);
   return (
     <AudioPlayerControls
       key={currentMessage.id}
