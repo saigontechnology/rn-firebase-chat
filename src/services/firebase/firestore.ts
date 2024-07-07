@@ -195,6 +195,7 @@ export class FirestoreServices {
     }
     const { text, type, path, extension, name, size, duration } = message;
     let messageData;
+    await this.updateUnReadMessageInChannel();
 
     if (!!message.type && message.type !== MessageTypes.text) {
       messageData = formatSendMessage(
@@ -261,6 +262,46 @@ export class FirestoreServices {
         { merge: true }
       )
       .then();
+  };
+
+  updateUnReadMessageInChannel = () => {
+    if (!this.userId || !this.conversationId) {
+      return;
+    }
+    let conversationRef = firestore()
+      .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+      .doc(this.conversationId);
+    return firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(conversationRef);
+      const unRead = doc?.data()?.unRead ?? {};
+      if (doc.exists) {
+        transaction.update(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead?.[memberId] ?? 0) + 1];
+              }
+            })
+          ),
+        });
+        return;
+      }
+      conversationRef
+        .update({
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, 1];
+              }
+            })
+          ),
+        })
+        .then();
+    });
   };
 
   changeReadMessage = () => {

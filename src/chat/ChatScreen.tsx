@@ -126,6 +126,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
         firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
           setMessagesList(res);
           setHasMoreMessages(res.length === maxPageSize);
+          firebaseInstance.changeReadMessage();
           onLoadEnd?.();
         });
       }
@@ -224,6 +225,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
               setMessagesList((previousMessages) =>
                 GiftedChat.append(previousMessages, [formatMessage])
               );
+              firebaseInstance.changeReadMessage();
             }
           }
         );
