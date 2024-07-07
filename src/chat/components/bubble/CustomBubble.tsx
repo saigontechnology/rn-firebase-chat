@@ -13,12 +13,15 @@ import {
 } from './CustomImageVideoBubble';
 import { CustomDocumentBubble } from './CustomDocumentBubble';
 import { FirestoreServices } from '../../../services/firebase';
+import { CustomBubbleVoice } from './CustomBubbleVoice';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
+  onSetCurrentId: (id: string) => void;
+  isCurrentlyPlaying: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -26,9 +29,10 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   position,
   customImageVideoBubbleProps,
   onSelectedMessage,
+  onSetCurrentId,
+  isCurrentlyPlaying,
 }) => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
-
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
@@ -87,6 +91,23 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                 <CustomDocumentBubble
                   message={currentMessage}
                   position={position}
+                />
+              )
+            }
+            wrapperStyle={styleBuble}
+          />
+        );
+      case MessageTypes.voice:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomBubbleVoice
+                  position={position}
+                  currentMessage={currentMessage}
+                  onSetCurrentId={onSetCurrentId}
+                  isCurrentlyPlaying={isCurrentlyPlaying}
                 />
               )
             }

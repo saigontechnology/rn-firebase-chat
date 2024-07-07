@@ -187,16 +187,28 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps) => {
+  sendMessage = async (message: MessageProps, conversationName?: string) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
       );
     }
-    const { text, type, path, extension } = message;
+    const { text, type, path, extension, name, size, duration } = message;
     let messageData;
 
-    if (message.type === MessageTypes.text) {
+    if (!!message.type && message.type !== MessageTypes.text) {
+      messageData = formatSendMessage(
+        this.userId,
+        text,
+        type,
+        path,
+        extension,
+        name,
+        size,
+        duration
+      );
+      this.sendMessageWithFile(messageData);
+    } else {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
@@ -218,29 +230,22 @@ export class FirestoreServices {
           messageData.text
         );
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+          this.updateUserConversation(
+            memberId,
+            latestMessageData,
+            conversationName
+          );
         });
       } catch (e) {
         console.log(e);
       }
-    } else {
-      messageData = formatSendMessage(
-        this.userId,
-        text,
-        type,
-        path,
-        extension,
-        message.name,
-        message.size
-      );
-      console.log('messageData: ', messageData);
-      this.sendMessageWithFile(messageData);
     }
   };
 
   updateUserConversation = (
     userId: string,
-    latestMessageData: LatestMessageProps
+    latestMessageData: LatestMessageProps,
+    conversationName?: string
   ) => {
     if (!this.conversationId) {
       throw new Error(
@@ -254,10 +259,16 @@ export class FirestoreServices {
       )
       .doc(this.conversationId)
       .set(
-        {
-          latestMessage: latestMessageData,
-          updatedAt: Date.now(),
-        },
+        conversationName
+          ? {
+              latestMessage: latestMessageData,
+              updatedAt: Date.now(),
+              name: conversationName,
+            }
+          : {
+              latestMessage: latestMessageData,
+              updatedAt: Date.now(),
+            },
         { merge: true }
       )
       .then();
@@ -451,7 +462,7 @@ export class FirestoreServices {
       .onSnapshot(function (snapshot) {
         if (snapshot) {
           snapshot.docChanges().forEach(function (change) {
-            if (change.type === 'modified') {
+            if (change.type !== 'removed') {
               callback?.({
                 ...(change.doc.data() as ConversationProps),
                 id: change.doc.id,

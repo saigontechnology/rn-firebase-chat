@@ -73,7 +73,8 @@ const formatSendMessage = (
   path?: string,
   extension?: string,
   name?: string,
-  size?: string
+  size?: string,
+  duration?: number
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -87,6 +88,7 @@ const formatSendMessage = (
   extension: extension ?? '',
   name: name ?? '',
   size: size ?? '',
+  duration: duration ?? 0,
 });
 
 const formatLatestMessage = (

@@ -14,16 +14,14 @@ import {
   View,
   type ViewStyle,
   Keyboard,
-  Text,
+  Platform,
 } from 'react-native';
 import {
   type ComposerProps,
   GiftedChat,
   type GiftedChatProps,
   Bubble,
-  isSameUser,
-  isSameDay,
-  type IMessage,
+  Message,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -45,12 +43,13 @@ import type {
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
-import { CustomBubble } from './components/bubble';
-
+import { CustomBubble, CustomBubbleVoice } from './components/bubble';
+import VoiceRecorderModal, {
+  VoiceRecorderModalRef,
+} from './components/VoiceRecorderModal';
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
 }
-
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
@@ -100,13 +99,16 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     const isLoadingRef = useRef(false);
     const cameraViewRef = useRef<CameraViewRef>(null);
     const fileAttachmentRef = useRef<FileAttachmentModalRef>(null);
+    const voiceRef = useRef<VoiceRecorderModalRef>(null);
 
     const { hasPermission, requestPermission } = useCameraPermission();
     const [selectedMessage, setSelectedMessage] = useState<MessageProps | null>(
       null
     );
     const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
-
+    const [currentPlayingMessageId, setCurrentPlayingMessageId] = useState<
+      string | null
+    >(null);
     const conversationRef = useRef<ConversationProps | undefined>(
       conversationInfo
     );
@@ -159,7 +161,10 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           GiftedChat.append(previousMessages, [messages])
         );
 
-        await firebaseInstance.sendMessage(messages);
+        await firebaseInstance.sendMessage(
+          messages,
+          customConversationInfo?.name
+        );
 
         timeoutMessageRef.current = setTimeout(() => {
           sendMessageNotification?.();
@@ -260,6 +265,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             hasGallery={props.hasGallery}
             {...inputToolbarProps}
             documentRef={fileAttachmentRef.current}
+            voiceRef={voiceRef.current}
           />
         );
       },
@@ -273,6 +279,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       ]
     );
 
+    const handlePlayPause = (messageId: string) => {
+      setCurrentPlayingMessageId(
+        messageId === currentPlayingMessageId ? null : messageId
+      );
+    };
+
     const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
       if (props.renderBubble) return props.renderBubble(bubble);
       return (
@@ -281,9 +293,34 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           onSelectedMessage={setSelectedMessage}
           customImageVideoBubbleProps={customImageVideoBubbleProps}
           position={bubble.position}
+          onSetCurrentId={handlePlayPause}
+          isCurrentlyPlaying={
+            currentPlayingMessageId === bubble.currentMessage?.id
+          }
         />
       );
     };
+
+    const shouldUpdateMessage = (
+      currentProps: Message<MessageProps>['props'],
+      nextProps: Message<MessageProps>['props']
+    ) => {
+      if (
+        currentProps.currentMessage?.type === 'voice' ||
+        nextProps.currentMessage?.type === 'voice'
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        sendMessage: () => onSend,
+      }),
+      [onSend]
+    );
 
     return (
       <View style={[styles.container, style]}>
@@ -302,6 +339,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             onLoadEarlier={onLoadEarlier}
             renderComposer={inputToolbar}
             renderBubble={renderBubble}
+            shouldUpdateMessage={shouldUpdateMessage}
             {...props}
           />
         </KeyboardAvoidingView>
@@ -314,6 +352,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           userInfo={userInfo}
           ref={fileAttachmentRef}
           onSend={onSend}
+        />
+        <VoiceRecorderModal
+          onSend={onSend}
+          userInfo={userInfo}
+          ref={voiceRef}
+          onSetCurrentId={handlePlayPause}
         />
       </View>
     );

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,7 +7,6 @@ import {
   ViewStyle,
   ImageStyle,
   TextStyle,
-  Alert,
 } from 'react-native';
 import {
   Composer,
@@ -20,13 +19,19 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
-import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
+import {
+  animateLayout,
+  convertExtension,
+  getMediaTypeFromExtension,
+} from '../../utilities';
 import type { FileAttachmentModalRef } from './FileAttachmentModal';
+import type { VoiceRecorderModalRef } from './VoiceRecorderModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
   gallery: require('../../images/gallery.png'),
   send: require('../../images/send.png'),
+  chevronRight: require('../../images/chevron_right.png'),
 };
 
 const defaultLibraryOptions: ImageLibraryOptions = {
@@ -46,13 +51,16 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
   libraryOptions?: ImageLibraryOptions;
+  documentRef?: FileAttachmentModalRef | null;
   renderLeftCustomView?: ({
     documentRef,
+    voiceRef,
   }: {
     documentRef: FileAttachmentModalRef | null;
+    voiceRef: VoiceRecorderModalRef | null;
   }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
-  documentRef?: FileAttachmentModalRef | null;
+  voiceRef?: VoiceRecorderModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -71,9 +79,11 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   renderLeftCustomView,
   renderRightCustomView,
   documentRef,
+  voiceRef,
   ...props
 }) => {
   const { onSend, text } = props;
+  const [isTyping, setIsTyping] = useState(false);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
@@ -101,33 +111,55 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         );
       }
     } catch (error) {
-      Alert.alert('Error while opening gallery:');
+      console.log('Error while opening gallery:');
     }
   }, [libraryOptions, onSend]);
 
+  const handleShowLeftView = useCallback((focus: boolean) => {
+    animateLayout();
+    setIsTyping(focus);
+  }, []);
+
   return (
     <View style={[styles.container, containerStyle]}>
-      {renderLeftCustomView &&
-        documentRef &&
-        renderLeftCustomView({ documentRef })}
-      {hasCamera && (
+      {isTyping ? (
         <PressableIcon
-          icon={cameraIcon}
+          icon={ImageURL.chevronRight}
           iconStyle={flattenedIconStyle}
-          onPress={onPressCamera}
+          onPress={() => handleShowLeftView(false)}
         />
-      )}
-      {hasGallery && (
-        <PressableIcon
-          onPress={onPressGallery || openGallery}
-          icon={galleryIcon}
-          iconStyle={flattenedIconStyle}
-        />
+      ) : (
+        <>
+          {renderLeftCustomView &&
+            documentRef &&
+            voiceRef &&
+            renderLeftCustomView({ documentRef, voiceRef })}
+          {hasCamera && (
+            <PressableIcon
+              icon={cameraIcon}
+              iconStyle={flattenedIconStyle}
+              onPress={onPressCamera}
+            />
+          )}
+          {hasGallery && (
+            <PressableIcon
+              onPress={onPressGallery || openGallery}
+              icon={galleryIcon}
+              iconStyle={flattenedIconStyle}
+            />
+          )}
+        </>
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
             {...props}
+            textInputProps={{
+              onFocus: () => handleShowLeftView(true),
+              onBlur: () => handleShowLeftView(false),
+              onPressIn: () => handleShowLeftView(true),
+            }}
+            placeholder="Aa"
             textInputStyle={[styles.textInput, composerTextInputStyle]}
           />
         </ScrollView>

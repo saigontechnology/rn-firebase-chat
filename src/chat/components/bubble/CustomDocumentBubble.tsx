@@ -113,7 +113,7 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
     return (
       <View style={[styles.wrapper, doucmentStyle]}>
         {loading ? (
-          <ActivityIndicator color={'green'} animating size="small" />
+          <ActivityIndicator color={'white'} animating size="small" />
         ) : (
           <Image
             source={icon}
