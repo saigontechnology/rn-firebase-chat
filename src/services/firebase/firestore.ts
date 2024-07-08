@@ -9,6 +9,7 @@ import {
   formatMessageData,
   formatSendMessage,
   generateKey,
+  getCurrentTimestamp,
 } from '../../utilities';
 import {
   ConversationProps,
@@ -109,7 +110,7 @@ export class FirestoreServices {
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      updatedAt: Date.now(),
+      updatedAt: getCurrentTimestamp(),
     };
 
     if (image) {
@@ -249,7 +250,7 @@ export class FirestoreServices {
       .set(
         {
           latestMessage: latestMessageData,
-          updatedAt: Date.now(),
+          updatedAt: getCurrentTimestamp(),
         },
         { merge: true }
       )
@@ -342,11 +343,14 @@ export class FirestoreServices {
       .collection<MessageProps>(
         `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
       )
+      .where('createdAt', '>', getCurrentTimestamp())
       .onSnapshot((snapshot) => {
         if (snapshot) {
           snapshot.docChanges().forEach((change) => {
+            const message = change.doc.data();
+            message.id = change.doc.id;
             if (change.type === 'added') {
-              callBack({ ...change.doc.data(), id: change.doc.id });
+              callBack(message);
             }
           });
         }
