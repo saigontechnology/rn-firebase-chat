@@ -343,15 +343,13 @@ export class FirestoreServices {
       .collection<MessageProps>(
         `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
       )
+      .where('createdAt', '>', getCurrentTimestamp())
       .onSnapshot((snapshot) => {
         if (snapshot) {
           snapshot.docChanges().forEach((change) => {
             const message = change.doc.data();
             message.id = change.doc.id;
-            if (
-              change.type === 'added' &&
-              (message.createdAt as number) >= getCurrentTimestamp() - 1000
-            ) {
+            if (change.type === 'added') {
               callBack(message);
             }
           });
