@@ -1,6 +1,7 @@
 import { useContext, useRef } from 'react';
 import { ChatContext } from './chat';
 import type { ChatState } from './reducer';
+import { FirestoreServices } from './services/firebase';
 
 const useChat = () => {
   // const firebaseInstant
@@ -46,4 +47,10 @@ export const useTap = (
   };
 
   return handleTap;
+};
+
+export const useConversation = () => {
+  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
+
+  return { deleteConversation: firebaseInstance.deleteConversation };
 };
