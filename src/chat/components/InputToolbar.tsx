@@ -20,6 +20,7 @@ import {
 } from 'react-native-image-picker';
 import { MessageTypes } from '../../interfaces';
 import { convertExtension } from '../../utilities';
+import type { VoiceRecorderModalRef } from './VoiceRecorderModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -39,8 +40,13 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  renderLeftCustomView?: () => React.ReactNode;
+  renderLeftCustomView?: ({
+    voiceRef,
+  }: {
+    voiceRef: VoiceRecorderModalRef | null;
+  }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  voiceRef: VoiceRecorderModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -57,6 +63,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  voiceRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -98,7 +105,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       <View>
-        {renderLeftCustomView && renderLeftCustomView()}
+        {renderLeftCustomView && renderLeftCustomView({ voiceRef })}
         {hasCamera && (
           <PressableIcon
             icon={cameraIcon}

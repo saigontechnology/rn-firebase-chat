@@ -4,14 +4,17 @@ import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
-  CustomImageVideoBubbleProps,
+  type CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
+import { CustomBubbleVoice } from './CustomBubbleVoice';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
+  onSetCurrentId: (id: string) => void;
+  isCurrentlyPlaying: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -19,6 +22,8 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   position,
   customImageVideoBubbleProps,
   onSelectedMessage,
+  onSetCurrentId,
+  isCurrentlyPlaying,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -37,11 +42,26 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                 <CustomImageVideoBubble
                   {...customImageVideoBubbleProps}
                   message={currentMessage}
-                  onSelectImgVideoUrl={(message) => {
-                    console.log('message: ', message);
-                    //TODO: handle image/video press
-                  }}
+                  onSelectImgVideoUrl={(message) => onSelectedMessage(message)}
                   position={position}
+                />
+              )
+            }
+            wrapperStyle={styleBuble}
+          />
+        );
+
+      case MessageTypes.voice:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomBubbleVoice
+                  position={position}
+                  currentMessage={currentMessage}
+                  onSetCurrentId={onSetCurrentId}
+                  isCurrentlyPlaying={isCurrentlyPlaying}
                 />
               )
             }
@@ -65,9 +85,5 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
   },
 });
