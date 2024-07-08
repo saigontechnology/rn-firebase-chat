@@ -3,4 +3,4 @@ export * from './chat';
 export * from './reducer/action';
 export * from './interfaces/message';
 export * from './interfaces/conversation';
-export * from './hooks';
+export { useConversation } from './hooks';
