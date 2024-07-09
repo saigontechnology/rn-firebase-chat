@@ -162,7 +162,10 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           GiftedChat.append(previousMessages, [messages])
         );
 
-        await firebaseInstance.sendMessage(messages);
+        await firebaseInstance.sendMessage(
+          messages,
+          customConversationInfo?.name
+        );
 
         timeoutMessageRef.current = setTimeout(() => {
           sendMessageNotification?.();

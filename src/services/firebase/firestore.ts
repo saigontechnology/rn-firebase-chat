@@ -187,7 +187,7 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps) => {
+  sendMessage = async (message: MessageProps, conversationName?: string) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
@@ -231,7 +231,11 @@ export class FirestoreServices {
           messageData.text
         );
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+          this.updateUserConversation(
+            memberId,
+            latestMessageData,
+            conversationName
+          );
         });
       } catch (e) {
         console.log(e);
@@ -241,7 +245,8 @@ export class FirestoreServices {
 
   updateUserConversation = (
     userId: string,
-    latestMessageData: LatestMessageProps
+    latestMessageData: LatestMessageProps,
+    conversationName?: string
   ) => {
     if (!this.conversationId) {
       throw new Error(
@@ -255,10 +260,16 @@ export class FirestoreServices {
       )
       .doc(this.conversationId)
       .set(
-        {
-          latestMessage: latestMessageData,
-          updatedAt: Date.now(),
-        },
+        conversationName
+          ? {
+              latestMessage: latestMessageData,
+              updatedAt: Date.now(),
+              name: conversationName,
+            }
+          : {
+              latestMessage: latestMessageData,
+              updatedAt: Date.now(),
+            },
         { merge: true }
       )
       .then();
@@ -492,7 +503,7 @@ export class FirestoreServices {
       .onSnapshot(function (snapshot) {
         if (snapshot) {
           snapshot.docChanges().forEach(function (change) {
-            if (change.type === 'modified') {
+            if (change.type !== 'removed') {
               callback?.({
                 ...(change.doc.data() as ConversationProps),
                 id: change.doc.id,
