@@ -26,6 +26,11 @@ export const chatReducer = (
         ...state,
         conversation: action.payload as ConversationProps,
       };
+    case ChatActionKind.CLEAR_CONVERSATION:
+      return {
+        ...state,
+        conversation: undefined,
+      };
     case ChatActionKind.UPDATE_CONVERSATION:
       const message = action.payload as ConversationProps;
       const isExistID = state.listConversation?.some(
