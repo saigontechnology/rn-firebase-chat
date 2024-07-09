@@ -2,21 +2,16 @@
  * Created by NL on 01/07/21.
  */
 import React, { useMemo } from 'react';
-import {
-  Text,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  StyleProp,
-  TextStyle,
-  Image,
-} from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { MessageTypes, type ConversationProps } from '../../interfaces';
 import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
   data: ConversationProps;
   onPress?: (_: ConversationProps) => void;
+  containerStyle?: StyleProp<ViewStyle>;
+  wrapperStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
   lastMessageStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
@@ -26,6 +21,8 @@ export interface IConversationItemProps {
 export const ConversationItem: React.FC<IConversationItemProps> = ({
   data,
   onPress,
+  containerStyle,
+  wrapperStyle,
   titleStyle,
   lastMessageStyle,
   CustomImage,
@@ -52,8 +49,11 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={() => onPress?.(data)} style={styles.container}>
-      <View style={styles.row}>
+    <TouchableOpacity
+      onPress={() => onPress?.(data)}
+      style={[styles.container, StyleSheet.flatten(containerStyle)]}
+    >
+      <View style={[styles.row, StyleSheet.flatten(wrapperStyle)]}>
         <View style={styles.avatarContainer}>
           <View style={[styles.avatarWrapper, { backgroundColor }]}>
             {data.image ? (
@@ -67,7 +67,10 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
           renderMessage()
         ) : (
           <View style={styles.contentContainer}>
-            <Text style={[styles.title, titleStyle]} numberOfLines={1}>
+            <Text
+              style={[styles.title, StyleSheet.flatten(titleStyle)]}
+              numberOfLines={1}
+            >
               {data?.name}
             </Text>
             <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>

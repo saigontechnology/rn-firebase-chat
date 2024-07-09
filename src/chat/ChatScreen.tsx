@@ -50,6 +50,7 @@ import VoiceRecorderModal, {
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
 }
+
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];

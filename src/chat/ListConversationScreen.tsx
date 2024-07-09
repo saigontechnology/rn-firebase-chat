@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { ConversationItem } from './components/ConversationItem';
+import {
+  ConversationItem,
+  IConversationItemProps,
+} from './components/ConversationItem';
 import type { ConversationProps } from '../interfaces';
 import { useChatContext, useChatSelector } from '../hooks';
 import { setConversation } from '../reducer';
@@ -15,12 +18,14 @@ export interface IListConversationProps {
   hasSearchBar?: boolean;
   onPress?: (conversation: ConversationProps) => void;
   renderCustomItem?: ({ item, index }: ListItem) => JSX.Element | null;
+  conversationItemProps?: Omit<IConversationItemProps, 'data' | 'onPress'>; // remove default prop 'data' and 'onPress'
 }
 
 export const ListConversationScreen: React.FC<IListConversationProps> = ({
   // hasSearchBar,
   onPress,
   renderCustomItem,
+  conversationItemProps,
 }) => {
   const { chatDispatch } = useChatContext();
   const listConversation = useChatSelector(getListConversation);
@@ -46,10 +51,14 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
           index,
         });
       return (
-        <ConversationItem data={item} onPress={handleConversationPressed} />
+        <ConversationItem
+          data={item}
+          onPress={handleConversationPressed}
+          {...(conversationItemProps || {})}
+        />
       );
     },
-    [handleConversationPressed, renderCustomItem]
+    [conversationItemProps, handleConversationPressed, renderCustomItem]
   );
 
   return (

@@ -114,7 +114,6 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             wrapperStyle={styleBuble}
           />
         );
-
       default:
         return renderTextBubble();
     }
