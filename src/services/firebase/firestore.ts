@@ -195,7 +195,7 @@ export class FirestoreServices {
     }
     const { text, type, path, extension, name, size, duration } = message;
     let messageData;
-    await this.updateUnReadMessageInChannel();
+    this.updateUnReadMessageInChannel();
 
     if (!!message.type && message.type !== MessageTypes.text) {
       messageData = formatSendMessage(
