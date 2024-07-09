@@ -35,6 +35,7 @@ import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
+import { clearConversation } from '../reducer';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -64,7 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   customImageVideoBubbleProps,
   ...props
 }) => {
-  const { userInfo } = useChatContext();
+  const { userInfo, chatDispatch } = useChatContext();
   const conversation = useChatSelector(getConversation);
 
   const conversationInfo = useMemo(() => {
@@ -155,8 +156,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
+      chatDispatch?.(clearConversation());
     };
-  }, [firebaseInstance]);
+  }, [chatDispatch, firebaseInstance]);
 
   useEffect(() => {
     let receiveMessageRef: () => void;
