@@ -7,7 +7,9 @@ import {
   encryptData,
   formatLatestMessage,
   formatMessageData,
+  formatMessageText,
   formatSendMessage,
+  generateBadWordsRegex,
   generateKey,
   getCurrentTimestamp,
 } from '../../utilities';
@@ -28,6 +30,7 @@ interface FirestoreProps {
   enableEncrypt?: boolean;
   encryptKey?: string;
   memberIds?: string[];
+  blackListWords: string[] | null;
 }
 
 export class FirestoreServices {
@@ -37,6 +40,7 @@ export class FirestoreServices {
   userInfo: IUserInfo | undefined;
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
+  regexBlacklist: RegExp | undefined;
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -67,16 +71,30 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
-  configuration = ({ userInfo, enableEncrypt, encryptKey }: FirestoreProps) => {
+  configuration = ({
+    userInfo,
+    enableEncrypt,
+    encryptKey,
+    blackListWords,
+  }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
     }
+
+    if (blackListWords) {
+      this.regexBlacklist = generateBadWordsRegex(blackListWords);
+    }
+
     if (enableEncrypt && encryptKey) {
       this.enableEncrypt = enableEncrypt;
       generateKey(encryptKey, 'salt', 5000, 256).then((res) => {
         this.encryptKey = res;
       });
     }
+  };
+
+  getRegexBlacklist = () => {
+    return this.regexBlacklist;
   };
 
   setConversationInfo = (
@@ -88,6 +106,7 @@ export class FirestoreServices {
     this.memberIds = [this.userId, ...memberIds];
     this.partners = partners.reduce((a, b) => ({ ...a, [b.id]: b }), {});
   };
+
   clearConversationInfo = () => {
     this.conversationId = null;
     this.memberIds = [];
@@ -299,7 +318,9 @@ export class FirestoreServices {
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(formatMessageData(data, userInfo));
+        listMessage.push(
+          formatMessageData(data, userInfo, this.regexBlacklist)
+        );
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -329,7 +350,9 @@ export class FirestoreServices {
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(formatMessageData(data, userInfo));
+        listMessage.push(
+          formatMessageData(data, userInfo, this.regexBlacklist)
+        );
       });
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -347,10 +370,13 @@ export class FirestoreServices {
       .onSnapshot((snapshot) => {
         if (snapshot) {
           snapshot.docChanges().forEach((change) => {
-            const message = change.doc.data();
-            message.id = change.doc.id;
             if (change.type === 'added') {
-              callBack(message);
+              const data = { ...change.doc.data(), id: change.doc.id };
+              const userInfo =
+                data.senderId === this.userInfo?.id
+                  ? this.userInfo
+                  : (this.partners?.[change.doc.data().senderId] as IUserInfo);
+              callBack(formatMessageData(data, userInfo, this.regexBlacklist));
             }
           });
         }
@@ -429,11 +455,16 @@ export class FirestoreServices {
         .orderBy('updatedAt', 'desc')
         .get()
         .then((querySnapshot) => {
+          const regex = this.regexBlacklist;
           querySnapshot.forEach(function (doc) {
-            listChannels.push({
-              ...(doc.data() as ConversationProps),
-              id: doc.id,
-            });
+            const data = { ...doc.data(), id: doc.id };
+            const message = {
+              ...data,
+              latestMessage: data.latestMessage
+                ? formatMessageText(data?.latestMessage, regex)
+                : data.latestMessage,
+            } as ConversationProps;
+            listChannels.push(message);
           });
           resolve(listChannels);
         })
@@ -441,6 +472,8 @@ export class FirestoreServices {
   };
 
   listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+    const regex = this.regexBlacklist;
+
     firestore()
       .collection(
         `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
@@ -449,10 +482,17 @@ export class FirestoreServices {
         if (snapshot) {
           snapshot.docChanges().forEach(function (change) {
             if (change.type === 'modified') {
-              callback?.({
+              const data = {
                 ...(change.doc.data() as ConversationProps),
                 id: change.doc.id,
-              });
+              };
+              const message = {
+                ...data,
+                latestMessage: data.latestMessage
+                  ? formatMessageText(data?.latestMessage, regex)
+                  : data.latestMessage,
+              } as ConversationProps;
+              callback?.(message);
             }
           });
         }

@@ -28,7 +28,7 @@ import type {
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageData } from '../utilities';
+import { formatMessageText, generateBadWordsRegex } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
@@ -65,7 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   customImageVideoBubbleProps,
   ...props
 }) => {
-  const { userInfo, chatDispatch } = useChatContext();
+  const { userInfo, chatDispatch, blackListWords } = useChatContext();
   const conversation = useChatSelector(getConversation);
 
   const conversationInfo = useMemo(() => {
@@ -128,13 +128,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         );
       }
       /** Add new message to message list  */
+      const regexBlacklist = firebaseInstance.getRegexBlacklist();
+      const convertMessage = regexBlacklist
+        ? formatMessageText(messages, regexBlacklist)
+        : messages;
       setMessagesList((previousMessages) =>
-        GiftedChat.append(previousMessages, [messages])
+        GiftedChat.append(previousMessages, [convertMessage as MessageProps])
       );
 
       await firebaseInstance.sendMessage(messages);
     },
-    [firebaseInstance, customConversationInfo, memberIds, partners]
+    [
+      firebaseInstance,
+      customConversationInfo?.id,
+      customConversationInfo?.name,
+      customConversationInfo?.image,
+      memberIds,
+      partners,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
@@ -165,16 +176,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
-          if (userInfo && message.senderId !== userInfo.id) {
-            const userInfoIncomming = {
-              id: message.id,
-              name: message.senderId,
-            } as IUserInfo;
-            const formatMessage = formatMessageData(message, userInfoIncomming);
-            setMessagesList((previousMessages) =>
-              GiftedChat.append(previousMessages, [formatMessage])
-            );
-          }
+          setMessagesList((previousMessages) =>
+            GiftedChat.append(previousMessages, [message])
+          );
         }
       );
     }
