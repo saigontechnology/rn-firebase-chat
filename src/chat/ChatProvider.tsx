@@ -3,6 +3,7 @@ import { FirestoreServices, createUserProfile } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
+  deleteConversation,
   setListConversation,
   updateConversation,
 } from '../reducer';
@@ -24,22 +25,29 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
-    let unsubscribeListener = () => {};
+    let unsubscribeUpdateListener = () => {};
+    let unsubscribeDeleteListener = () => {};
+
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
       createUserProfile(userInfo.id, userInfo.name).then(() => {
         firestoreServices.getListConversation().then((res) => {
           dispatch(setListConversation(res));
         });
-        unsubscribeListener = firestoreServices.listenConversationUpdate(
+        unsubscribeUpdateListener = firestoreServices.listenConversationUpdate(
           (data) => {
             dispatch(updateConversation(data));
+          }
+        );
+        unsubscribeDeleteListener = firestoreServices.listenConversationDelete(
+          (id) => {
+            dispatch(deleteConversation(id));
           }
         );
       });
     }
     return () => {
-      unsubscribeListener();
+      unsubscribeUpdateListener();
     };
   }, [userInfo]);
 

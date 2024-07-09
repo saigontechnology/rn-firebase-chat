@@ -3,7 +3,7 @@ import { ChatActionKind } from './action';
 
 export type ChatAction = {
   type: ChatActionKind;
-  payload: ConversationProps[] | ConversationProps;
+  payload: ConversationProps[] | ConversationProps | string;
 };
 
 export type ChatState = {
@@ -46,6 +46,15 @@ export const chatReducer = (
       return {
         ...state,
         listConversation: newListConversation,
+      };
+    case ChatActionKind.DELETE_CONVERSATION:
+      const listConversation = state.listConversation?.filter(
+        (e) => e.id !== action.payload
+      );
+
+      return {
+        ...state,
+        listConversation: listConversation as ConversationProps[],
       };
   }
 };

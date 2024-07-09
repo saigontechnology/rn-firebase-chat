@@ -528,4 +528,75 @@ export class FirestoreServices {
           });
         }
       });
+
+  listenConversationDelete = (callback: (id: string) => void) =>
+    firestore()
+      .collection(
+        `${
+          this.prefix
+            ? `${this.prefix}-${FireStoreCollection.users}`
+            : FireStoreCollection.users
+        }/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .onSnapshot(function (snapshot) {
+        if (snapshot) {
+          snapshot.docChanges().forEach(function (change) {
+            if (change.type === 'removed') {
+              callback?.(change.doc.id);
+            }
+          });
+        }
+      });
+
+  checkConversationExist = async (id: string) => {
+    const conversation = await firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .doc(id)
+      .get();
+
+    return conversation?.exists;
+  };
+
+  /**
+   * delete conversation from list
+   * @param softDelete indicates whether to completely remove conversation or simply remove from user's list
+   */
+  deleteConversation = async (
+    conversationId: string,
+    softDelete?: boolean
+  ): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) return false;
+
+      /** Delete latest message of that conversation for user */
+      await firestore()
+        .collection(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+        .doc(conversationId)
+        .delete();
+      if (softDelete) return true;
+
+      /** Delete the conversation collection including all its messages */
+      const batch = firestore().batch();
+      const collectionRef = firestore()
+        .collection(`${FireStoreCollection.conversations}`)
+        .doc(conversationId);
+      const messages = await collectionRef
+        .collection(FireStoreCollection.messages)
+        .get();
+      messages.forEach((message) => batch.delete(message.ref));
+
+      await batch.commit();
+      await collectionRef.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 }
