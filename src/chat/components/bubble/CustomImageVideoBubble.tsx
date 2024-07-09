@@ -4,7 +4,6 @@ import {
   View,
   Pressable,
   Image,
-  TouchableOpacity,
   ViewStyle,
   StyleProp,
   ImageStyle,
@@ -14,11 +13,12 @@ import FastImage, {
   type ImageStyle as FastImageStyle,
 } from 'react-native-fast-image';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
+import { ButtonTap } from './DoubleTap';
 
 export interface CustomImageVideoBubbleProps {
   message: MessageProps;
   position: 'left' | 'right';
-  onSelectImgVideoUrl: (url: string) => void;
+  onSelectImgVideoUrl: (message: MessageProps) => void;
   playIcon?: string;
   bubbleContainerStyle?: StyleProp<ViewStyle>;
   bubbleStyle?: StyleProp<ViewStyle>;
@@ -32,7 +32,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   position,
   message,
   onSelectImgVideoUrl,
-  playIcon = require('../../images/play.png'),
+  playIcon = require('../../../images/play.png'),
   bubbleContainerStyle,
   bubbleStyle,
   imageStyle,
@@ -43,10 +43,11 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   const [isPauseVideo, setIsPauseVideo] = useState(true);
   const videoRefs = useRef<VideoRef>(null);
 
-  const handleImagePress = () => {
-    if (message.path && message.type === MessageTypes.image) {
-      onSelectImgVideoUrl(message.path);
+  const handlePressMessage = () => {
+    if (message.type === MessageTypes.video) {
+      setIsPauseVideo(true);
     }
+    onSelectImgVideoUrl(message);
   };
 
   const handleVideoPress = () => {
@@ -69,9 +70,10 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   );
 
   const renderVideo = () => (
-    <TouchableOpacity
-      style={[styles.videoContainer, videoContainerStyle]}
-      onPress={handleVideoPress}
+    <ButtonTap
+      buttonStyle={[styles.videoContainer, videoContainerStyle]}
+      onSingleTap={handleVideoPress}
+      onDoubleTap={handlePressMessage}
     >
       <View>
         <Video
@@ -86,7 +88,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
           <Image style={[styles.playIcon, playIconStyle]} source={playIcon} />
         )}
       </View>
-    </TouchableOpacity>
+    </ButtonTap>
   );
 
   return (
@@ -98,7 +100,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
       ]}
     >
       <Pressable
-        onPress={handleImagePress}
+        onPress={handlePressMessage}
         style={[styles.bubble, bubbleStyle]}
       >
         {message.type === MessageTypes.image ? renderImage() : renderVideo()}

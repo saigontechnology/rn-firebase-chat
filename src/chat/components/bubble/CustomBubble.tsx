@@ -1,17 +1,27 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble } from 'react-native-gifted-chat';
+import {
+  Bubble,
+  IMessage,
+  isSameDay,
+  isSameUser,
+} from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
-  CustomImageVideoBubbleProps,
+  type CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
+import { CustomDocumentBubble } from './CustomDocumentBubble';
+import { FirestoreServices } from '../../../services/firebase';
+import { CustomBubbleVoice } from './CustomBubbleVoice';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
+  onSetCurrentId: (id: string) => void;
+  isCurrentlyPlaying: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -19,10 +29,37 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   position,
   customImageVideoBubbleProps,
   onSelectedMessage,
+  onSetCurrentId,
+  isCurrentlyPlaying,
 }) => {
+  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
+  };
+
+  const renderTextBubble = () => {
+    if (
+      firebaseInstance.userId === bubbleMessage.currentMessage?.user?._id ||
+      (isSameUser(
+        bubbleMessage.currentMessage as IMessage,
+        bubbleMessage.previousMessage
+      ) &&
+        isSameDay(
+          bubbleMessage.currentMessage as IMessage,
+          bubbleMessage.previousMessage
+        ))
+    ) {
+      return <Bubble {...bubbleMessage} />;
+    }
+    return (
+      <View>
+        <Text style={styles.messageUsername}>
+          {bubbleMessage?.currentMessage?.user?.name}
+        </Text>
+        <Bubble {...bubbleMessage} />
+      </View>
+    );
   };
 
   const renderBubble = (currentMessage: MessageProps) => {
@@ -37,10 +74,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                 <CustomImageVideoBubble
                   {...customImageVideoBubbleProps}
                   message={currentMessage}
-                  onSelectImgVideoUrl={(message) => {
-                    console.log('message: ', message);
-                    //TODO: handle image/video press
-                  }}
+                  onSelectImgVideoUrl={(message) => onSelectedMessage(message)}
                   position={position}
                 />
               )
@@ -48,9 +82,40 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             wrapperStyle={styleBuble}
           />
         );
-
+      case MessageTypes.document:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomDocumentBubble
+                  message={currentMessage}
+                  position={position}
+                />
+              )
+            }
+            wrapperStyle={styleBuble}
+          />
+        );
+      case MessageTypes.voice:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomBubbleVoice
+                  position={position}
+                  currentMessage={currentMessage}
+                  onSetCurrentId={onSetCurrentId}
+                  isCurrentlyPlaying={isCurrentlyPlaying}
+                />
+              )
+            }
+            wrapperStyle={styleBuble}
+          />
+        );
       default:
-        return <Bubble {...bubbleMessage} />;
+        return renderTextBubble();
     }
   };
 
@@ -69,5 +134,9 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  messageUsername: {
+    color: '#fff',
+    marginBottom: 4,
   },
 });

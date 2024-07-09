@@ -34,6 +34,7 @@ enum MessageTypes {
   image = 'image',
   voice = 'voice',
   video = 'video',
+  document = 'document',
 }
 
 enum MessageStatus {
@@ -43,10 +44,16 @@ enum MessageStatus {
   read,
 }
 
+enum ConversationActions {
+  update = 'update',
+  delete = 'delete',
+}
+
 export {
   ConversationProps,
   MemberProps,
   MessageTypes,
   MessageStatus,
+  ConversationActions,
   CustomConversationInfo,
 };

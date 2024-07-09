@@ -149,7 +149,7 @@ export class FirestoreServices {
   sendMessageWithFile = async (message: SendMessageProps) => {
     const { path, extension, type } = message;
 
-    if (!path || !extension || this.conversationId === null) {
+    if (!path || !extension || this.conversationId === null || !type) {
       throw new Error('Please provide path and extension');
     }
 
@@ -157,7 +157,8 @@ export class FirestoreServices {
       const uploadResult = await uploadFileToFirebase(
         path,
         this.conversationId,
-        extension
+        extension,
+        type
       );
       const imgURL = await storage()
         .ref(uploadResult.metadata.fullPath)
@@ -187,20 +188,26 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps) => {
+  sendMessage = async (message: MessageProps, conversationName?: string) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
       );
     }
-    const { text, type, path, extension } = message;
+    const { text, type, path, extension, name, size, duration } = message;
     let messageData;
 
-    if (
-      message.type === MessageTypes.image ||
-      message.type === MessageTypes.video
-    ) {
-      messageData = formatSendMessage(this.userId, text, type, path, extension);
+    if (!!message.type && message.type !== MessageTypes.text) {
+      messageData = formatSendMessage(
+        this.userId,
+        text,
+        type,
+        path,
+        extension,
+        name,
+        size,
+        duration
+      );
       this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
@@ -224,7 +231,11 @@ export class FirestoreServices {
           messageData.text
         );
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+          this.updateUserConversation(
+            memberId,
+            latestMessageData,
+            conversationName
+          );
         });
       } catch (e) {
         console.log(e);
@@ -234,7 +245,8 @@ export class FirestoreServices {
 
   updateUserConversation = (
     userId: string,
-    latestMessageData: LatestMessageProps
+    latestMessageData: LatestMessageProps,
+    conversationName?: string
   ) => {
     if (!this.conversationId) {
       throw new Error(
@@ -248,10 +260,16 @@ export class FirestoreServices {
       )
       .doc(this.conversationId)
       .set(
-        {
-          latestMessage: latestMessageData,
-          updatedAt: getCurrentTimestamp(),
-        },
+        conversationName
+          ? {
+              latestMessage: latestMessageData,
+              updatedAt: getCurrentTimestamp(),
+              name: conversationName,
+            }
+          : {
+              latestMessage: latestMessageData,
+              updatedAt: getCurrentTimestamp(),
+            },
         { merge: true }
       )
       .then();
@@ -440,7 +458,7 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (callback: (_: ConversationProps) => void) =>
     firestore()
       .collection(
         `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
@@ -448,7 +466,7 @@ export class FirestoreServices {
       .onSnapshot(function (snapshot) {
         if (snapshot) {
           snapshot.docChanges().forEach(function (change) {
-            if (change.type === 'modified') {
+            if (change.type !== 'removed') {
               callback?.({
                 ...(change.doc.data() as ConversationProps),
                 id: change.doc.id,
@@ -457,5 +475,69 @@ export class FirestoreServices {
           });
         }
       });
+
+  listenConversationDelete = (callback: (id: string) => void) =>
+    firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .onSnapshot(function (snapshot) {
+        if (snapshot) {
+          snapshot.docChanges().forEach(function (change) {
+            if (change.type === 'removed') {
+              callback?.(change.doc.id);
+            }
+          });
+        }
+      });
+
+  checkConversationExist = async (id: string) => {
+    const conversation = await firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .doc(id)
+      .get();
+
+    return conversation?.exists;
+  };
+
+  /**
+   * delete conversation from list
+   * @param softDelete indicates whether to completely remove conversation or simply remove from user's list
+   */
+  deleteConversation = async (
+    conversationId: string,
+    softDelete?: boolean
+  ): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) return false;
+
+      await firestore()
+        .collection(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+        .doc(conversationId)
+        .delete();
+      if (softDelete) return true;
+
+      const batch = firestore().batch();
+      const collectionRef = firestore()
+        .collection(`${FireStoreCollection.conversations}`)
+        .doc(conversationId);
+      const messages = await collectionRef
+        .collection(FireStoreCollection.messages)
+        .get();
+      messages.forEach((message) => batch.delete(message.ref));
+
+      await batch.commit();
+      await collectionRef.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
   };
 }

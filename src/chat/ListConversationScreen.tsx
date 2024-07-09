@@ -45,7 +45,11 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
 
   const renderItem = useCallback(
     ({ item, index }: ListItem) => {
-      if (renderCustomItem) return renderCustomItem({ item, index });
+      if (renderCustomItem)
+        return renderCustomItem({
+          item,
+          index,
+        });
       return (
         <ConversationItem
           data={item}

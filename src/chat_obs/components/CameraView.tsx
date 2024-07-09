@@ -14,6 +14,7 @@ import {
   Image,
   Text,
 } from 'react-native';
+import 'react-native-get-random-values';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
 import { CaptureCameraButton } from './CaptureButton';
@@ -21,7 +22,7 @@ import Video from 'react-native-video';
 import type { MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTypes, type IUserInfo } from '../../interfaces';
-import { getMediaTypeFromExtension } from '../../utilities';
+import { convertExtension } from '../../utilities';
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
@@ -92,7 +93,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
     }, []);
 
     const onSendPressed = useCallback(async () => {
-      const extension = getMediaTypeFromExtension(media.path);
+      const extension = convertExtension(media.path);
       const id = uuidv4();
       const message = {
         id: id,
@@ -134,7 +135,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
     }, [isRecording, timer]);
 
     const renderMediaPage = useCallback(() => {
-      const source = { uri: media.path };
+      const source = { uri: 'file://' + media.path };
       return (
         <View style={styles.container}>
           {media.type === MessageTypes.image ? (
@@ -321,6 +322,7 @@ const styles = StyleSheet.create({
     left: 30,
     width: 35,
     height: 35,
+    zIndex: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
