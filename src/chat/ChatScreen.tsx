@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  Message,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -35,6 +36,9 @@ import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
+import VoiceRecorderModal, {
+  VoiceRecorderModalRef,
+} from './components/VoiceRecorderModal';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -78,6 +82,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const voiceRef = useRef<VoiceRecorderModalRef>(null);
+
+  const [currentPlayingMessageId, setCurrentPlayingMessageId] = useState<
+    string | null
+  >(null);
+  const [selectedMessage, setSelectedMessage] = useState<MessageProps | null>(
+    null
+  );
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -209,6 +221,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           hasCamera={props.hasCamera}
           hasGallery={props.hasGallery}
           {...inputToolbarProps}
+          voiceRef={voiceRef.current}
         />
       );
     },
@@ -222,18 +235,39 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     ]
   );
 
+  const handlePlayPause = (messageId: string) => {
+    setCurrentPlayingMessageId(
+      messageId === currentPlayingMessageId ? null : messageId
+    );
+  };
+
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
     if (props.renderBubble) return props.renderBubble(bubble);
     return (
       <CustomBubble
         bubbleMessage={bubble}
-        onSelectedMessage={() => {
-          //TODO: handle image/video press
-        }}
+        onSelectedMessage={setSelectedMessage}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
+        onSetCurrentId={handlePlayPause}
+        isCurrentlyPlaying={
+          currentPlayingMessageId === bubble.currentMessage?.id
+        }
       />
     );
+  };
+
+  const shouldUpdateMessage = (
+    currentProps: Message<MessageProps>['props'],
+    nextProps: Message<MessageProps>['props']
+  ) => {
+    if (
+      currentProps.currentMessage?.type === 'voice' ||
+      nextProps.currentMessage?.type === 'voice'
+    ) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -253,6 +287,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
           renderBubble={renderBubble}
+          shouldUpdateMessage={shouldUpdateMessage}
           {...props}
         />
       </KeyboardAvoidingView>
@@ -261,6 +296,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onClose={() => setImgVideoUrl('')}
       />
       <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+      <VoiceRecorderModal onSend={onSend} userInfo={userInfo} ref={voiceRef} />
     </View>
   );
 };
