@@ -76,7 +76,10 @@ const useTypingIndicator = (
 const useConversation = () => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
 
-  return { leaveConversation: firebaseInstance.leaveConversation };
+  return {
+    leaveConversation: firebaseInstance.leaveConversation,
+    deleteConversation: firebaseInstance.deleteConversation,
+  };
 };
 
 export { useChatContext, useChatSelector, useTypingIndicator, useConversation };
