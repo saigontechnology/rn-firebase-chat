@@ -28,7 +28,7 @@ import type {
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageText, generateBadWordsRegex } from '../utilities';
+import { formatMessageText } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
@@ -65,7 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   customImageVideoBubbleProps,
   ...props
 }) => {
-  const { userInfo, chatDispatch, blackListWords } = useChatContext();
+  const { userInfo, chatDispatch } = useChatContext();
   const conversation = useChatSelector(getConversation);
 
   const conversationInfo = useMemo(() => {
@@ -138,14 +138,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages);
     },
-    [
-      firebaseInstance,
-      customConversationInfo?.id,
-      customConversationInfo?.name,
-      customConversationInfo?.image,
-      memberIds,
-      partners,
-    ]
+    [firebaseInstance, customConversationInfo, memberIds, partners]
   );
 
   const onLoadEarlier = useCallback(async () => {
