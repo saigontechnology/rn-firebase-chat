@@ -12,11 +12,27 @@ import {
   MessageTypes,
 } from '../interfaces';
 import type { Asset } from 'react-native-image-picker';
+import { getTextMessage } from './Blacklist';
 import { getCurrentTimestamp } from './Date';
 
-const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
+const formatMessageText = (
+  message: MessageProps | LatestMessageProps,
+  regexPattern?: RegExp | undefined
+) => {
   return {
     ...message,
+    text: getTextMessage(regexPattern, message.text),
+  };
+};
+
+const formatMessageData = (
+  message: MessageProps,
+  userInfo: IUserInfo,
+  regexPattern?: RegExp | undefined
+) => {
+  return {
+    ...message,
+    text: getTextMessage(regexPattern, message.text),
     _id: message.id,
     createdAt: message.createdAt || getCurrentTimestamp(),
     user: {
@@ -129,4 +145,5 @@ export {
   formatEncryptedMessageData,
   formatSendMessage,
   formatLatestMessage,
+  formatMessageText,
 };

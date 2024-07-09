@@ -32,7 +32,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   position,
   message,
   onSelectImgVideoUrl,
-  playIcon = require('../../images/play.png'),
+  playIcon = require('../../../images/play.png'),
   bubbleContainerStyle,
   bubbleStyle,
   imageStyle,
