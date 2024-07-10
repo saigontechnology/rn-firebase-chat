@@ -57,6 +57,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUri }) => {
         source={{ uri: videoUri }}
         style={styles.video}
         paused={paused}
+        onEnd={() => {
+          setPaused(true);
+          videoRef.current?.seek(0);
+        }}
         onLoad={handleLoad}
         onProgress={handleProgress}
         resizeMode="contain"
@@ -91,7 +95,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: '#323F4B',
   },
   video: {
     flex: 1,

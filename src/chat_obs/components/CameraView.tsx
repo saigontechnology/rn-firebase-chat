@@ -109,6 +109,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
       };
       message.user = user;
       onSend(message);
+      setIsShowCamera(true);
       setIsVisible(false);
     }, [media.path, media.type, onSend, userInfo]);
 

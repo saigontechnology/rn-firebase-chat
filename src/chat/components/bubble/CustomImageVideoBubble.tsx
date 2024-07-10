@@ -72,7 +72,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   const renderVideo = () => (
     <ButtonTap
       buttonStyle={[styles.videoContainer, videoContainerStyle]}
-      onSingleTap={handleVideoPress}
+      onSingleTap={handlePressMessage}
       onDoubleTap={handlePressMessage}
     >
       <View>
@@ -81,6 +81,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
           style={[styles.video, videoStyle]}
           paused={isPauseVideo}
           repeat={false}
+          resizeMode="cover"
           onEnd={handleVideoEnd}
           ref={videoRefs}
         />
