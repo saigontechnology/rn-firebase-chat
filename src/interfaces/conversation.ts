@@ -9,12 +9,6 @@ interface MemberProps {
   [userId: string]: FirebaseFirestoreTypes.DocumentReference;
 }
 
-interface CustomConversationInfo {
-  id: string;
-  name?: string;
-  image?: string;
-}
-
 interface ConversationProps extends BaseEntity {
   latestMessage?: LatestMessageProps;
   updatedAt: number;
@@ -37,10 +31,15 @@ enum MessageTypes {
 }
 
 enum MessageStatus {
-  sending,
   sent,
+  received,
+  seen,
   failed,
-  read,
+}
+
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
 }
 
 export {
@@ -48,5 +47,5 @@ export {
   MemberProps,
   MessageTypes,
   MessageStatus,
-  CustomConversationInfo,
+  ConversationData,
 };

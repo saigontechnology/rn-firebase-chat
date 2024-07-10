@@ -97,6 +97,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
         setHasMoreMessages(res.length === maxPageSize);
+        firebaseInstance.changeReadMessage();
         onLoadEnd?.();
       });
     }
@@ -174,6 +175,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
+          firebaseInstance.changeReadMessage();
         }
       );
     }
