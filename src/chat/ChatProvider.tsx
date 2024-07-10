@@ -19,6 +19,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   enableEncrypt = false,
   encryptKey = '',
   blackListWords = null,
+  encryptionOptions = null,
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
@@ -30,6 +31,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         enableEncrypt,
         encryptKey,
         blackListWords,
+        encryptionOptions,
       });
       firestoreServices.getListConversation().then((res) => {
         dispatch(setListConversation(res));
@@ -39,7 +41,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         dispatch(updateConversation(data));
       });
     }
-  }, [enableEncrypt, encryptKey, blackListWords, userInfo]);
+  }, [enableEncrypt, encryptKey, blackListWords, userInfo, encryptionOptions]);
 
   return (
     <ChatContext.Provider
