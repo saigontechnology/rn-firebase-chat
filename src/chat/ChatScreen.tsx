@@ -130,7 +130,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       /** Add new message to message list  */
       const regexBlacklist = firebaseInstance.getRegexBlacklist();
       const convertMessage = regexBlacklist
-        ? formatMessageText(messages, regexBlacklist)
+        ? await formatMessageText(messages, regexBlacklist)
         : messages;
       setMessagesList((previousMessages) =>
         GiftedChat.append(previousMessages, [convertMessage as MessageProps])
@@ -169,9 +169,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
-          setMessagesList((previousMessages) =>
-            GiftedChat.append(previousMessages, [message])
-          );
+          if (userInfo && message.senderId !== userInfo.id) {
+            setMessagesList((previousMessages) =>
+              GiftedChat.append(previousMessages, [message])
+            );
+          }
         }
       );
     }
