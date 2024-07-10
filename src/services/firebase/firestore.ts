@@ -15,6 +15,7 @@ import {
 } from '../../utilities';
 import {
   ConversationProps,
+  EncryptionFunctions,
   EncryptionOptions,
   FireStoreCollection,
   FirestoreReference,
@@ -43,6 +44,11 @@ export class FirestoreServices {
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
   regexBlacklist: RegExp | undefined;
+
+  /** Encryption function */
+  generateKeyFunctionProp: ((key: string) => Promise<string>) | undefined;
+  encryptFunctionProp: ((text: string) => Promise<string>) | undefined;
+  decryptFunctionProp: ((text: string) => Promise<string>) | undefined;
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -73,6 +79,12 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
+  createEncryptionsFunction = (functions: EncryptionFunctions) => {
+    this.generateKeyFunctionProp = functions.generateKeyFunctionProp;
+    this.encryptFunctionProp = functions.encryptFunctionProp;
+    this.decryptFunctionProp = functions.decryptFunctionProp;
+  };
+
   configuration = async ({
     userInfo,
     enableEncrypt,
@@ -90,10 +102,9 @@ export class FirestoreServices {
 
     if (enableEncrypt && encryptKey) {
       this.enableEncrypt = enableEncrypt;
-      this.encryptKey = await generateEncryptionKey(
-        encryptKey,
-        encryptionOptions
-      );
+      this.encryptKey = this.generateKeyFunctionProp
+        ? await this.generateKeyFunctionProp(encryptKey)
+        : await generateEncryptionKey(encryptKey, encryptionOptions);
     }
   };
 
@@ -242,7 +253,9 @@ export class FirestoreServices {
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey) {
-        messageData.text = await encryptData(text, this.encryptKey);
+        messageData.text = this.encryptFunctionProp
+          ? await this.encryptFunctionProp(text)
+          : await encryptData(text, this.encryptKey);
       }
 
       try {
@@ -339,7 +352,8 @@ export class FirestoreServices {
             data,
             userInfo,
             this.regexBlacklist,
-            this.encryptKey
+            this.encryptKey,
+            this.decryptFunctionProp
           )
         );
       }
@@ -377,7 +391,8 @@ export class FirestoreServices {
             data,
             userInfo,
             this.regexBlacklist,
-            this.encryptKey
+            this.encryptKey,
+            this.decryptFunctionProp
           )
         );
       }
@@ -408,7 +423,8 @@ export class FirestoreServices {
                   data,
                   userInfo,
                   this.regexBlacklist,
-                  this.encryptKey
+                  this.encryptKey,
+                  this.decryptFunctionProp
                 )
               );
             }
@@ -497,7 +513,8 @@ export class FirestoreServices {
                 ? await formatMessageText(
                     data?.latestMessage,
                     this.regexBlacklist,
-                    this.encryptKey
+                    this.encryptKey,
+                    this.decryptFunctionProp
                   )
                 : data.latestMessage,
             } as ConversationProps;
@@ -529,7 +546,8 @@ export class FirestoreServices {
                   ? await formatMessageText(
                       data?.latestMessage,
                       regex,
-                      this.encryptKey
+                      this.encryptKey,
+                      this.decryptFunctionProp
                     )
                   : data.latestMessage,
               } as ConversationProps;

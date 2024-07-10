@@ -1,6 +1,6 @@
 import type { ChatAction, ChatState } from '../reducer/chat';
 import type { Dispatch } from 'react';
-import { EncryptionOptions } from './AESCrypto';
+import { EncryptionFunctions, EncryptionOptions } from './AESCrypto';
 
 export interface IUserInfo {
   id: string;
@@ -13,6 +13,7 @@ export interface IChatContext {
   enableEncrypt?: boolean;
   blackListWords?: string[] | null;
   encryptionOptions?: EncryptionOptions | null;
+  encryptionFuncProps?: EncryptionFunctions | null;
   encryptKey?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;

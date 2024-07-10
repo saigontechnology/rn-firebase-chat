@@ -64,14 +64,10 @@ const generateEncryptionKey = async (
 
 const decryptedMessageData = async (text: string, key: string) => {
   try {
-    try {
-      const decryptedMessage = await decryptData(text, key);
-      return decryptedMessage || text;
-    } catch (error) {
-      console.error('Error generating encryption key:', error);
-      return text;
-    }
-  } catch {
+    const decryptedMessage = await decryptData(text, key);
+    return decryptedMessage || text;
+  } catch (error) {
+    console.error('Error generating encryption key:', error);
     return text;
   }
 };
