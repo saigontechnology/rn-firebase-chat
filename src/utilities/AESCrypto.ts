@@ -44,7 +44,7 @@ const createIV = (length = IV_LENGTH) => {
 };
 
 const generateEncryptionKey = async (
-  conversationId: string,
+  encryptKey: string,
   options: EncryptionOptions | null
 ): Promise<string> => {
   const {
@@ -54,7 +54,7 @@ const generateEncryptionKey = async (
   } = options || {};
 
   try {
-    const key = await generateKey(conversationId, salt, iterations, keyLength);
+    const key = await generateKey(encryptKey, salt, iterations, keyLength);
     return key;
   } catch (error) {
     console.error('Error generating encryption key:', error);
