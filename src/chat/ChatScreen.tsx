@@ -50,6 +50,11 @@ import VoiceRecorderModal, {
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
 }
+
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
+}
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
@@ -96,6 +101,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
     const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
     const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
     const isLoadingRef = useRef(false);
     const cameraViewRef = useRef<CameraViewRef>(null);
     const fileAttachmentRef = useRef<FileAttachmentModalRef>(null);
@@ -228,8 +234,8 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
               setMessagesList((previousMessages) =>
                 GiftedChat.append(previousMessages, [formatMessage])
               );
-              firebaseInstance.changeReadMessage();
             }
+            firebaseInstance.changeReadMessage();
           }
         );
       }
@@ -323,6 +329,26 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       }),
       [onSend]
     );
+
+    useEffect(() => {
+      let userConversation: () => void;
+      userConversation = firebaseInstance.userConversationListener(
+        (data: ConversationData | undefined) => {
+          const memberId = partners[0]?.id;
+          const unReads = data?.unRead ?? {};
+          const hasUnreadMessages = Object.entries(unReads).some(
+            ([key, value]) => key !== memberId && value > 0
+          );
+          setUserUnreadMessage(hasUnreadMessages);
+        }
+      );
+
+      return () => {
+        if (userConversation) {
+          userConversation();
+        }
+      };
+    }, [firebaseInstance, partners]);
 
     return (
       <View style={[styles.container, style]}>

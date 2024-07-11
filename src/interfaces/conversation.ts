@@ -42,10 +42,10 @@ enum MessageTypes {
 }
 
 enum MessageStatus {
-  sending,
+  seen,
   sent,
   failed,
-  read,
+  received,
 }
 
 enum ConversationActions {

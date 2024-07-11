@@ -29,6 +29,11 @@ interface FirestoreProps {
   memberIds?: string[];
 }
 
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
+}
+
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
@@ -195,7 +200,6 @@ export class FirestoreServices {
     }
     const { text, type, path, extension, name, size, duration } = message;
     let messageData;
-    this.updateUnReadMessageInChannel();
 
     if (!!message.type && message.type !== MessageTypes.text) {
       messageData = formatSendMessage(
@@ -216,6 +220,8 @@ export class FirestoreServices {
       if (this.enableEncrypt && this.encryptKey) {
         messageData.text = await encryptData(text, this.encryptKey);
       }
+
+      await this.updateUnReadMessageInChannel();
 
       try {
         /** Send message to collection conversation by id */
@@ -275,32 +281,22 @@ export class FirestoreServices {
       .then();
   };
 
-  updateUnReadMessageInChannel = () => {
+  updateUnReadMessageInChannel = async () => {
     if (!this.userId || !this.conversationId) {
       return;
     }
+
     let conversationRef = firestore()
-      .collection<ConversationProps>(`${FireStoreCollection.conversations}`)
+      .collection<ConversationData>(`${FireStoreCollection.conversations}`)
       .doc(this.conversationId);
+
     return firestore().runTransaction(async (transaction) => {
       const doc = await transaction.get(conversationRef);
-      const unRead = doc?.data()?.unRead ?? {};
-      if (doc.exists) {
-        transaction.update(conversationRef, {
-          unRead: Object.fromEntries(
-            Object.entries(unRead).map(([memberId]) => {
-              if (memberId === this.userId) {
-                return [memberId, 0];
-              } else {
-                return [memberId, (unRead?.[memberId] ?? 0) + 1];
-              }
-            })
-          ),
-        });
-        return;
-      }
-      conversationRef
-        .update({
+      const unRead = doc.data()?.unRead ?? {};
+
+      if (!doc.exists) {
+        // If the document doesn't exist, create it with initial unRead object
+        transaction.set(conversationRef, {
           unRead: Object.fromEntries(
             Object.entries(unRead).map(([memberId]) => {
               if (memberId === this.userId) {
@@ -310,8 +306,22 @@ export class FirestoreServices {
               }
             })
           ),
-        })
-        .then();
+        });
+      } else {
+        // If the document exists, update it
+        transaction.update(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead[memberId] ?? 0) + 1];
+              }
+            })
+          ),
+        });
+      }
+      return;
     });
   };
 
