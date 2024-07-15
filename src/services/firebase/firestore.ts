@@ -524,6 +524,8 @@ export class FirestoreServices {
         .delete();
       if (!partnersId) return true;
 
+      // If !partnersId, simply remove conversation on user side
+      // If partnersId, delete all conversations of each partners
       const partnerBatch = firestore().batch();
       partnersId.forEach(async (id) => {
         const doc = firestore()
@@ -534,6 +536,7 @@ export class FirestoreServices {
         partnerBatch.delete(doc);
       });
 
+      // Delete all messages of that conversation
       const batch = firestore().batch();
       const collectionRef = firestore()
         .collection(`${FireStoreCollection.conversations}`)
