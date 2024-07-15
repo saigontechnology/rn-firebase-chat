@@ -508,7 +508,7 @@ export class FirestoreServices {
    */
   deleteConversation = async (
     conversationId: string,
-    softDelete?: boolean
+    partnersId?: string[]
   ): Promise<boolean> => {
     try {
       const isConversationExist = await this.checkConversationExist(
@@ -522,8 +522,21 @@ export class FirestoreServices {
         )
         .doc(conversationId)
         .delete();
-      if (softDelete) return true;
+      if (!partnersId?.length) return true;
 
+      // If !partnersId, simply remove conversation on user side
+      // If partnersId, delete all conversations of each partners
+      const partnerBatch = firestore().batch();
+      partnersId.forEach(async (id) => {
+        const doc = firestore()
+          .collection(
+            `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+          )
+          .doc(conversationId);
+        partnerBatch.delete(doc);
+      });
+
+      // Delete all messages of that conversation
       const batch = firestore().batch();
       const collectionRef = firestore()
         .collection(`${FireStoreCollection.conversations}`)
@@ -533,8 +546,50 @@ export class FirestoreServices {
         .get();
       messages.forEach((message) => batch.delete(message.ref));
 
+      await partnerBatch.commit();
       await batch.commit();
       await collectionRef.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  leaveConversation = async (conversationId: string): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) return false;
+
+      const leftConversation = firestore()
+        .collection(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+        .doc(conversationId);
+
+      const newMembers = (
+        (await leftConversation.get()).data() as ConversationProps
+      ).members.filter((e) => e !== this.userId);
+
+      const batch = firestore().batch();
+      newMembers.forEach((id) => {
+        const doc = firestore()
+          .collection(
+            `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+          )
+          .doc(conversationId);
+        batch.set(
+          doc,
+          {
+            members: newMembers,
+          },
+          { merge: true }
+        );
+      });
+      await leftConversation.delete();
+      await batch.commit();
+
       return true;
     } catch (e) {
       return false;
