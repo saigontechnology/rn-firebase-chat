@@ -522,7 +522,7 @@ export class FirestoreServices {
         )
         .doc(conversationId)
         .delete();
-      if (!partnersId) return true;
+      if (!partnersId?.length) return true;
 
       // If !partnersId, simply remove conversation on user side
       // If partnersId, delete all conversations of each partners
