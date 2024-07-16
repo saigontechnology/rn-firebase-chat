@@ -544,7 +544,7 @@ export class FirestoreServices {
       const messages = await collectionRef
         .collection(FireStoreCollection.messages)
         .get();
-      messages.forEach((message) => batch.delete(message.ref));
+      messages?.forEach((message) => batch.delete(message.ref));
 
       await partnerBatch.commit();
       await batch.commit();
@@ -570,10 +570,10 @@ export class FirestoreServices {
 
       const newMembers = (
         (await leftConversation.get()).data() as ConversationProps
-      ).members.filter((e) => e !== this.userId);
+      ).members?.filter((e) => e !== this.userId);
 
       const batch = firestore().batch();
-      newMembers.forEach((id) => {
+      newMembers?.forEach((id) => {
         const doc = firestore()
           .collection(
             `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
