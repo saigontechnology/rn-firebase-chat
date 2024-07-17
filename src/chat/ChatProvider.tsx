@@ -18,9 +18,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   children,
   enableEncrypt = false,
   encryptKey = '',
-  blackListWords = null,
-  encryptionOptions = null,
-  encryptionFuncProps = null,
+  blackListWords,
+  encryptionOptions,
+  encryptionFuncProps,
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 

@@ -32,8 +32,9 @@ interface FirestoreProps {
   enableEncrypt?: boolean;
   encryptKey?: string;
   memberIds?: string[];
-  blackListWords: string[] | null;
-  encryptionOptions: EncryptionOptions | null;
+  blackListWords?: string[];
+  encryptionOptions?: EncryptionOptions;
+  encryptionFuncProps?: EncryptionFunctions;
 }
 
 export class FirestoreServices {

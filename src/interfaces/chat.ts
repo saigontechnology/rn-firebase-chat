@@ -11,9 +11,9 @@ export interface IUserInfo {
 export interface IChatContext {
   userInfo: IUserInfo | null;
   enableEncrypt?: boolean;
-  blackListWords?: string[] | null;
-  encryptionOptions?: EncryptionOptions | null;
-  encryptionFuncProps?: EncryptionFunctions | null;
+  blackListWords?: string[];
+  encryptionOptions?: EncryptionOptions;
+  encryptionFuncProps?: EncryptionFunctions;
   encryptKey?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;

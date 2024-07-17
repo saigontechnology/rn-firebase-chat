@@ -45,7 +45,7 @@ const createIV = (length = IV_LENGTH) => {
 
 const generateEncryptionKey = async (
   encryptKey: string,
-  options: EncryptionOptions | null
+  options: EncryptionOptions | undefined
 ): Promise<string> => {
   const {
     salt = DEFAULT_SALT,
