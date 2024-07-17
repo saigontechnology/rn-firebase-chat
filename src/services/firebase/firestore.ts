@@ -30,6 +30,11 @@ interface FirestoreProps {
   memberIds?: string[];
 }
 
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
+}
+
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
@@ -217,6 +222,8 @@ export class FirestoreServices {
         messageData.text = await encryptData(text, this.encryptKey);
       }
 
+      await this.updateUnReadMessageInChannel();
+
       try {
         /** Send message to collection conversation by id */
         await firestore()
@@ -273,6 +280,50 @@ export class FirestoreServices {
         { merge: true }
       )
       .then();
+  };
+
+  updateUnReadMessageInChannel = async () => {
+    if (!this.userId || !this.conversationId) {
+      return;
+    }
+
+    let conversationRef = firestore()
+      .collection<ConversationData>(`${FireStoreCollection.conversations}`)
+      .doc(this.conversationId);
+
+    return firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(conversationRef);
+      const unRead = doc.data()?.unRead ?? {};
+
+      if (!doc.exists) {
+        // If the document doesn't exist, create it with initial unRead object
+        transaction.set(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, 1];
+              }
+            })
+          ),
+        });
+      } else {
+        // If the document exists, update it
+        transaction.update(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead[memberId] ?? 0) + 1];
+              }
+            })
+          ),
+        });
+      }
+      return;
+    });
   };
 
   changeReadMessage = () => {
