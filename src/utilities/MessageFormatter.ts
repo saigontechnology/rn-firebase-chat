@@ -19,12 +19,12 @@ const convertTextMessage = async (
   text: string,
   regex?: RegExp,
   encryptKey?: string,
-  decryptMessageProp?: (text: string) => Promise<string>
+  decryptMessageFunc?: (text: string) => Promise<string>
 ) => {
   let messageText = text;
   if (encryptKey) {
-    messageText = decryptMessageProp
-      ? await decryptMessageProp(text)
+    messageText = decryptMessageFunc
+      ? await decryptMessageFunc(text)
       : await formatdecryptedMessageData(text, encryptKey);
   }
   return getTextMessage(regex, messageText);
@@ -34,7 +34,7 @@ const formatMessageText = async (
   message: MessageProps | LatestMessageProps,
   regexPattern?: RegExp | undefined,
   encryptKey?: string,
-  decryptMessageProp?: (text: string) => Promise<string>
+  decryptMessageFunc?: (text: string) => Promise<string>
 ) => {
   return {
     ...message,
@@ -42,7 +42,7 @@ const formatMessageText = async (
       message.text,
       regexPattern,
       encryptKey,
-      decryptMessageProp
+      decryptMessageFunc
     ),
   };
 };
@@ -52,7 +52,7 @@ const formatMessageData = async (
   userInfo: IUserInfo,
   regexPattern?: RegExp | undefined,
   encryptKey?: string,
-  decryptMessageProp?: (text: string) => Promise<string>
+  decryptMessageFunc?: (text: string) => Promise<string>
 ) => {
   return {
     ...message,
@@ -60,7 +60,7 @@ const formatMessageData = async (
       message.text,
       regexPattern,
       encryptKey,
-      decryptMessageProp
+      decryptMessageFunc
     ),
     _id: message.id,
     createdAt: message.createdAt || getCurrentTimestamp(),

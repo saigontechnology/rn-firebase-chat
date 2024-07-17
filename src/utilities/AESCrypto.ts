@@ -54,8 +54,7 @@ const generateEncryptionKey = async (
   } = options || {};
 
   try {
-    const key = await generateKey(encryptKey, salt, iterations, keyLength);
-    return key;
+    return await generateKey(encryptKey, salt, iterations, keyLength);
   } catch (error) {
     console.error('Error generating encryption key:', error);
     throw error;
