@@ -173,7 +173,7 @@ export class FirestoreServices {
         .collection<SendMessageProps>(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
-        .add(message);
+        .add({ ...message, path: imgURL });
 
       const snapShot = await messageRef;
       await snapShot.update({ path: imgURL });
