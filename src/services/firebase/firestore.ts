@@ -11,7 +11,10 @@ import {
   formatSendMessage,
   generateBadWordsRegex,
   generateKey,
+  getCurrentFormattedDate,
   getCurrentTimestamp,
+  addLinkByDate,
+  extractLinks,
 } from '../../utilities';
 import {
   ConversationProps,
@@ -254,8 +257,10 @@ export class FirestoreServices {
           this.userId,
           messageData.text
         );
+
+        const links = extractLinks(message.text);
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+          this.updateUserConversation(memberId, latestMessageData, links);
         });
       } catch (e) {
         console.log(e);
@@ -263,25 +268,51 @@ export class FirestoreServices {
     }
   };
 
-  updateUserConversation = (
+  getUserLinks = async () => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create conversation before send the first message!'
+      );
+    }
+
+    const conversationRef = firestore()
+      .collection(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
+      .doc(this.conversationId);
+    const doc = await conversationRef.get();
+    const existingLinks = doc.data()?.links || [];
+    return existingLinks;
+  };
+
+  updateUserConversation = async (
     userId: string,
-    latestMessageData: LatestMessageProps
+    latestMessageData: LatestMessageProps,
+    links?: string[] | null
   ) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
       );
     }
-    /** Update latest message for each member */
-    firestore()
+
+    const conversationRef = firestore()
       .collection(
         `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
       )
-      .doc(this.conversationId)
+      .doc(this.conversationId);
+    const doc = await conversationRef.get();
+
+    const getToday = getCurrentFormattedDate();
+    const existingLinks = doc.data()?.links || [];
+    const currentLinks = addLinkByDate(existingLinks, links, getToday);
+
+    conversationRef
       .set(
         {
           latestMessage: latestMessageData,
           updatedAt: getCurrentTimestamp(),
+          links: currentLinks,
         },
         { merge: true }
       )
