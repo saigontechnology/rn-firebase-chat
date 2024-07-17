@@ -194,14 +194,11 @@ export class FirestoreServices {
         .ref(uploadResult.metadata.fullPath)
         .getDownloadURL();
 
-      const messageRef = firestore()
+      await firestore()
         .collection<SendMessageProps>(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
-        .add(message);
-
-      const snapShot = await messageRef;
-      await snapShot.update({ path: imgURL });
+        .add({ ...message, path: imgURL });
 
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
