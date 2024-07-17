@@ -114,24 +114,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       /** If the conversation not created yet. it will create at the first message sent */
       isLoadingRef.current = false;
       if (!conversationRef.current?.id) {
-        const newConversationData = {
+        const newConversationInfo = {
           id: '',
           name: partners[0]?.name,
           image: partners[0]?.avatar,
+          ...(customConversationInfo || {}),
         };
-        let isGroup = false;
         // We identify a group chat if the conversation have custom-info
-        if (customConversationInfo) {
-          newConversationData.id = customConversationInfo.id;
-          newConversationData.name = customConversationInfo.name;
-          newConversationData.image = customConversationInfo.image;
-          isGroup = true;
-        }
+        let isGroup = !!customConversationInfo;
         conversationRef.current = await firebaseInstance.createConversation(
-          newConversationData.id,
+          newConversationInfo.id,
           memberIds,
-          newConversationData?.name,
-          newConversationData?.image,
+          newConversationInfo?.name,
+          newConversationInfo?.image,
           isGroup
         );
         firebaseInstance.setConversationInfo(
