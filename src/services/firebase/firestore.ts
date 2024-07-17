@@ -124,7 +124,8 @@ export class FirestoreServices {
     conversationId: string,
     memberIds: string[],
     name?: string,
-    image?: string
+    image?: string,
+    isGroup?: boolean
   ): Promise<ConversationProps> => {
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
@@ -151,12 +152,23 @@ export class FirestoreServices {
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
       memberIds.map((memberId) => {
+        const otherMemberConversationData = isGroup
+          ? conversationData
+          : /**
+             * If this is 1-on-1 chat
+             * We map conversation info of other people with this user info
+             */
+            {
+              ...conversationData,
+              name: this.userInfo?.name,
+              image: this.userInfo?.avatar,
+            };
         return firestore()
           .collection(
             `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
           )
           .doc(conversationRef.id)
-          .set(conversationData);
+          .set(otherMemberConversationData);
       }),
     ]);
 
