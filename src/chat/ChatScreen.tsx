@@ -133,7 +133,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
         firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
           setMessagesList(res);
           setHasMoreMessages(res.length === maxPageSize);
-          firebaseInstance.changeReadMessage();
+          // firebaseInstance.changeReadMessage();
           onLoadEnd?.();
         });
       }
@@ -236,7 +236,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
                 GiftedChat.append(previousMessages, [formatMessage])
               );
             }
-            firebaseInstance.changeReadMessage();
+            // firebaseInstance.changeReadMessage();
           }
         );
       }
@@ -331,25 +331,25 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       [onSend]
     );
 
-    useEffect(() => {
-      let userConversation: () => void;
-      userConversation = firebaseInstance.userConversationListener(
-        (data: ConversationData | undefined) => {
-          const memberId = partners[0]?.id;
-          const unReads = data?.unRead ?? {};
-          const hasUnreadMessages = Object.entries(unReads).some(
-            ([key, value]) => key !== memberId && value > 0
-          );
-          setUserUnreadMessage(hasUnreadMessages);
-        }
-      );
+    // useEffect(() => {
+    //   let userConversation: () => void;
+    //   userConversation = firebaseInstance.userConversationListener(
+    //     (data: ConversationData | undefined) => {
+    //       const memberId = partners[0]?.id;
+    //       const unReads = data?.unRead ?? {};
+    //       const hasUnreadMessages = Object.entries(unReads).some(
+    //         ([key, value]) => key !== memberId && value > 0
+    //       );
+    //       setUserUnreadMessage(hasUnreadMessages);
+    //     }
+    //   );
 
-      return () => {
-        if (userConversation) {
-          userConversation();
-        }
-      };
-    }, [firebaseInstance, partners]);
+    //   return () => {
+    //     if (userConversation) {
+    //       userConversation();
+    //     }
+    //   };
+    // }, [firebaseInstance, partners]);
 
     return (
       <View style={[styles.container, style]}>

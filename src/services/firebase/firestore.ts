@@ -222,8 +222,6 @@ export class FirestoreServices {
         messageData.text = await encryptData(text, this.encryptKey);
       }
 
-      await this.updateUnReadMessageInChannel();
-
       try {
         /** Send message to collection conversation by id */
         await firestore()
