@@ -2,15 +2,23 @@
  * Created by NL on 5/31/23.
  */
 import Aes from 'react-native-aes-crypto';
+import {
+  DEFAULT_ITERATIONS,
+  DEFAULT_KEY_LENGTH,
+  DEFAULT_SALT,
+} from '../constants';
+import type { EncryptionOptions } from '../interfaces';
+
 const generateKey = (
   password: string,
   salt: string,
   cost: number,
   length: number
 ) => Aes.pbkdf2(password, salt, cost, length);
-const encryptData = (text: string, key: string) => {
+
+const encryptData = async (text: string, key: string) => {
   const iv = createIV();
-  return Aes.encrypt(text, key, iv, 'aes-256-cbc').then(
+  return await Aes.encrypt(text, key, iv, 'aes-256-cbc').then(
     (cipher) => iv + cipher
   );
 };
@@ -35,4 +43,39 @@ const createIV = (length = IV_LENGTH) => {
   return result;
 };
 
-export { generateKey, encryptData, decryptData, createIV };
+const generateEncryptionKey = async (
+  encryptKey: string,
+  options?: EncryptionOptions
+): Promise<string> => {
+  const {
+    salt = DEFAULT_SALT,
+    iterations = DEFAULT_ITERATIONS,
+    keyLength = DEFAULT_KEY_LENGTH,
+  } = options || {};
+
+  try {
+    return await generateKey(encryptKey, salt, iterations, keyLength);
+  } catch (error) {
+    console.error('Error generating encryption key:', error);
+    throw error;
+  }
+};
+
+const decryptedMessageData = async (text: string, key: string) => {
+  try {
+    const decryptedMessage = await decryptData(text, key);
+    return decryptedMessage || text;
+  } catch (error) {
+    console.error('Error generating encryption key:', error);
+    return text;
+  }
+};
+
+export {
+  generateKey,
+  encryptData,
+  decryptData,
+  createIV,
+  generateEncryptionKey,
+  decryptedMessageData,
+};

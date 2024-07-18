@@ -10,11 +10,13 @@ import {
   formatMessageText,
   formatSendMessage,
   generateBadWordsRegex,
-  generateKey,
+  generateEncryptionKey,
   getCurrentTimestamp,
 } from '../../utilities';
 import {
   ConversationProps,
+  EncryptionFunctions,
+  EncryptionOptions,
   FireStoreCollection,
   FirestoreReference,
   MessageTypes,
@@ -30,7 +32,9 @@ interface FirestoreProps {
   enableEncrypt?: boolean;
   encryptKey?: string;
   memberIds?: string[];
-  blackListWords: string[] | null;
+  blackListWords?: string[];
+  encryptionOptions?: EncryptionOptions;
+  encryptionFuncProps?: EncryptionFunctions;
 }
 
 export class FirestoreServices {
@@ -41,6 +45,11 @@ export class FirestoreServices {
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
   regexBlacklist: RegExp | undefined;
+
+  /** Encryption function */
+  generateKeyFunctionProp: ((key: string) => Promise<string>) | undefined;
+  encryptFunctionProp: ((text: string) => Promise<string>) | undefined;
+  decryptFunctionProp: ((text: string) => Promise<string>) | undefined;
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -71,11 +80,18 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
-  configuration = ({
+  createEncryptionsFunction = (functions: EncryptionFunctions) => {
+    this.generateKeyFunctionProp = functions.generateKeyFunctionProp;
+    this.encryptFunctionProp = functions.encryptFunctionProp;
+    this.decryptFunctionProp = functions.decryptFunctionProp;
+  };
+
+  configuration = async ({
     userInfo,
     enableEncrypt,
     encryptKey,
     blackListWords,
+    encryptionOptions,
   }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
@@ -87,9 +103,9 @@ export class FirestoreServices {
 
     if (enableEncrypt && encryptKey) {
       this.enableEncrypt = enableEncrypt;
-      generateKey(encryptKey, 'salt', 5000, 256).then((res) => {
-        this.encryptKey = res;
-      });
+      this.encryptKey = this.generateKeyFunctionProp
+        ? await this.generateKeyFunctionProp(encryptKey)
+        : await generateEncryptionKey(encryptKey, encryptionOptions);
     }
   };
 
@@ -238,7 +254,9 @@ export class FirestoreServices {
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey) {
-        messageData.text = await encryptData(text, this.encryptKey);
+        messageData.text = this.encryptFunctionProp
+          ? await this.encryptFunctionProp(text)
+          : await encryptData(text, this.encryptKey);
       }
 
       try {
@@ -324,16 +342,22 @@ export class FirestoreServices {
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
         .get();
-      querySnapshot.forEach((doc) => {
+      for (const doc of querySnapshot.docs) {
         const data = { ...doc.data(), id: doc.id };
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
         listMessage.push(
-          formatMessageData(data, userInfo, this.regexBlacklist)
+          await formatMessageData(
+            data,
+            userInfo,
+            this.regexBlacklist,
+            this.encryptKey,
+            this.decryptFunctionProp
+          )
         );
-      });
+      }
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
       }
@@ -356,16 +380,23 @@ export class FirestoreServices {
         .limit(maxPageSize)
         .startAfter(this.messageCursor)
         .get();
-      querySnapshot.forEach((doc) => {
+
+      for (const doc of querySnapshot.docs) {
         const data = { ...doc.data(), id: doc.id };
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
         listMessage.push(
-          formatMessageData(data, userInfo, this.regexBlacklist)
+          await formatMessageData(
+            data,
+            userInfo,
+            this.regexBlacklist,
+            this.encryptKey,
+            this.decryptFunctionProp
+          )
         );
-      });
+      }
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
       }
@@ -379,18 +410,26 @@ export class FirestoreServices {
         `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
       )
       .where('createdAt', '>', getCurrentTimestamp())
-      .onSnapshot((snapshot) => {
+      .onSnapshot(async (snapshot) => {
         if (snapshot) {
-          snapshot.docChanges().forEach((change) => {
+          for (const change of snapshot.docChanges()) {
             if (change.type === 'added') {
               const data = { ...change.doc.data(), id: change.doc.id };
               const userInfo =
                 data.senderId === this.userInfo?.id
                   ? this.userInfo
                   : (this.partners?.[change.doc.data().senderId] as IUserInfo);
-              callBack(formatMessageData(data, userInfo, this.regexBlacklist));
+              callBack(
+                await formatMessageData(
+                  data,
+                  userInfo,
+                  this.regexBlacklist,
+                  this.encryptKey,
+                  this.decryptFunctionProp
+                )
+              );
             }
-          });
+          }
         }
       });
   };
@@ -466,18 +505,22 @@ export class FirestoreServices {
         )
         .orderBy('updatedAt', 'desc')
         .get()
-        .then((querySnapshot) => {
-          const regex = this.regexBlacklist;
-          querySnapshot.forEach(function (doc) {
+        .then(async (querySnapshot) => {
+          for (const doc of querySnapshot.docs) {
             const data = { ...doc.data(), id: doc.id };
             const message = {
               ...data,
               latestMessage: data.latestMessage
-                ? formatMessageText(data?.latestMessage, regex)
+                ? await formatMessageText(
+                    data?.latestMessage,
+                    this.regexBlacklist,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
                 : data.latestMessage,
             } as ConversationProps;
             listChannels.push(message);
-          });
+          }
           resolve(listChannels);
         })
     );
@@ -490,9 +533,9 @@ export class FirestoreServices {
       .collection(
         `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
       )
-      .onSnapshot(function (snapshot) {
+      .onSnapshot(async (snapshot) => {
         if (snapshot) {
-          snapshot.docChanges().forEach(function (change) {
+          for (const change of snapshot.docChanges()) {
             if (change.type === 'modified') {
               const data = {
                 ...(change.doc.data() as ConversationProps),
@@ -501,12 +544,17 @@ export class FirestoreServices {
               const message = {
                 ...data,
                 latestMessage: data.latestMessage
-                  ? formatMessageText(data?.latestMessage, regex)
+                  ? await formatMessageText(
+                      data?.latestMessage,
+                      regex,
+                      this.encryptKey,
+                      this.decryptFunctionProp
+                    )
                   : data.latestMessage,
               } as ConversationProps;
               callback?.(message);
             }
-          });
+          }
         }
       });
   };

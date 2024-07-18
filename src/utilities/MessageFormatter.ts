@@ -1,7 +1,7 @@
 /**
  * Created by NL on 6/1/23.
  */
-import { decryptData, generateKey } from './AESCrypto';
+import { decryptedMessageData } from './AESCrypto';
 import {
   type IUserInfo,
   type LatestMessageProps,
@@ -15,24 +15,53 @@ import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './Blacklist';
 import { getCurrentTimestamp } from './Date';
 
-const formatMessageText = (
+const convertTextMessage = async (
+  text: string,
+  regex?: RegExp,
+  encryptKey?: string,
+  decryptMessageFunc?: (text: string) => Promise<string>
+) => {
+  let messageText = text;
+  if (encryptKey) {
+    messageText = decryptMessageFunc
+      ? await decryptMessageFunc(text)
+      : await formatdecryptedMessageData(text, encryptKey);
+  }
+  return getTextMessage(regex, messageText);
+};
+
+const formatMessageText = async (
   message: MessageProps | LatestMessageProps,
-  regexPattern?: RegExp | undefined
+  regexPattern?: RegExp | undefined,
+  encryptKey?: string,
+  decryptMessageFunc?: (text: string) => Promise<string>
 ) => {
   return {
     ...message,
-    text: getTextMessage(regexPattern, message.text),
+    text: await convertTextMessage(
+      message.text,
+      regexPattern,
+      encryptKey,
+      decryptMessageFunc
+    ),
   };
 };
 
-const formatMessageData = (
+const formatMessageData = async (
   message: MessageProps,
   userInfo: IUserInfo,
-  regexPattern?: RegExp | undefined
+  regexPattern?: RegExp | undefined,
+  encryptKey?: string,
+  decryptMessageFunc?: (text: string) => Promise<string>
 ) => {
   return {
     ...message,
-    text: getTextMessage(regexPattern, message.text),
+    text: await convertTextMessage(
+      message.text,
+      regexPattern,
+      encryptKey,
+      decryptMessageFunc
+    ),
     _id: message.id,
     createdAt: message.createdAt || getCurrentTimestamp(),
     user: {
@@ -43,44 +72,11 @@ const formatMessageData = (
   };
 };
 
-const formatEncryptedMessageData = async (
-  message: MessageProps,
-  userName: string
+const formatdecryptedMessageData = async (
+  text: string,
+  conversationId: string
 ) => {
-  return generateKey('Arnold', 'salt', 5000, 256).then((key) => {
-    return decryptData(message.text, key)
-      .then((decryptedMessage) => {
-        return {
-          _id: message.id,
-          text: decryptedMessage ? decryptedMessage : message.text,
-          user: {
-            _id: message.senderId,
-            name: userName,
-            avatar:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
-          },
-          senderId: message.senderId,
-          readBy: message.readBy,
-          id: message.id,
-        };
-      })
-      .catch(() => {
-        return {
-          _id: message.id,
-          // if fail to decrypt, return the original text
-          text: message.text,
-          user: {
-            _id: message.senderId,
-            name: userName,
-            avatar:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
-          },
-          senderId: message.senderId,
-          readBy: message.readBy,
-          id: message.id,
-        };
-      });
-  });
+  return await decryptedMessageData(text, conversationId);
 };
 
 const formatSendMessage = (
@@ -142,7 +138,7 @@ export const convertExtension = (file: Asset | undefined): string => {
 
 export {
   formatMessageData,
-  formatEncryptedMessageData,
+  formatdecryptedMessageData,
   formatSendMessage,
   formatLatestMessage,
   formatMessageText,
