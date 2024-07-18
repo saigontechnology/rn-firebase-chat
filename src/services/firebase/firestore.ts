@@ -577,12 +577,14 @@ export class FirestoreServices {
       // If partnersId, delete all conversations of each partners
       const partnerBatch = firestore().batch();
       partnersId.forEach(async (id) => {
-        const doc = firestore()
-          .collection(
-            `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
-          )
-          .doc(conversationId);
-        partnerBatch.delete(doc);
+        if (id) {
+          const doc = firestore()
+            .collection(
+              `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
       });
 
       // Delete all messages of that conversation
@@ -623,18 +625,20 @@ export class FirestoreServices {
 
       const batch = firestore().batch();
       newMembers?.forEach((id) => {
-        const doc = firestore()
-          .collection(
-            `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
-          )
-          .doc(conversationId);
-        batch.set(
-          doc,
-          {
-            members: newMembers,
-          },
-          { merge: true }
-        );
+        if (id) {
+          const doc = firestore()
+            .collection(
+              `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+            )
+            .doc(conversationId);
+          batch.set(
+            doc,
+            {
+              members: newMembers,
+            },
+            { merge: true }
+          );
+        }
       });
       await leftConversation.delete();
       await batch.commit();
