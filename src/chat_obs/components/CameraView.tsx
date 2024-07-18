@@ -21,7 +21,10 @@ import Video from 'react-native-video';
 import type { MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTypes, type IUserInfo } from '../../interfaces';
-import { getMediaTypeFromExtension } from '../../utilities';
+import {
+  getAbsoluteFilePath,
+  getMediaTypeFromExtension,
+} from '../../utilities';
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
@@ -98,7 +101,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
         id: id,
         _id: id,
         type: media.type,
-        path: media.path,
+        path: getAbsoluteFilePath(media.path),
         extension,
       } as MessageProps;
 

@@ -14,6 +14,7 @@ import {
 import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './Blacklist';
 import { getCurrentTimestamp } from './Date';
+import { Platform } from 'react-native';
 
 const formatMessageText = (
   message: MessageProps | LatestMessageProps,
@@ -138,6 +139,11 @@ export const convertExtension = (file: Asset | undefined): string => {
   } else {
     return 'mp4';
   }
+};
+
+export const getAbsoluteFilePath = (path: string) => {
+  if (Platform.OS === 'ios') return path;
+  return 'file://' + path;
 };
 
 export {
