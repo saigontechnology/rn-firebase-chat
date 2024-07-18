@@ -83,8 +83,12 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
     );
 
     const onCloseCamera = useCallback(() => {
+      if (isVideoPress) {
+        setIsVideoPress(false);
+        return;
+      }
       setIsVisible(false);
-    }, []);
+    }, [isVideoPress]);
 
     const onFlipCameraPressed = useCallback(() => {
       setCameraPosition((position) => (position === 'back' ? 'front' : 'back'));
@@ -324,6 +328,7 @@ const styles = StyleSheet.create({
     left: 30,
     width: 35,
     height: 35,
+    zIndex: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
