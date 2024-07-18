@@ -14,7 +14,6 @@ import {
 import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './Blacklist';
 import { getCurrentTimestamp } from './Date';
-import { Platform } from 'react-native';
 
 const formatMessageText = (
   message: MessageProps | LatestMessageProps,
