@@ -142,8 +142,7 @@ export const convertExtension = (file: Asset | undefined): string => {
 };
 
 export const getAbsoluteFilePath = (path: string) => {
-  if (Platform.OS === 'ios') return path;
-  return 'file://' + path;
+  return path?.startsWith?.('file:/') ? path : `file://${path}`;
 };
 
 export {
