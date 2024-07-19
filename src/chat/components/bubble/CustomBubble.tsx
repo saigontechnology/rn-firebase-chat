@@ -3,9 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
-  CustomImageVideoBubble,
+  CustomImageBubble,
   CustomImageVideoBubbleProps,
-} from './CustomImageVideoBubble';
+  CustomVideoBubble,
+} from '.';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -20,7 +21,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customImageVideoBubbleProps,
   onSelectedMessage,
 }) => {
-  const styleBuble = {
+  const styleBubble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
   };
@@ -28,24 +29,43 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   const renderBubble = (currentMessage: MessageProps) => {
     switch (currentMessage?.type) {
       case MessageTypes.image:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomImageBubble
+                  {...customImageVideoBubbleProps}
+                  message={currentMessage}
+                  onSelectImgVideoUrl={(message) => {
+                    console.log('message: ', message);
+                    //TODO: handle image press
+                  }}
+                  position={position}
+                />
+              )
+            }
+            wrapperStyle={styleBubble}
+          />
+        );
       case MessageTypes.video:
         return (
           <Bubble
             {...bubbleMessage}
             renderCustomView={() =>
               currentMessage && (
-                <CustomImageVideoBubble
+                <CustomVideoBubble
                   {...customImageVideoBubbleProps}
                   message={currentMessage}
                   onSelectImgVideoUrl={(message) => {
                     console.log('message: ', message);
-                    //TODO: handle image/video press
+                    //TODO: handle video press
                   }}
                   position={position}
                 />
               )
             }
-            wrapperStyle={styleBuble}
+            wrapperStyle={styleBubble}
           />
         );
 

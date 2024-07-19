@@ -1,2 +1,3 @@
 export * from './CustomBubble';
-export * from './CustomImageVideoBubble';
+export * from './CustomImageBubble';
+export * from './CustomVideoBubble';
