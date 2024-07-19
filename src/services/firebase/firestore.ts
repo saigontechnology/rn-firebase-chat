@@ -30,6 +30,11 @@ interface FirestoreProps {
   memberIds?: string[];
 }
 
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
+}
+
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
@@ -168,7 +173,7 @@ export class FirestoreServices {
         .collection<SendMessageProps>(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
-        .add(message);
+        .add({ ...message, path: imgURL });
 
       const snapShot = await messageRef;
       await snapShot.update({ path: imgURL });
@@ -273,6 +278,50 @@ export class FirestoreServices {
         { merge: true }
       )
       .then();
+  };
+
+  updateUnReadMessageInChannel = async () => {
+    if (!this.userId || !this.conversationId) {
+      return;
+    }
+
+    let conversationRef = firestore()
+      .collection<ConversationData>(`${FireStoreCollection.conversations}`)
+      .doc(this.conversationId);
+
+    return firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(conversationRef);
+      const unRead = doc.data()?.unRead ?? {};
+
+      if (!doc.exists) {
+        // If the document doesn't exist, create it with initial unRead object
+        transaction.set(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, 1];
+              }
+            })
+          ),
+        });
+      } else {
+        // If the document exists, update it
+        transaction.update(conversationRef, {
+          unRead: Object.fromEntries(
+            Object.entries(unRead).map(([memberId]) => {
+              if (memberId === this.userId) {
+                return [memberId, 0];
+              } else {
+                return [memberId, (unRead[memberId] ?? 0) + 1];
+              }
+            })
+          ),
+        });
+      }
+      return;
+    });
   };
 
   changeReadMessage = () => {
@@ -508,7 +557,7 @@ export class FirestoreServices {
    */
   deleteConversation = async (
     conversationId: string,
-    softDelete?: boolean
+    partnersId?: string[]
   ): Promise<boolean> => {
     try {
       const isConversationExist = await this.checkConversationExist(
@@ -522,8 +571,23 @@ export class FirestoreServices {
         )
         .doc(conversationId)
         .delete();
-      if (softDelete) return true;
+      if (!partnersId?.length) return true;
 
+      // If !partnersId, simply remove conversation on user side
+      // If partnersId, delete all conversations of each partners
+      const partnerBatch = firestore().batch();
+      partnersId.forEach(async (id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
+      });
+
+      // Delete all messages of that conversation
       const batch = firestore().batch();
       const collectionRef = firestore()
         .collection(`${FireStoreCollection.conversations}`)
@@ -531,10 +595,54 @@ export class FirestoreServices {
       const messages = await collectionRef
         .collection(FireStoreCollection.messages)
         .get();
-      messages.forEach((message) => batch.delete(message.ref));
+      messages?.forEach((message) => batch.delete(message.ref));
 
+      await partnerBatch.commit();
       await batch.commit();
       await collectionRef.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  leaveConversation = async (conversationId: string): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) return false;
+
+      const leftConversation = firestore()
+        .collection(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+        .doc(conversationId);
+
+      const newMembers = (
+        (await leftConversation.get()).data() as ConversationProps
+      ).members?.filter((e) => e !== this.userId);
+
+      const batch = firestore().batch();
+      newMembers?.forEach((id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+            )
+            .doc(conversationId);
+          batch.set(
+            doc,
+            {
+              members: newMembers,
+            },
+            { merge: true }
+          );
+        }
+      });
+      await leftConversation.delete();
+      await batch.commit();
+
       return true;
     } catch (e) {
       return false;

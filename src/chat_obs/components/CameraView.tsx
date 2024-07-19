@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   Image,
   Text,
+  Platform,
 } from 'react-native';
 import 'react-native-get-random-values';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
@@ -92,6 +93,13 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
       setFlash((currentFlash) => (currentFlash === 'off' ? 'on' : 'off'));
     }, []);
 
+    const formatPath = (path: string) => {
+      if (Platform.OS === 'android') {
+        return `file://${path}`;
+      }
+      return path;
+    };
+
     const onSendPressed = useCallback(async () => {
       const extension = convertExtension(media.path);
       const id = uuidv4();
@@ -99,7 +107,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
         id: id,
         _id: id,
         type: media.type,
-        path: media.path,
+        path: formatPath(media.path),
         extension,
       } as MessageProps;
 
@@ -109,6 +117,7 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
       };
       message.user = user;
       onSend(message);
+      setIsShowCamera(true);
       setIsVisible(false);
     }, [media.path, media.type, onSend, userInfo]);
 

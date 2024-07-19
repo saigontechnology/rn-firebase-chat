@@ -17,12 +17,12 @@ import { getCurrentTimestamp } from './Date';
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
   return {
     ...message,
-    _id: message.id,
+    _id: message?.id,
     createdAt: message.createdAt || getCurrentTimestamp(),
     user: {
-      _id: userInfo.id,
-      name: userInfo.name,
-      avatar: userInfo.avatar,
+      _id: userInfo?.id || '000',
+      name: userInfo?.name || 'Unknown user',
+      avatar: userInfo?.avatar,
     },
   };
 };

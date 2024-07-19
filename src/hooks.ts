@@ -52,5 +52,8 @@ export const useTap = (
 export const useConversation = () => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
 
-  return { deleteConversation: firebaseInstance.deleteConversation };
+  return {
+    deleteConversation: firebaseInstance.deleteConversation,
+    leaveConversation: firebaseInstance.leaveConversation,
+  };
 };
