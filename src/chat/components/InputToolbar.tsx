@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -14,12 +14,10 @@ import {
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
 import {
-  launchImageLibrary,
-  type ImageLibraryOptions,
-  type ImagePickerResponse,
-} from 'react-native-image-picker';
-import { MessageTypes } from '../../interfaces';
-import { convertExtension } from '../../utilities';
+  openCamera,
+  openGallery,
+} from '../../chat_obs/components/ActionCameraGallery';
+import { CameraViewRef } from '../../chat_obs/components/CameraView';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -41,6 +39,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconStyle?: StyleProp<ImageStyle>;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  cameraViewRef?: CameraViewRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -57,6 +56,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  cameraViewRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -66,35 +66,6 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
-  const openGallery = useCallback(async () => {
-    try {
-      const options: ImageLibraryOptions = {
-        mediaType: 'mixed',
-      };
-
-      const result: ImagePickerResponse = await launchImageLibrary(options);
-
-      if (result?.assets) {
-        const file = result?.assets[0];
-        const mediaType = file?.type?.startsWith('image')
-          ? MessageTypes.image
-          : MessageTypes.video;
-        const extension = convertExtension(file);
-
-        onSend?.(
-          {
-            type: mediaType,
-            path: file?.uri ?? '',
-            extension: extension,
-          },
-          true
-        );
-      }
-    } catch (error) {
-      console.error('Error while opening gallery:', error);
-    }
-  }, [onSend]);
-
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
@@ -102,12 +73,12 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         <PressableIcon
           icon={cameraIcon}
           iconStyle={flattenedIconStyle}
-          onPress={onPressCamera}
+          onPress={onPressCamera || (() => openCamera(cameraViewRef))}
         />
       )}
       {hasGallery && (
         <PressableIcon
-          onPress={onPressGallery || openGallery}
+          onPress={onPressGallery || (() => openGallery(onSend))}
           icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />

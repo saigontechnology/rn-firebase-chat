@@ -11,7 +11,6 @@ import {
   StyleSheet,
   View,
   type ViewStyle,
-  Keyboard,
 } from 'react-native';
 import {
   type ComposerProps,
@@ -22,18 +21,18 @@ import {
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
-import type {
-  ConversationProps,
-  CustomConversationInfo,
-  IUserInfo,
-  MessageProps,
+import {
+  ChatTypes,
+  type ConversationProps,
+  type CustomConversationInfo,
+  type IUserInfo,
+  type MessageProps,
 } from '../interfaces';
 import { formatMessageText } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
-import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
 
@@ -48,6 +47,7 @@ interface ChatScreenProps extends GiftedChatProps {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
+  onPressGallery?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
 }
@@ -78,7 +78,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const isLoadingRef = useRef(false);
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const [isChatType, setChatType] = useState(
+    ChatTypes.TextWithImageVideoAndAudio
+  );
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -99,6 +101,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         setHasMoreMessages(res.length === maxPageSize);
         onLoadEnd?.();
       });
+      setChatType(firebaseInstance.getChatType());
     }
   }, [
     conversationInfo?.id,
@@ -194,40 +197,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
-  const onPressCamera = useCallback(() => {
-    if (props.onPressCamera) return props.onPressCamera();
-    if (!hasPermission) {
-      requestPermission();
-      return;
-    }
-    if (Keyboard.isVisible()) {
-      Keyboard.dismiss();
-      return;
-    }
-
-    cameraViewRef.current?.show();
-  }, [hasPermission, props, requestPermission]);
-
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
       if (renderComposer) return renderComposer(composeProps);
       return (
         <InputToolbar
-          onPressCamera={onPressCamera}
-          onSend={onSend}
-          {...composeProps}
           hasCamera={props.hasCamera}
           hasGallery={props.hasGallery}
+          onPressCamera={props.onPressCamera}
+          onPressGallery={props.onPressGallery}
+          onSend={onSend}
+          cameraViewRef={cameraViewRef?.current}
+          {...composeProps}
           {...inputToolbarProps}
         />
       );
     },
     [
       renderComposer,
-      onPressCamera,
-      onSend,
       props.hasCamera,
       props.hasGallery,
+      props.onPressCamera,
+      props.onPressGallery,
+      onSend,
       inputToolbarProps,
     ]
   );
@@ -237,8 +229,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     return (
       <CustomBubble
         bubbleMessage={bubble}
-        onSelectedMessage={() => {
-          //TODO: handle image/video press
+        onSelectedMessage={(url) => {
+          setImgVideoUrl(url);
         }}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
@@ -270,7 +262,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
       />
-      <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+      {isChatType !== ChatTypes.TextOnly && (
+        <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+      )}
     </View>
   );
 };

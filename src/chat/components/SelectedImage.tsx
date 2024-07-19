@@ -1,6 +1,12 @@
-import React from 'react';
-import { Modal, StyleSheet, TouchableOpacity } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import React, { Suspense } from 'react';
+import {
+  Modal,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
+
+const LazyFastImage = React.lazy(() => import('react-native-fast-image'));
 
 interface SelectedImageModalProps {
   imageUrl: string;
@@ -14,14 +20,16 @@ const SelectedImageModal: React.FC<SelectedImageModalProps> = ({
   return (
     <Modal visible={!!imageUrl} transparent={true} onRequestClose={onClose}>
       <TouchableOpacity style={styles.modalContainer} onPress={onClose}>
-        <FastImage
-          style={styles.image}
-          source={{
-            uri: imageUrl,
-            priority: FastImage.priority.high,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
-        />
+        <Suspense fallback={<ActivityIndicator size="large" color="#0000ff" />}>
+          <LazyFastImage
+            style={styles.image}
+            source={{
+              uri: imageUrl,
+              priority: 'high',
+            }}
+            resizeMode={'contain'}
+          />
+        </Suspense>
       </TouchableOpacity>
     </Modal>
   );

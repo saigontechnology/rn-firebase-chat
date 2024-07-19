@@ -1,5 +1,6 @@
 import React, {
   forwardRef,
+  lazy,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -14,14 +15,22 @@ import {
   Image,
   Text,
 } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
-import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
+
 import { CaptureCameraButton } from './CaptureButton';
 import Video from 'react-native-video';
 import type { MessageProps } from '../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTypes, type IUserInfo } from '../../interfaces';
 import { getMediaTypeFromExtension } from '../../utilities';
+
+import { useCameraDevice } from 'react-native-vision-camera';
+import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
+
+const Camera = lazy(() =>
+  import('react-native-vision-camera').then((module) => ({
+    default: module.Camera,
+  }))
+);
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
@@ -51,7 +60,7 @@ const initialMediaState = {
 export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
   (props, ref) => {
     const { onSend, userInfo } = props;
-    const camera = useRef<Camera>(null);
+    const camera = useRef(null);
     const [media, setMedia] = useState(initialMediaState);
     const [isVideoPress, setIsVideoPress] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
