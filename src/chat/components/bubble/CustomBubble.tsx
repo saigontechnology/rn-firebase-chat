@@ -11,7 +11,7 @@ interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
-  onSelectedMessage: (message: MessageProps) => void;
+  onSelectedMessage: (url: string) => void;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -37,9 +37,8 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                 <CustomImageVideoBubble
                   {...customImageVideoBubbleProps}
                   message={currentMessage}
-                  onSelectImgVideoUrl={(message) => {
-                    console.log('message: ', message);
-                    //TODO: handle image/video press
+                  onSelectImgVideoUrl={(url) => {
+                    onSelectedMessage(url);
                   }}
                   position={position}
                 />

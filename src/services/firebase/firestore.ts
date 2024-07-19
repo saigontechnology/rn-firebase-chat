@@ -14,6 +14,7 @@ import {
   getCurrentTimestamp,
 } from '../../utilities';
 import {
+  ChatTypes,
   ConversationProps,
   EncryptionFunctions,
   EncryptionOptions,
@@ -35,6 +36,7 @@ interface FirestoreProps {
   blackListWords?: string[];
   encryptionOptions?: EncryptionOptions;
   encryptionFuncProps?: EncryptionFunctions;
+  chatType?: ChatTypes;
 }
 
 export class FirestoreServices {
@@ -59,7 +61,7 @@ export class FirestoreServices {
   messageCursor:
     | FirebaseFirestoreTypes.QueryDocumentSnapshot<MessageProps>
     | undefined;
-
+  chatType: ChatTypes = ChatTypes.TextWithImageVideoAndAudio;
   /**
    * The constructor should always be private to prevent direct
    * construction calls with the `new` operator.
@@ -86,15 +88,28 @@ export class FirestoreServices {
     this.decryptFunctionProp = functions.decryptFunctionProp;
   };
 
+  getRegexBlacklist = () => {
+    return this.regexBlacklist;
+  };
+
+  getChatType = () => {
+    return this.chatType;
+  };
+
   configuration = async ({
     userInfo,
     enableEncrypt,
     encryptKey,
     blackListWords,
     encryptionOptions,
+    chatType,
   }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
+    }
+
+    if (chatType) {
+      this.chatType = chatType;
     }
 
     if (blackListWords) {
@@ -107,10 +122,6 @@ export class FirestoreServices {
         ? await this.generateKeyFunctionProp(encryptKey)
         : await generateEncryptionKey(encryptKey, encryptionOptions);
     }
-  };
-
-  getRegexBlacklist = () => {
-    return this.regexBlacklist;
   };
 
   setConversationInfo = (

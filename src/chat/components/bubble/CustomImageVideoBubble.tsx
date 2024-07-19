@@ -10,10 +10,10 @@ import {
   ImageStyle,
 } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
-import FastImage, {
-  type ImageStyle as FastImageStyle,
-} from 'react-native-fast-image';
+import { type ImageStyle as FastImageStyle } from 'react-native-fast-image';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
+
+const LazyFastImage = React.lazy(() => import('react-native-fast-image'));
 
 export interface CustomImageVideoBubbleProps {
   message: MessageProps;
@@ -61,8 +61,8 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   };
 
   const renderImage = () => (
-    <FastImage
-      source={{ uri: message.path, priority: FastImage.priority.high }}
+    <LazyFastImage
+      source={{ uri: message.path, priority: 'high' }}
       style={[styles.image, imageStyle]}
       resizeMode="cover"
     />

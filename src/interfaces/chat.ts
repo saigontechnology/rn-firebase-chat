@@ -8,6 +8,12 @@ export interface IUserInfo {
   avatar: string;
 }
 
+export enum ChatTypes {
+  TextOnly = 'TextOnly',
+  TextWithImageAndVideo = 'TextWithImageAndVideo',
+  TextWithImageVideoAndAudio = 'TextWithImageVideoAndAudio',
+}
+
 export interface IChatContext {
   userInfo: IUserInfo | null;
   enableEncrypt?: boolean;
@@ -15,6 +21,7 @@ export interface IChatContext {
   encryptionOptions?: EncryptionOptions;
   encryptionFuncProps?: EncryptionFunctions;
   encryptKey?: string;
+  chatType?: ChatTypes;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
 }
