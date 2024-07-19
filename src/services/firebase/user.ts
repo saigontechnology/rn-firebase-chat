@@ -6,12 +6,9 @@ import { FirestoreServices } from './firestore';
 const firestoreServices = FirestoreServices.getInstance();
 
 const createUserProfile = async (userId: string, name: string) => {
-  const prefix = firestoreServices.getConfiguration('prefix');
   const userRef = firestore()
     .collection<Omit<UserProfileProps, 'id'>>(
-      prefix
-        ? `${prefix}-${FireStoreCollection.users}`
-        : FireStoreCollection.users
+      firestoreServices.getUrlWithPrefix(FireStoreCollection.users)
     )
     .doc(userId);
   const user = await userRef.get();
@@ -28,13 +25,10 @@ const createUserProfile = async (userId: string, name: string) => {
 };
 
 const checkUsernameExist = (username?: string) => {
-  const prefix = firestoreServices.getConfiguration('prefix');
   return new Promise<boolean>(async (resolve) => {
     const userRef = firestore()
       .collection<UserProfileProps>(
-        prefix
-          ? `${prefix}-${FireStoreCollection.users}`
-          : FireStoreCollection.users
+        firestoreServices.getUrlWithPrefix(FireStoreCollection.users)
       )
       .doc(username);
     const user = await userRef.get();

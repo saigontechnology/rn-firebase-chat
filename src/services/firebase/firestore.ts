@@ -120,6 +120,9 @@ export class FirestoreServices {
     return this.regexBlacklist;
   };
 
+  getUrlWithPrefix = (url: string) =>
+    this.prefix ? `${this.prefix}-${url}` : url;
+
   // We remove 'blackListWords' because the prop is converted to 'regexBlacklist'
   getConfiguration = <
     K extends keyof Omit<
@@ -173,11 +176,9 @@ export class FirestoreServices {
     let conversationRef: FirestoreReference = firestore().collection<
       Partial<ConversationProps>
     >(
-      `${
-        this.prefix
-          ? `${this.prefix}-${FireStoreCollection.users}`
-          : FireStoreCollection.users
-      }/${this.userId}/${FireStoreCollection.conversations}`
+      this.getUrlWithPrefix(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
     );
     /** Create the conversation to the user who create the chat */
     if (conversationId) {
@@ -202,11 +203,9 @@ export class FirestoreServices {
             };
         return firestore()
           .collection(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.users}`
-                : FireStoreCollection.users
-            }/${memberId}/${FireStoreCollection.conversations}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
+            )
           )
           .doc(conversationRef.id)
           .set(otherMemberConversationData);
@@ -237,11 +236,9 @@ export class FirestoreServices {
 
       const messageRef = firestore()
         .collection<SendMessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .add(message);
 
@@ -292,11 +289,9 @@ export class FirestoreServices {
         /** Send message to collection conversation by id */
         await firestore()
           .collection<SendMessageProps>(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.conversations}`
-                : FireStoreCollection.conversations
-            }/${this.conversationId}/${FireStoreCollection.messages}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            )
           )
           .add(messageData);
 
@@ -326,11 +321,9 @@ export class FirestoreServices {
     /** Update latest message for each member */
     firestore()
       .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.users}`
-            : FireStoreCollection.users
-        }/${userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        )
       )
       .doc(this.conversationId)
       .set(
@@ -352,11 +345,7 @@ export class FirestoreServices {
     if (this.userId) {
       firestore()
         .collection(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }`
+          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
         )
         .doc(this.conversationId)
         .set(
@@ -380,11 +369,9 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
@@ -421,11 +408,9 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
@@ -458,11 +443,9 @@ export class FirestoreServices {
   receiveMessageListener = (callBack: (message: any) => void) => {
     return firestore()
       .collection<MessageProps>(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.conversations}`
-            : FireStoreCollection.conversations
-        }/${this.conversationId}/${FireStoreCollection.messages}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+        )
       )
       .where('createdAt', '>', getCurrentTimestamp())
       .onSnapshot(async (snapshot) => {
@@ -498,13 +481,7 @@ export class FirestoreServices {
       );
     }
     return firestore()
-      .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.conversations}`
-            : FireStoreCollection.conversations
-        }`
-      )
+      .collection(this.getUrlWithPrefix(`${FireStoreCollection.conversations}`))
       .doc(this.conversationId)
       .onSnapshot((snapshot) => {
         if (snapshot) {
@@ -518,11 +495,9 @@ export class FirestoreServices {
       if (this.conversationId) {
         firestore()
           .collection<MessageProps>(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.conversations}`
-                : FireStoreCollection.conversations
-            }/${this.conversationId}/${FireStoreCollection.messages}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            )
           )
           .count()
           .get()
@@ -544,11 +519,7 @@ export class FirestoreServices {
     if (this.userId) {
       return firestore()
         .collection(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }`
+          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
         )
         .doc(this.conversationId)
         .set(
@@ -572,11 +543,9 @@ export class FirestoreServices {
     return new Promise((resolve) =>
       firestore()
         .collection<Partial<ConversationProps>>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.users}`
-              : FireStoreCollection.users
-          }/${this.userId}/${FireStoreCollection.conversations}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
         )
         .orderBy('updatedAt', 'desc')
         .get()
@@ -606,11 +575,9 @@ export class FirestoreServices {
 
     return firestore()
       .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.users}`
-            : FireStoreCollection.users
-        }/${this.userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
       )
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
