@@ -3,7 +3,7 @@ import { ChatActionKind } from './action';
 
 export type ChatAction = {
   type: ChatActionKind;
-  payload: ConversationProps[] | ConversationProps | string;
+  payload?: ConversationProps[] | ConversationProps | string;
 };
 
 export type ChatState = {
