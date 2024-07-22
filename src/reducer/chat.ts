@@ -3,7 +3,7 @@ import { ChatActionKind } from './action';
 
 export type ChatAction = {
   type: ChatActionKind;
-  payload: ConversationProps[] | ConversationProps | string;
+  payload?: ConversationProps[] | ConversationProps | string;
 };
 
 export type ChatState = {
@@ -25,6 +25,11 @@ export const chatReducer = (
       return {
         ...state,
         conversation: action.payload as ConversationProps,
+      };
+    case ChatActionKind.CLEAR_CONVERSATION:
+      return {
+        ...state,
+        conversation: undefined,
       };
     case ChatActionKind.UPDATE_CONVERSATION:
       const message = action.payload as ConversationProps;

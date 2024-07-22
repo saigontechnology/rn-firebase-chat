@@ -47,6 +47,8 @@ import { CustomBubble, CustomBubbleVoice } from './components/bubble';
 import VoiceRecorderModal, {
   VoiceRecorderModalRef,
 } from './components/VoiceRecorderModal';
+import { clearConversation } from '../reducer';
+
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
 }
@@ -92,7 +94,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     },
     ref
   ) => {
-    const { userInfo } = useChatContext();
+    const { userInfo, chatDispatch } = useChatContext();
     const conversation = useChatSelector(getConversation);
 
     const conversationInfo = useMemo(() => {
@@ -210,8 +212,9 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     useEffect(() => {
       return () => {
         firebaseInstance.clearConversationInfo();
+        chatDispatch?.(clearConversation());
       };
-    }, [firebaseInstance]);
+    }, [chatDispatch, firebaseInstance]);
 
     useEffect(() => {
       let receiveMessageRef: () => void;
