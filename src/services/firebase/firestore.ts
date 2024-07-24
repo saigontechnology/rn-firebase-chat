@@ -830,7 +830,9 @@ export class FirestoreServices {
   checkConversationExist = async (id: string) => {
     const conversation = await firestore()
       .collection(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
       )
       .doc(id)
       .get();
@@ -854,29 +856,45 @@ export class FirestoreServices {
         return false;
       }
 
-      /** Delete latest message of that conversation for user */
-      await firestore()
+      /** Get conversation ref from current user's conversations collection */
+      const userConversation = firestore()
         .collection(
-          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
         )
-        .doc(conversationId)
-        .delete();
+        .doc(conversationId);
+
+      /** Get ID array of conversation's partners (exclude current user) */
+      const partnerIds = (
+        (await userConversation.get())?.data() as ConversationProps
+      )?.members?.filter((e) => e !== this.userId);
+
+      /** Delete latest message of that conversation for user (exclude from list) */
+      await userConversation.delete();
       if (softDelete) return true;
 
-      /** Delete the conversation collection including all its messages */
-      const batch = firestore().batch();
-      const collectionRef = firestore()
-        .collection(`${FireStoreCollection.conversations}`)
-        .doc(conversationId);
-      const messages = await collectionRef
-        .collection(FireStoreCollection.messages)
-        .get();
-      messages.forEach((message) => batch.delete(message.ref));
+      /** Delete latest message of that conversation for all other partners */
+      const partnerBatch = firestore().batch();
+      partnerIds?.forEach(async (id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              this.getUrlWithPrefix(
+                `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+              )
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
+      });
+      await partnerBatch.commit();
 
-      await batch.commit();
-      await collectionRef.delete();
       return true;
     } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
       return false;
     }
   };

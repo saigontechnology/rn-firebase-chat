@@ -48,6 +48,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         );
       });
     }
+
     return () => {
       unsubscribeListener();
     };
