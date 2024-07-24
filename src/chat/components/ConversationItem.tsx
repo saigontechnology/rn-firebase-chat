@@ -4,7 +4,11 @@
 import React, { useMemo } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { MessageTypes, type ConversationProps } from '../../interfaces';
+import {
+  IUserInfo,
+  MessageTypes,
+  type ConversationProps,
+} from '../../interfaces';
 import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
@@ -16,6 +20,7 @@ export interface IConversationItemProps {
   lastMessageStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
   renderMessage?: () => React.ReactNode;
+  userInfo: IUserInfo | null;
 }
 
 export const ConversationItem: React.FC<IConversationItemProps> = ({
@@ -27,6 +32,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   lastMessageStyle,
   CustomImage,
   renderMessage,
+  userInfo,
 }) => {
   const Avatar = CustomImage ?? Image;
 
@@ -35,17 +41,33 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     return undefined;
   }, [data.image, data.name]);
 
-  const getLatestTextMessage = () => {
-    switch (data.latestMessage?.type) {
-      case MessageTypes.image:
-        return 'Image';
-      case MessageTypes.video:
-        return 'Video';
-      case MessageTypes.document:
-        return 'File Attachment';
-      default:
-        return data?.latestMessage?.text;
-    }
+  const getInitialsChat = (type: string | undefined): string => {
+    if (!data?.latestMessage || !type) return '';
+
+    const { latestMessage } = data;
+    const { senderId, text } = latestMessage;
+    const isCurrentUser = senderId === userInfo?.id;
+
+    const getMessageText = (messageType: string): string => {
+      const senderInfo = `${
+        isCurrentUser ? 'You' : data.latestMessage?.name
+      } sent a`;
+
+      switch (messageType) {
+        case MessageTypes.text:
+          return text;
+        case MessageTypes.image:
+          return `${senderInfo} Photo`;
+        case MessageTypes.video:
+          return `${senderInfo} Video`;
+        case MessageTypes.voice:
+          return `${senderInfo} Voice`;
+        default:
+          return '';
+      }
+    };
+
+    return getMessageText(type);
   };
 
   return (
@@ -73,8 +95,11 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             >
               {data?.name}
             </Text>
-            <Text style={[styles.message, lastMessageStyle]} numberOfLines={1}>
-              {getLatestTextMessage()}
+            <Text
+              style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
+              numberOfLines={1}
+            >
+              {getInitialsChat(data?.latestMessage?.type)}
             </Text>
           </View>
         )}

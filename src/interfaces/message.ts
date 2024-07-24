@@ -11,6 +11,7 @@ interface LatestMessageProps {
     [userId: string]: boolean;
   };
   senderId: string;
+  name: string;
   text: string;
   status?: MessageStatus;
   type?: MediaType;

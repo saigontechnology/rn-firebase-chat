@@ -189,7 +189,14 @@ export class FirestoreServices {
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
-          formatLatestMessage(this.userId, '', type, path, extension)
+          formatLatestMessage(
+            this.userId,
+            this.userInfo?.name || '',
+            '',
+            type,
+            path,
+            extension
+          )
         );
       });
     } catch (error) {
@@ -267,6 +274,7 @@ export class FirestoreServices {
         /** Format latest message data */
         const latestMessageData = formatLatestMessage(
           this.userId,
+          this.userInfo?.name || '',
           messageData.text
         );
         this.memberIds?.forEach((memberId) => {

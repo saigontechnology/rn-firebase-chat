@@ -96,6 +96,7 @@ const formatSendMessage = (
 
 const formatLatestMessage = (
   userId: string,
+  name: string,
   message: string,
   type?: MediaType,
   path?: string,
@@ -105,6 +106,7 @@ const formatLatestMessage = (
 ): LatestMessageProps => ({
   text: message ?? '',
   senderId: userId,
+  name: name,
   readBy: {
     [userId]: true,
   },

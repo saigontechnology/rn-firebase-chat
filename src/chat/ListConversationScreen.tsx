@@ -27,7 +27,7 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   renderCustomItem,
   conversationItemProps,
 }) => {
-  const { chatDispatch } = useChatContext();
+  const { chatDispatch, userInfo } = useChatContext();
   const listConversation = useChatSelector(getListConversation);
 
   const data = useMemo(() => {
@@ -55,10 +55,16 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
           data={item}
           onPress={handleConversationPressed}
           {...(conversationItemProps || {})}
+          userInfo={userInfo}
         />
       );
     },
-    [conversationItemProps, handleConversationPressed, renderCustomItem]
+    [
+      conversationItemProps,
+      handleConversationPressed,
+      renderCustomItem,
+      userInfo,
+    ]
   );
 
   return (
