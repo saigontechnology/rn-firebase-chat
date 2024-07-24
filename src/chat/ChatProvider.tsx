@@ -29,8 +29,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
-    let unsubscribeUpdateListener = () => {};
-    let unsubscribeDeleteListener = () => {};
+    let unsubscribeListener = () => {};
 
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
@@ -38,22 +37,20 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         firestoreServices.getListConversation().then((res) => {
           dispatch(setListConversation(res));
         });
-        unsubscribeUpdateListener = firestoreServices.listenConversationUpdate(
-          (data) => {
+        unsubscribeListener = firestoreServices.listenConversationUpdate(
+          (data, type) => {
+            if (type === 'removed') {
+              dispatch(deleteConversation(data.id));
+              return;
+            }
             dispatch(updateConversation(data));
-          }
-        );
-        unsubscribeDeleteListener = firestoreServices.listenConversationDelete(
-          (id) => {
-            dispatch(deleteConversation(id));
           }
         );
       });
     }
 
     return () => {
-      unsubscribeUpdateListener();
-      unsubscribeDeleteListener();
+      unsubscribeListener();
     };
   }, [userInfo]);
 

@@ -570,7 +570,12 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (
+    callback: (
+      _: ConversationProps,
+      type: FirebaseFirestoreTypes.DocumentChangeType
+    ) => void
+  ) => {
     const regex = this.regexBlacklist;
 
     return firestore()
@@ -582,12 +587,13 @@ export class FirestoreServices {
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
-            if (change.type === 'modified') {
-              const data = {
-                ...(change.doc.data() as ConversationProps),
-                id: change.doc.id,
-              };
-              const message = {
+            const data = {
+              ...(change.doc.data() as ConversationProps),
+              id: change.doc.id,
+            };
+            let message = data;
+            if (change.type !== 'removed') {
+              message = {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
@@ -598,29 +604,12 @@ export class FirestoreServices {
                     )
                   : data.latestMessage,
               } as ConversationProps;
-              callback?.(message);
             }
+            callback?.(message, change.type);
           }
         }
       });
   };
-
-  listenConversationDelete = (callback: (id: string) => void) =>
-    firestore()
-      .collection(
-        this.getUrlWithPrefix(
-          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-        )
-      )
-      .onSnapshot(function (snapshot) {
-        if (snapshot) {
-          snapshot.docChanges().forEach(function (change) {
-            if (change.type === 'removed') {
-              callback?.(change.doc.id);
-            }
-          });
-        }
-      });
 
   checkConversationExist = async (id: string) => {
     const conversation = await firestore()
