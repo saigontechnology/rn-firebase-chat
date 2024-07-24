@@ -138,6 +138,10 @@ export const convertExtension = (file: Asset | undefined): string => {
   }
 };
 
+export const getAbsoluteFilePath = (path: string) => {
+  return path?.startsWith?.('file:/') ? path : `file://${path}`;
+};
+
 export {
   formatMessageData,
   formatdecryptedMessageData,
