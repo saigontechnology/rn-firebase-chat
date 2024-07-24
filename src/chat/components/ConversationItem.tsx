@@ -4,7 +4,11 @@
 import React, { useMemo } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { MessageTypes, type ConversationProps } from '../../interfaces';
+import {
+  IUserInfo,
+  MessageTypes,
+  type ConversationProps,
+} from '../../interfaces';
 import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
@@ -16,6 +20,7 @@ export interface IConversationItemProps {
   lastMessageStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
   renderMessage?: () => React.ReactNode;
+  userInfo: IUserInfo | null;
 }
 
 export const ConversationItem: React.FC<IConversationItemProps> = ({
@@ -27,6 +32,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   lastMessageStyle,
   CustomImage,
   renderMessage,
+  userInfo,
 }) => {
   const Avatar = CustomImage ?? Image;
 
@@ -34,6 +40,35 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     if (!data.image) return randomColor(data.name || '');
     return undefined;
   }, [data.image, data.name]);
+
+  const getInitialsChat = (type: string | undefined): string => {
+    if (!data?.latestMessage || !type) return '';
+
+    const { latestMessage } = data;
+    const { senderId, text } = latestMessage;
+    const isCurrentUser = senderId === userInfo?.id;
+
+    const getMessageText = (messageType: string): string => {
+      const senderInfo = `${
+        isCurrentUser ? 'You' : data.latestMessage?.name
+      } sent a`;
+
+      switch (messageType) {
+        case MessageTypes.text:
+          return text;
+        case MessageTypes.image:
+          return `${senderInfo} Photo`;
+        case MessageTypes.video:
+          return `${senderInfo} Video`;
+        case MessageTypes.voice:
+          return `${senderInfo} Voice`;
+        default:
+          return '';
+      }
+    };
+
+    return getMessageText(type);
+  };
 
   return (
     <TouchableOpacity
@@ -64,11 +99,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
               numberOfLines={1}
             >
-              {data?.latestMessage?.type === MessageTypes.text
-                ? data?.latestMessage?.text
-                : data?.latestMessage?.type === MessageTypes.image
-                ? 'Photo'
-                : 'Video'}
+              {getInitialsChat(data?.latestMessage?.type)}
             </Text>
           </View>
         )}
