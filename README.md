@@ -95,7 +95,23 @@ export const ChatScreen: React.FC = () => {
 
 ```
 
+## Features
 
+#### Delete conversation
+- Use `useConversation` hook to get `deleteConversation` function.
+
+```typescript
+import {useConversation} from 'rn-firebase-chat';
+
+const {deleteConversation} = useConversation();
+
+await deleteConversation(conversationId, true);
+```
+
+| Parameter | Type              | Description  |
+| :-------- | :---------------- | :----------- |
+| `conversationId`      | `string` | **Required** |
+| `softDelete`     | `boolean`         | Can be null. If `true`, just delete the conversation from user's list. Else, completely delete all the messages and from lists of other members as well  |
 
 ## Contributing
 
