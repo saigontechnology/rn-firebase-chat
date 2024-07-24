@@ -676,7 +676,7 @@ export class FirestoreServices {
           const doc = firestore()
             .collection(
               this.getUrlWithPrefix(
-                `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+                `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
               )
             )
             .doc(conversationId);
