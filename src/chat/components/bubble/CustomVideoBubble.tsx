@@ -1,9 +1,29 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Image,
+  TouchableOpacity,
+  ViewStyle,
+  StyleProp,
+  ImageStyle,
+} from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
-import { CustomImageVideoBubbleProps } from './CustomImageBubble';
+import { type MessageProps } from '../../../interfaces';
 
-export const CustomVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
+export interface CustomVideoBubbleProps {
+  message: MessageProps;
+  position: 'left' | 'right';
+  onSelectImgVideoUrl: (url: string) => void;
+  playIcon?: string;
+  bubbleContainerStyle?: StyleProp<ViewStyle>;
+  bubbleStyle?: StyleProp<ViewStyle>;
+  videoContainerStyle?: StyleProp<ViewStyle>;
+  videoStyle?: StyleProp<ViewStyle>;
+  playIconStyle?: StyleProp<ImageStyle>;
+}
+
+export const CustomVideoBubble: React.FC<CustomVideoBubbleProps> = ({
   position,
   message,
   playIcon = require('../../../images/play.png'),

@@ -4,21 +4,24 @@ import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
   CustomImageBubble,
-  CustomImageVideoBubbleProps,
+  CustomImageBubbleProps,
+  CustomVideoBubbleProps,
   CustomVideoBubble,
 } from '.';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageBubbleProps: CustomImageBubbleProps;
+  customVideoBubbleProps: CustomVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
   bubbleMessage,
   position,
-  customImageVideoBubbleProps,
+  customImageBubbleProps,
+  customVideoBubbleProps,
   onSelectedMessage,
 }) => {
   const styleBubble = {
@@ -35,7 +38,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             renderCustomView={() =>
               currentMessage && (
                 <CustomImageBubble
-                  {...customImageVideoBubbleProps}
+                  {...customImageBubbleProps}
                   message={currentMessage}
                   onSelectImgVideoUrl={(message) => {
                     console.log('message: ', message);
@@ -55,7 +58,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             renderCustomView={() =>
               currentMessage && (
                 <CustomVideoBubble
-                  {...customImageVideoBubbleProps}
+                  {...customVideoBubbleProps}
                   message={currentMessage}
                   onSelectImgVideoUrl={(message) => {
                     console.log('message: ', message);

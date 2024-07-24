@@ -5,27 +5,22 @@ import {
   Pressable,
   ViewStyle,
   StyleProp,
-  ImageStyle,
 } from 'react-native';
 import FastImage, {
   type ImageStyle as FastImageStyle,
 } from 'react-native-fast-image';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 
-export interface CustomImageVideoBubbleProps {
+export interface CustomImageBubbleProps {
   message: MessageProps;
   position: 'left' | 'right';
   onSelectImgVideoUrl: (url: string) => void;
-  playIcon?: string;
   bubbleContainerStyle?: StyleProp<ViewStyle>;
   bubbleStyle?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<FastImageStyle>;
-  videoContainerStyle?: StyleProp<ViewStyle>;
-  videoStyle?: StyleProp<ViewStyle>;
-  playIconStyle?: StyleProp<ImageStyle>;
 }
 
-export const CustomImageBubble: React.FC<CustomImageVideoBubbleProps> = ({
+export const CustomImageBubble: React.FC<CustomImageBubbleProps> = ({
   position,
   message,
   onSelectImgVideoUrl,
