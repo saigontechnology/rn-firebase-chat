@@ -341,27 +341,24 @@ export class FirestoreServices {
       .then();
   };
 
-  changeReadMessage = () => {
-    if (!this.conversationId) {
-      throw new Error(
-        'Please create conversation before send the first message!'
-      );
+  changeReadMessage = async (messageId: string, userId?: string) => {
+    if (!userId || !this.conversationId) {
+      return;
     }
-    if (this.userId) {
-      firestore()
-        .collection(
-          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
-        )
-        .doc(this.conversationId)
-        .set(
-          {
-            unRead: {
-              [this.userId]: 0,
-            },
-          },
-          { merge: true }
-        )
-        .then();
+    let conversationRef = firestore()
+      .collection(`${FireStoreCollection.conversations}`)
+      .doc(this.conversationId);
+
+    try {
+      await firestore().runTransaction(async (transaction) => {
+        const doc = await transaction.get(conversationRef);
+        let unRead = doc.exists ? doc.data()?.unRead ?? {} : {};
+
+        unRead[userId] = messageId;
+        transaction.set(conversationRef, { unRead }, { merge: true });
+      });
+    } catch (error) {
+      console.error('Error updating unread message ID: ', error);
     }
   };
 

@@ -23,6 +23,7 @@ import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type {
+  ConversationData,
   ConversationProps,
   CustomConversationInfo,
   IUserInfo,
@@ -79,6 +80,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -97,6 +99,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
         setHasMoreMessages(res.length === maxPageSize);
+        const firstMessage = res?.length > 0 && res[0];
+        if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+          firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+        }
         onLoadEnd?.();
       });
     }
@@ -108,6 +114,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     memberIds,
     partners,
     maxPageSize,
+    userInfo?.id,
   ]);
 
   const onSend = useCallback(
@@ -174,6 +181,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   }, [chatDispatch, firebaseInstance]);
 
   useEffect(() => {
+    let userConversation: () => void;
+    userConversation = firebaseInstance.userConversationListener(
+      (data: ConversationData | undefined) => {
+        if (userInfo?.id) {
+          const unReads = data?.unRead ?? {};
+          const latestMessageID = unReads[userInfo.id];
+          const hasUnreadMessages = Object.entries(unReads).some(
+            ([_, value]) => value !== latestMessageID
+          );
+          console.log('hasUnreadMessages: ', hasUnreadMessages);
+
+          setUserUnreadMessage(hasUnreadMessages);
+          //handle clear timeout message [FC-8]
+          // if (!hasUnreadMessages && timeoutMessageRef.current) {
+          //   clearTimeout(timeoutMessageRef.current);
+          //   timeoutMessageRef.current = null;
+          // }
+        }
+      }
+    );
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners, userInfo?.id]);
+
+  useEffect(() => {
     let receiveMessageRef: () => void;
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
@@ -183,6 +219,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
+
+          firebaseInstance.changeReadMessage(message.id, userInfo?.id);
         }
       );
     }
@@ -242,6 +280,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         }}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
+        userUnreadMessage={userUnreadMessage}
       />
     );
   };

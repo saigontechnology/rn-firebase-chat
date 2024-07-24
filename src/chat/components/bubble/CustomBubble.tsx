@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
@@ -12,6 +12,7 @@ interface CustomBubbleProps {
   position: 'left' | 'right';
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
+  userUnreadMessage: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -19,6 +20,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   position,
   customImageVideoBubbleProps,
   onSelectedMessage,
+  userUnreadMessage,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -26,31 +28,51 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   };
 
   const renderBubble = (currentMessage: MessageProps) => {
+    const isMyLatestMessage =
+      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
+      position === 'right';
+    const ViewRead = isMyLatestMessage && (
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusText}>
+          {userUnreadMessage ? 'Sent' : 'Seen'}
+        </Text>
+      </View>
+    );
+
     switch (currentMessage?.type) {
       case MessageTypes.image:
       case MessageTypes.video:
         return (
-          <Bubble
-            {...bubbleMessage}
-            renderCustomView={() =>
-              currentMessage && (
-                <CustomImageVideoBubble
-                  {...customImageVideoBubbleProps}
-                  message={currentMessage}
-                  onSelectImgVideoUrl={(message) => {
-                    console.log('message: ', message);
-                    //TODO: handle image/video press
-                  }}
-                  position={position}
-                />
-              )
-            }
-            wrapperStyle={styleBuble}
-          />
+          <View>
+            <Bubble
+              {...bubbleMessage}
+              renderCustomView={() =>
+                currentMessage && (
+                  <CustomImageVideoBubble
+                    {...customImageVideoBubbleProps}
+                    message={currentMessage}
+                    onSelectImgVideoUrl={(message) => {
+                      console.log('message: ', message);
+                      //TODO: handle image/video press
+                    }}
+                    position={position}
+                  />
+                )
+              }
+              wrapperStyle={styleBuble}
+            />
+            {ViewRead}
+          </View>
         );
 
-      default:
-        return <Bubble {...bubbleMessage} />;
+      default: {
+        return (
+          <View>
+            <Bubble {...bubbleMessage} />
+            {ViewRead}
+          </View>
+        );
+      }
     }
   };
 
@@ -69,5 +91,19 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  statusContainer: {
+    backgroundColor: '#a9a9a9',
+    borderRadius: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  statusText: {
+    fontSize: 12,
+    color: 'white',
   },
 });

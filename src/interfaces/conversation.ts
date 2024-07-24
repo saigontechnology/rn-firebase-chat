@@ -37,10 +37,15 @@ enum MessageTypes {
 }
 
 enum MessageStatus {
-  sending,
   sent,
+  received,
+  seen,
   failed,
-  read,
+}
+
+interface ConversationData {
+  unRead?: { [key: string]: number };
+  typing?: { [key: string]: boolean };
 }
 
 export {
@@ -49,4 +54,5 @@ export {
   MessageTypes,
   MessageStatus,
   CustomConversationInfo,
+  ConversationData,
 };
