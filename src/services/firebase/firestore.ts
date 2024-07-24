@@ -603,15 +603,14 @@ export class FirestoreServices {
           }
         }
       });
+  };
 
   listenConversationDelete = (callback: (id: string) => void) =>
     firestore()
       .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.users}`
-            : FireStoreCollection.users
-        }/${this.userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
       )
       .onSnapshot(function (snapshot) {
         if (snapshot) {
@@ -626,7 +625,9 @@ export class FirestoreServices {
   checkConversationExist = async (id: string) => {
     const conversation = await firestore()
       .collection(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
       )
       .doc(id)
       .get();
@@ -646,31 +647,62 @@ export class FirestoreServices {
       const isConversationExist = await this.checkConversationExist(
         conversationId
       );
-      if (!isConversationExist) return false;
+      if (!isConversationExist) {
+        throw new Error('Conversation does not exist!');
+      }
 
-      /** Delete latest message of that conversation for user */
-      await firestore()
+      /** Get conversation ref from current user's conversations collection */
+      const userConversation = firestore()
         .collection(
-          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
         )
-        .doc(conversationId)
-        .delete();
+        .doc(conversationId);
+
+      /** Get ID array of conversation's partners (exclude current user) */
+      const partnerIds = (
+        (await userConversation.get())?.data() as ConversationProps
+      )?.members?.filter((e) => e !== this.userId);
+
+      /** Delete latest message of that conversation for user (exclude from list) */
+      await userConversation.delete();
       if (softDelete) return true;
 
-      /** Delete the conversation collection including all its messages */
-      const batch = firestore().batch();
-      const collectionRef = firestore()
-        .collection(`${FireStoreCollection.conversations}`)
+      /** Delete latest message of that conversation for all other partners */
+      const partnerBatch = firestore().batch();
+      partnerIds?.forEach(async (id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              this.getUrlWithPrefix(
+                `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+              )
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
+      });
+
+      /** Delete all messages of the conversation */
+      const messageBatch = firestore().batch();
+      const conversationRef = firestore()
+        .collection(FireStoreCollection.conversations)
         .doc(conversationId);
-      const messages = await collectionRef
+      const messages = await conversationRef
         .collection(FireStoreCollection.messages)
         .get();
-      messages.forEach((message) => batch.delete(message.ref));
+      messages.forEach((message) => messageBatch.delete(message.ref));
 
-      await batch.commit();
-      await collectionRef.delete();
+      await partnerBatch.commit();
+      await messageBatch.commit();
+      await conversationRef.delete();
+
       return true;
     } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
       return false;
     }
   };

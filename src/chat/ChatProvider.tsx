@@ -50,9 +50,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         );
       });
     }
+
     return () => {
       unsubscribeUpdateListener();
       unsubscribeDeleteListener();
+    };
   }, [userInfo]);
 
   useEffect(() => {
