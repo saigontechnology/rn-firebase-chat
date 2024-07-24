@@ -3,24 +3,28 @@ import { StyleSheet, View } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
-  CustomImageVideoBubble,
-  CustomImageVideoBubbleProps,
-} from './CustomImageVideoBubble';
+  CustomImageBubble,
+  CustomImageBubbleProps,
+  CustomVideoBubbleProps,
+  CustomVideoBubble,
+} from '.';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageBubbleProps: CustomImageBubbleProps;
+  customVideoBubbleProps: CustomVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
   bubbleMessage,
   position,
-  customImageVideoBubbleProps,
+  customImageBubbleProps,
+  customVideoBubbleProps,
   onSelectedMessage,
 }) => {
-  const styleBuble = {
+  const styleBubble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
   };
@@ -28,24 +32,43 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   const renderBubble = (currentMessage: MessageProps) => {
     switch (currentMessage?.type) {
       case MessageTypes.image:
+        return (
+          <Bubble
+            {...bubbleMessage}
+            renderCustomView={() =>
+              currentMessage && (
+                <CustomImageBubble
+                  {...customImageBubbleProps}
+                  message={currentMessage}
+                  onSelectImgVideoUrl={(message) => {
+                    console.log('message: ', message);
+                    //TODO: handle image press
+                  }}
+                  position={position}
+                />
+              )
+            }
+            wrapperStyle={styleBubble}
+          />
+        );
       case MessageTypes.video:
         return (
           <Bubble
             {...bubbleMessage}
             renderCustomView={() =>
               currentMessage && (
-                <CustomImageVideoBubble
-                  {...customImageVideoBubbleProps}
+                <CustomVideoBubble
+                  {...customVideoBubbleProps}
                   message={currentMessage}
                   onSelectImgVideoUrl={(message) => {
                     console.log('message: ', message);
-                    //TODO: handle image/video press
+                    //TODO: handle video press
                   }}
                   position={position}
                 />
               )
             }
-            wrapperStyle={styleBuble}
+            wrapperStyle={styleBubble}
           />
         );
 

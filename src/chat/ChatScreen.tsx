@@ -34,7 +34,11 @@ import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
-import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
+import {
+  CustomBubble,
+  CustomImageBubbleProps,
+  CustomVideoBubbleProps,
+} from './components/bubble';
 import { clearConversation } from '../reducer';
 
 interface ChatScreenProps extends GiftedChatProps {
@@ -49,7 +53,8 @@ interface ChatScreenProps extends GiftedChatProps {
   hasGallery?: boolean;
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageBubbleProps: CustomImageBubbleProps;
+  customVideoBubbleProps: CustomVideoBubbleProps;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -62,7 +67,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   renderComposer,
   inputToolbarProps,
   customConversationInfo,
-  customImageVideoBubbleProps,
+  customImageBubbleProps,
+  customVideoBubbleProps,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -240,7 +246,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onSelectedMessage={() => {
           //TODO: handle image/video press
         }}
-        customImageVideoBubbleProps={customImageVideoBubbleProps}
+        CustomImageBubbleProps={customImageBubbleProps}
+        customVideoBubbleProps={customVideoBubbleProps}
         position={bubble.position}
       />
     );
