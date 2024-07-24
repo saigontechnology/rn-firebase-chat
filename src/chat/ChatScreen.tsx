@@ -28,13 +28,14 @@ import type {
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageData } from '../utilities';
+import { formatMessageText } from '../utilities';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
+import { clearConversation } from '../reducer';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -64,7 +65,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   customImageVideoBubbleProps,
   ...props
 }) => {
-  const { userInfo } = useChatContext();
+  const { userInfo, chatDispatch } = useChatContext();
   const conversation = useChatSelector(getConversation);
 
   const conversationInfo = useMemo(() => {
@@ -114,11 +115,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       /** If the conversation not created yet. it will create at the first message sent */
       isLoadingRef.current = false;
       if (!conversationRef.current?.id) {
+        const newConversationInfo = {
+          id: '',
+          name: partners[0]?.name,
+          image: partners[0]?.avatar,
+          ...(customConversationInfo || {}),
+        };
+        // We identify a group chat if the conversation have custom-info
+        let isGroup = !!customConversationInfo;
         conversationRef.current = await firebaseInstance.createConversation(
-          customConversationInfo?.id || '',
+          newConversationInfo.id,
           memberIds,
-          customConversationInfo?.name || partners[0]?.name,
-          customConversationInfo?.image || partners[0]?.avatar
+          newConversationInfo?.name,
+          newConversationInfo?.image,
+          isGroup
         );
         firebaseInstance.setConversationInfo(
           conversationRef.current?.id,
@@ -127,8 +137,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         );
       }
       /** Add new message to message list  */
+      const regexBlacklist = firebaseInstance.getRegexBlacklist();
+      const convertMessage = regexBlacklist
+        ? await formatMessageText(messages, regexBlacklist)
+        : messages;
       setMessagesList((previousMessages) =>
-        GiftedChat.append(previousMessages, [messages])
+        GiftedChat.append(previousMessages, [convertMessage as MessageProps])
       );
 
       await firebaseInstance.sendMessage(messages);
@@ -155,8 +169,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
+      chatDispatch?.(clearConversation());
     };
-  }, [firebaseInstance]);
+  }, [chatDispatch, firebaseInstance]);
 
   useEffect(() => {
     let receiveMessageRef: () => void;
@@ -164,13 +179,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
           if (userInfo && message.senderId !== userInfo.id) {
-            const userInfoIncomming = {
-              id: message.id,
-              name: message.senderId,
-            } as IUserInfo;
-            const formatMessage = formatMessageData(message, userInfoIncomming);
             setMessagesList((previousMessages) =>
-              GiftedChat.append(previousMessages, [formatMessage])
+              GiftedChat.append(previousMessages, [message])
             );
           }
         }

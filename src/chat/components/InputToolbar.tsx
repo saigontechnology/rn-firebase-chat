@@ -97,39 +97,37 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <View>
-        {renderLeftCustomView && renderLeftCustomView()}
-        {hasCamera && (
-          <PressableIcon
-            icon={cameraIcon}
-            iconStyle={flattenedIconStyle}
-            onPress={onPressCamera}
+      {renderLeftCustomView && renderLeftCustomView()}
+      {hasCamera && (
+        <PressableIcon
+          icon={cameraIcon}
+          iconStyle={flattenedIconStyle}
+          onPress={onPressCamera}
+        />
+      )}
+      {hasGallery && (
+        <PressableIcon
+          onPress={onPressGallery || openGallery}
+          icon={galleryIcon}
+          iconStyle={flattenedIconStyle}
+        />
+      )}
+      <View style={[styles.composeWrapper, composeWrapperStyle]}>
+        <ScrollView scrollEnabled={false}>
+          <Composer
+            {...props}
+            textInputStyle={[styles.textInput, composerTextInputStyle]}
           />
-        )}
-        {hasGallery && (
-          <PressableIcon
-            onPress={onPressGallery || openGallery}
-            icon={galleryIcon}
-            iconStyle={flattenedIconStyle}
-          />
-        )}
-        <View style={[styles.composeWrapper, composeWrapperStyle]}>
-          <ScrollView scrollEnabled={false}>
-            <Composer
-              {...props}
-              textInputStyle={[styles.textInput, composerTextInputStyle]}
-            />
-          </ScrollView>
-        </View>
-        {!!text && (
-          <PressableIcon
-            iconStyle={flattenedIconStyle}
-            onPress={() => onSend?.({ text: text }, true)}
-            icon={iconSend}
-          />
-        )}
-        {renderRightCustomView && renderRightCustomView()}
+        </ScrollView>
       </View>
+      {!!text && (
+        <PressableIcon
+          iconStyle={flattenedIconStyle}
+          onPress={() => onSend?.({ text: text }, true)}
+          icon={iconSend}
+        />
+      )}
+      {renderRightCustomView && renderRightCustomView()}
     </View>
   );
 };

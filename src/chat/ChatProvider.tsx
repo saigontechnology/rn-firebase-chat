@@ -20,6 +20,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   userInfo,
   children,
   enableEncrypt = false,
+  encryptKey = '',
+  blackListWords,
+  encryptionOptions,
+  encryptionFuncProps,
   prefix = '',
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
@@ -48,12 +52,22 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     }
     return () => {
       unsubscribeUpdateListener();
-    };
+      unsubscribeDeleteListener();
   }, [userInfo]);
 
   useEffect(() => {
-    firestoreServices.configuration({ enableEncrypt });
-  }, [enableEncrypt]);
+    encryptionFuncProps &&
+      firestoreServices.createEncryptionsFunction(encryptionFuncProps);
+    firestoreServices.configuration({
+      encryptKey,
+      enableEncrypt,
+      encryptionOptions,
+    });
+  }, [encryptKey, enableEncrypt, encryptionOptions, encryptionFuncProps]);
+
+  useEffect(() => {
+    firestoreServices.configuration({ blackListWords });
+  }, [blackListWords]);
 
   useEffect(() => {
     firestoreServices.configuration({ prefix });
@@ -65,6 +79,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         userInfo,
         chatState: state,
         chatDispatch: dispatch,
+        blackListWords,
       }}
     >
       {children}

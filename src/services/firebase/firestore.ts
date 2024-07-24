@@ -7,11 +7,16 @@ import {
   encryptData,
   formatLatestMessage,
   formatMessageData,
+  formatMessageText,
   formatSendMessage,
-  generateKey,
+  generateBadWordsRegex,
+  generateEncryptionKey,
+  getCurrentTimestamp,
 } from '../../utilities';
 import {
   ConversationProps,
+  EncryptionFunctions,
+  EncryptionOptions,
   FireStoreCollection,
   FirestoreReference,
   MessageTypes,
@@ -27,6 +32,9 @@ interface FirestoreProps {
   enableEncrypt?: boolean;
   encryptKey?: string;
   memberIds?: string[];
+  blackListWords?: string[];
+  encryptionOptions?: EncryptionOptions;
+  encryptionFuncProps?: EncryptionFunctions;
   prefix?: string;
 }
 
@@ -37,7 +45,13 @@ export class FirestoreServices {
   userInfo: IUserInfo | undefined;
   enableEncrypt: boolean | undefined;
   encryptKey: string = '';
+  regexBlacklist: RegExp | undefined;
   prefix = '';
+
+  /** Encryption function */
+  generateKeyFunctionProp: ((key: string) => Promise<string>) | undefined;
+  encryptFunctionProp: ((text: string) => Promise<string>) | undefined;
+  decryptFunctionProp: ((text: string) => Promise<string>) | undefined;
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -68,27 +82,56 @@ export class FirestoreServices {
     return FirestoreServices.instance;
   };
 
-  configuration = ({
+  createEncryptionsFunction = (functions: EncryptionFunctions) => {
+    this.generateKeyFunctionProp = functions.generateKeyFunctionProp;
+    this.encryptFunctionProp = functions.encryptFunctionProp;
+    this.decryptFunctionProp = functions.decryptFunctionProp;
+  };
+
+  configuration = async ({
     userInfo,
     enableEncrypt,
     encryptKey,
+    blackListWords,
+    encryptionOptions,
     prefix,
   }: FirestoreProps) => {
     if (userInfo) {
       this.userInfo = userInfo;
     }
+
+    if (blackListWords) {
+      this.regexBlacklist = generateBadWordsRegex(blackListWords);
+    }
+
     if (enableEncrypt && encryptKey) {
       this.enableEncrypt = enableEncrypt;
-      generateKey(encryptKey, 'salt', 5000, 256).then((res) => {
-        this.encryptKey = res;
-      });
+      this.encryptKey = this.generateKeyFunctionProp
+        ? await this.generateKeyFunctionProp(encryptKey)
+        : await generateEncryptionKey(encryptKey, encryptionOptions);
     }
+
     if (prefix) {
       this.prefix = prefix;
     }
   };
 
-  getConfiguration = <K extends keyof FirestoreProps>(key: K) => this[key];
+  getRegexBlacklist = () => {
+    return this.regexBlacklist;
+  };
+
+  getUrlWithPrefix = (url: string) =>
+    this.prefix ? `${this.prefix}-${url}` : url;
+
+  // We remove 'blackListWords' because the prop is converted to 'regexBlacklist'
+  getConfiguration = <
+    K extends keyof Omit<
+      FirestoreProps,
+      'blackListWords' | 'encryptionOptions' | 'encryptionFuncProps'
+    >
+  >(
+    key: K
+  ) => this[key];
 
   setConversationInfo = (
     conversationId: string,
@@ -117,12 +160,13 @@ export class FirestoreServices {
     conversationId: string,
     memberIds: string[],
     name?: string,
-    image?: string
+    image?: string,
+    isGroup?: boolean
   ): Promise<ConversationProps> => {
     let conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      updatedAt: Date.now(),
+      updatedAt: getCurrentTimestamp(),
     };
 
     if (image) {
@@ -132,11 +176,9 @@ export class FirestoreServices {
     let conversationRef: FirestoreReference = firestore().collection<
       Partial<ConversationProps>
     >(
-      `${
-        this.prefix
-          ? `${this.prefix}-${FireStoreCollection.users}`
-          : FireStoreCollection.users
-      }/${this.userId}/${FireStoreCollection.conversations}`
+      this.getUrlWithPrefix(
+        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+      )
     );
     /** Create the conversation to the user who create the chat */
     if (conversationId) {
@@ -148,16 +190,25 @@ export class FirestoreServices {
     /** Add the conversation to the user who is conversation's member */
     await Promise.all([
       memberIds.map((memberId) => {
+        const otherMemberConversationData = isGroup
+          ? conversationData
+          : /**
+             * If this is 1-on-1 chat
+             * We map conversation info of other people with this user info
+             */
+            {
+              ...conversationData,
+              name: this.userInfo?.name,
+              image: this.userInfo?.avatar,
+            };
         return firestore()
           .collection(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.users}`
-                : FireStoreCollection.users
-            }/${memberId}/${FireStoreCollection.conversations}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
+            )
           )
           .doc(conversationRef.id)
-          .set(conversationData);
+          .set(otherMemberConversationData);
       }),
     ]);
 
@@ -185,11 +236,9 @@ export class FirestoreServices {
 
       const messageRef = firestore()
         .collection<SendMessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .add(message);
 
@@ -231,18 +280,18 @@ export class FirestoreServices {
       messageData = formatSendMessage(this.userId, text);
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey) {
-        messageData.text = await encryptData(text, this.encryptKey);
+        messageData.text = this.encryptFunctionProp
+          ? await this.encryptFunctionProp(text)
+          : await encryptData(text, this.encryptKey);
       }
 
       try {
         /** Send message to collection conversation by id */
         await firestore()
           .collection<SendMessageProps>(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.conversations}`
-                : FireStoreCollection.conversations
-            }/${this.conversationId}/${FireStoreCollection.messages}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            )
           )
           .add(messageData);
 
@@ -272,17 +321,15 @@ export class FirestoreServices {
     /** Update latest message for each member */
     firestore()
       .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.users}`
-            : FireStoreCollection.users
-        }/${userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        )
       )
       .doc(this.conversationId)
       .set(
         {
           latestMessage: latestMessageData,
-          updatedAt: Date.now(),
+          updatedAt: getCurrentTimestamp(),
         },
         { merge: true }
       )
@@ -298,11 +345,7 @@ export class FirestoreServices {
     if (this.userId) {
       firestore()
         .collection(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }`
+          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
         )
         .doc(this.conversationId)
         .set(
@@ -326,23 +369,29 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
         .get();
-      querySnapshot.forEach((doc) => {
+      for (const doc of querySnapshot.docs) {
         const data = { ...doc.data(), id: doc.id };
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(formatMessageData(data, userInfo));
-      });
+        listMessage.push(
+          await formatMessageData(
+            data,
+            userInfo,
+            this.regexBlacklist,
+            this.encryptKey,
+            this.decryptFunctionProp
+          )
+        );
+      }
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
       }
@@ -359,24 +408,31 @@ export class FirestoreServices {
       }
       const querySnapshot = await firestore()
         .collection<MessageProps>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }/${this.conversationId}/${FireStoreCollection.messages}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
         )
         .orderBy('createdAt', 'desc')
         .limit(maxPageSize)
         .startAfter(this.messageCursor)
         .get();
-      querySnapshot.forEach((doc) => {
+
+      for (const doc of querySnapshot.docs) {
         const data = { ...doc.data(), id: doc.id };
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(formatMessageData(data, userInfo));
-      });
+        listMessage.push(
+          await formatMessageData(
+            data,
+            userInfo,
+            this.regexBlacklist,
+            this.encryptKey,
+            this.decryptFunctionProp
+          )
+        );
+      }
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
       }
@@ -387,19 +443,31 @@ export class FirestoreServices {
   receiveMessageListener = (callBack: (message: any) => void) => {
     return firestore()
       .collection<MessageProps>(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.conversations}`
-            : FireStoreCollection.conversations
-        }/${this.conversationId}/${FireStoreCollection.messages}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+        )
       )
-      .onSnapshot((snapshot) => {
+      .where('createdAt', '>', getCurrentTimestamp())
+      .onSnapshot(async (snapshot) => {
         if (snapshot) {
-          snapshot.docChanges().forEach((change) => {
+          for (const change of snapshot.docChanges()) {
             if (change.type === 'added') {
-              callBack({ ...change.doc.data(), id: change.doc.id });
+              const data = { ...change.doc.data(), id: change.doc.id };
+              const userInfo =
+                data.senderId === this.userInfo?.id
+                  ? this.userInfo
+                  : (this.partners?.[change.doc.data().senderId] as IUserInfo);
+              callBack(
+                await formatMessageData(
+                  data,
+                  userInfo,
+                  this.regexBlacklist,
+                  this.encryptKey,
+                  this.decryptFunctionProp
+                )
+              );
             }
-          });
+          }
         }
       });
   };
@@ -413,13 +481,7 @@ export class FirestoreServices {
       );
     }
     return firestore()
-      .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.conversations}`
-            : FireStoreCollection.conversations
-        }`
-      )
+      .collection(this.getUrlWithPrefix(`${FireStoreCollection.conversations}`))
       .doc(this.conversationId)
       .onSnapshot((snapshot) => {
         if (snapshot) {
@@ -433,11 +495,9 @@ export class FirestoreServices {
       if (this.conversationId) {
         firestore()
           .collection<MessageProps>(
-            `${
-              this.prefix
-                ? `${this.prefix}-${FireStoreCollection.conversations}`
-                : FireStoreCollection.conversations
-            }/${this.conversationId}/${FireStoreCollection.messages}`
+            this.getUrlWithPrefix(
+              `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+            )
           )
           .count()
           .get()
@@ -459,11 +519,7 @@ export class FirestoreServices {
     if (this.userId) {
       return firestore()
         .collection(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.conversations}`
-              : FireStoreCollection.conversations
-          }`
+          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
         )
         .doc(this.conversationId)
         .set(
@@ -487,45 +543,64 @@ export class FirestoreServices {
     return new Promise((resolve) =>
       firestore()
         .collection<Partial<ConversationProps>>(
-          `${
-            this.prefix
-              ? `${this.prefix}-${FireStoreCollection.users}`
-              : FireStoreCollection.users
-          }/${this.userId}/${FireStoreCollection.conversations}`
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
         )
         .orderBy('updatedAt', 'desc')
         .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach(function (doc) {
-            listChannels.push({
-              ...(doc.data() as ConversationProps),
-              id: doc.id,
-            });
-          });
+        .then(async (querySnapshot) => {
+          for (const doc of querySnapshot.docs) {
+            const data = { ...doc.data(), id: doc.id };
+            const message = {
+              ...data,
+              latestMessage: data.latestMessage
+                ? await formatMessageText(
+                    data?.latestMessage,
+                    this.regexBlacklist,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
+                : data.latestMessage,
+            } as ConversationProps;
+            listChannels.push(message);
+          }
           resolve(listChannels);
         })
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) =>
-    firestore()
+  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+    const regex = this.regexBlacklist;
+
+    return firestore()
       .collection(
-        `${
-          this.prefix
-            ? `${this.prefix}-${FireStoreCollection.users}`
-            : FireStoreCollection.users
-        }/${this.userId}/${FireStoreCollection.conversations}`
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
       )
-      .onSnapshot(function (snapshot) {
+      .onSnapshot(async (snapshot) => {
         if (snapshot) {
-          snapshot.docChanges().forEach(function (change) {
+          for (const change of snapshot.docChanges()) {
             if (change.type === 'modified') {
-              callback?.({
+              const data = {
                 ...(change.doc.data() as ConversationProps),
                 id: change.doc.id,
-              });
+              };
+              const message = {
+                ...data,
+                latestMessage: data.latestMessage
+                  ? await formatMessageText(
+                      data?.latestMessage,
+                      regex,
+                      this.encryptKey,
+                      this.decryptFunctionProp
+                    )
+                  : data.latestMessage,
+              } as ConversationProps;
+              callback?.(message);
             }
-          });
+          }
         }
       });
 
