@@ -24,9 +24,7 @@ interface ConversationProps extends BaseEntity {
   typing?: {
     [userId: string]: boolean;
   };
-  unRead?: {
-    [userId: string]: number;
-  };
+  unRead?: number;
 }
 
 enum MessageTypes {
@@ -44,7 +42,7 @@ enum MessageStatus {
 }
 
 interface ConversationData {
-  unRead?: { [key: string]: number };
+  unRead?: { [key: string]: string };
   typing?: { [key: string]: boolean };
 }
 

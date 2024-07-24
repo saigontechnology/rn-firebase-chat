@@ -88,6 +88,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
+  // Fetch latest conversation and messages data
   useEffect(() => {
     if (conversationInfo?.id) {
       onStartLoad?.();
@@ -173,6 +174,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   }, [maxPageSize, firebaseInstance]);
 
+  // Clear conversation data when exit ChatScreen
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
@@ -180,6 +182,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [chatDispatch, firebaseInstance]);
 
+  // Listener of current conversation data
   useEffect(() => {
     let userConversation: () => void;
     userConversation = firebaseInstance.userConversationListener(
@@ -190,8 +193,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           const hasUnreadMessages = Object.entries(unReads).some(
             ([_, value]) => value !== latestMessageID
           );
-          console.log('hasUnreadMessages: ', hasUnreadMessages);
-
           setUserUnreadMessage(hasUnreadMessages);
           //handle clear timeout message [FC-8]
           // if (!hasUnreadMessages && timeoutMessageRef.current) {
@@ -209,6 +210,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, partners, userInfo?.id]);
 
+  // Listener of current conversation list messages
   useEffect(() => {
     let receiveMessageRef: () => void;
     if (conversationRef.current?.id) {
@@ -219,8 +221,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
-
-          firebaseInstance.changeReadMessage(message.id, userInfo?.id);
+          // await for unread number status to completely update before change unread data
+          setTimeout(
+            () => firebaseInstance.changeReadMessage(message.id, userInfo?.id),
+            500
+          );
         }
       );
     }
