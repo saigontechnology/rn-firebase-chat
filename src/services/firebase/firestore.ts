@@ -226,7 +226,7 @@ export class FirestoreServices {
         messageData = formatSendMessage(
           this.userId,
           text,
-          undefined,
+          message.type,
           undefined,
           undefined,
           undefined,
