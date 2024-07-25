@@ -105,13 +105,13 @@ import {useConversation} from 'rn-firebase-chat';
 
 const {deleteConversation} = useConversation();
 
-await deleteConversation(conversationId, true);
+await deleteConversation(conversationId, false);
 ```
 
 | Parameter | Type              | Description  |
 | :-------- | :---------------- | :----------- |
 | `conversationId`      | `string` | **Required** |
-| `softDelete`     | `boolean`         | Can be null. If `true`, just delete the conversation from user's list. Else, completely delete all the messages and from lists of other members as well  |
+| `forAllMembers`     | `boolean`         | Can be null. If `false`, just delete the conversation from user's list. Else, delete the conversation for all other members as well  |
 
 ## Contributing
 
