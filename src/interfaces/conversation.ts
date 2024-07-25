@@ -39,6 +39,8 @@ enum MessageTypes {
   voice = 'voice',
   video = 'video',
   document = 'document',
+  videoCall = 'videoCall',
+  voiceCall = 'voiceCall',
 }
 
 enum MessageStatus {

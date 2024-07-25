@@ -22,6 +22,7 @@ interface CustomBubbleProps {
   onSelectedMessage: (message: MessageProps) => void;
   onSetCurrentId: (id: string) => void;
   isCurrentlyPlaying: boolean;
+  renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -31,6 +32,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   onSelectedMessage,
   onSetCurrentId,
   isCurrentlyPlaying,
+  renderCallBubble,
 }) => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const styleBuble = {
@@ -114,6 +116,9 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             wrapperStyle={styleBuble}
           />
         );
+      case MessageTypes.videoCall:
+      case MessageTypes.voiceCall:
+        return renderCallBubble?.(bubbleMessage);
       default:
         return renderTextBubble();
     }

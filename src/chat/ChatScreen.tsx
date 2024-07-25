@@ -14,7 +14,6 @@ import {
   View,
   type ViewStyle,
   Keyboard,
-  Platform,
 } from 'react-native';
 import {
   type ComposerProps,
@@ -43,7 +42,7 @@ import type {
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
-import { CustomBubble, CustomBubbleVoice } from './components/bubble';
+import { CustomBubble } from './components/bubble';
 import VoiceRecorderModal, {
   VoiceRecorderModalRef,
 } from './components/VoiceRecorderModal';
@@ -73,6 +72,7 @@ interface ChatScreenProps extends GiftedChatProps {
   sendMessageNotification?: () => void;
   timeoutSendNotification?: number;
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
+  renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
 }
 
 export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
@@ -90,6 +90,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       sendMessageNotification,
       timeoutSendNotification = 0,
       customImageVideoBubbleProps,
+      renderCallBubble,
       ...props
     },
     ref
@@ -309,6 +310,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           isCurrentlyPlaying={
             currentPlayingMessageId === bubble.currentMessage?.id
           }
+          renderCallBubble={renderCallBubble}
         />
       );
     };
