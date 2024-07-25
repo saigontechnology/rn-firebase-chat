@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { formatTime } from '../../utilities';
-import { audioRecorderPlayer } from '../../Chat/components/VoiceRecorderModal';
+import { audioRecorderPlayer } from '../../chat/components/VoiceRecorderModal';
 
 interface PlayAudioProps {
   uri?: string;
