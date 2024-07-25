@@ -199,10 +199,16 @@ export class FirestoreServices {
         'Please create conversation before send the first message!'
       );
     }
-    const { text, type, path, extension, name, size, duration } = message;
+    const { text, type, path, extension, name, size, duration, callId } =
+      message;
     let messageData;
+    const isCallMessage = type === 'videoCall' || type === 'voiceCall';
 
-    if (!!message.type && message.type !== MessageTypes.text) {
+    if (
+      !!message.type &&
+      message.type !== MessageTypes.text &&
+      !isCallMessage
+    ) {
       messageData = formatSendMessage(
         this.userId,
         text,
@@ -216,7 +222,21 @@ export class FirestoreServices {
       this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
-      messageData = formatSendMessage(this.userId, text);
+      if (isCallMessage) {
+        messageData = formatSendMessage(
+          this.userId,
+          text,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          callId
+        );
+      } else {
+        messageData = formatSendMessage(this.userId, text);
+      }
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey) {
         messageData.text = await encryptData(text, this.encryptKey);

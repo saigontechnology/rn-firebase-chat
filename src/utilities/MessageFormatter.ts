@@ -75,7 +75,8 @@ const formatSendMessage = (
   extension?: string,
   name?: string,
   size?: string,
-  duration?: number
+  duration?: number,
+  callId?: string
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -90,6 +91,7 @@ const formatSendMessage = (
   name: name ?? '',
   size: size ?? '',
   duration: duration ?? 0,
+  callId,
 });
 
 const formatLatestMessage = (

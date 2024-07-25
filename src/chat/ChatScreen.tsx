@@ -331,7 +331,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     useImperativeHandle(
       ref,
       () => ({
-        sendMessage: () => onSend,
+        sendMessage: onSend,
       }),
       [onSend]
     );
