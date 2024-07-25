@@ -842,11 +842,11 @@ export class FirestoreServices {
 
   /**
    * delete conversation from list
-   * @param softDelete indicates whether to completely remove conversation or simply remove from user's list
+   * @param forAllMembers indicates whether to remove conversation for all other members or simply remove from user's list
    */
   deleteConversation = async (
     conversationId: string,
-    softDelete?: boolean
+    forAllMembers?: boolean
   ): Promise<boolean> => {
     try {
       const isConversationExist =
@@ -872,7 +872,7 @@ export class FirestoreServices {
 
       /** Delete latest message of that conversation for user (exclude from list) */
       await userConversation.delete();
-      if (softDelete) return true;
+      if (!forAllMembers) return true;
 
       /** Delete latest message of that conversation for all other partners */
       const partnerBatch = firestore().batch();
