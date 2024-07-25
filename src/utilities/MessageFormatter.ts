@@ -91,7 +91,7 @@ const formatSendMessage = (
   name: name ?? '',
   size: size ?? '',
   duration: duration ?? 0,
-  callId,
+  callId: callId ?? '',
 });
 
 const formatLatestMessage = (
