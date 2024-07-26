@@ -51,6 +51,10 @@ interface ChatScreenProps extends GiftedChatProps {
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customContainerStyle?: StyleProp<ViewStyle>;
+  customTextStyle?: StyleProp<ViewStyle>;
+  unReadSentMessage?: string;
+  unReadSeenMessage?: string;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -286,6 +290,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
         userUnreadMessage={userUnreadMessage}
+        customContainerStyle={props.customContainerStyle}
+        customTextStyle={props.customTextStyle}
+        unReadSentMessage={props.unReadSentMessage}
+        unReadSeenMessage={props.unReadSeenMessage}
       />
     );
   };

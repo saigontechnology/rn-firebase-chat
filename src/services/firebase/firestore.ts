@@ -381,11 +381,23 @@ export class FirestoreServices {
       .doc(this.conversationId);
 
     try {
-      const conversation = await conversationRef.get();
-      let unRead = conversation.exists ? conversation.data()?.unRead ?? {} : {};
-      unRead[userId] = messageId;
-      await conversationRef.set({ unRead }, { merge: true });
-      await userConversationRef.set({ unRead: 0 }, { merge: true });
+      await firestore().runTransaction(async (transaction) => {
+        const conversationDoc = await transaction.get(conversationRef);
+        let unRead: Record<string, string> = {};
+
+        if (conversationDoc.exists) {
+          const conversationData = conversationDoc.data();
+          if (conversationData && conversationData.unRead) {
+            unRead = conversationData.unRead;
+          }
+        }
+
+        unRead[userId] = messageId;
+        transaction.set(conversationRef, { unRead }, { merge: true });
+        transaction.set(userConversationRef, { unRead: 0 }, { merge: true });
+      });
+
+      console.log('Unread message ID updated successfully');
     } catch (error) {
       console.error('Error updating unread message ID: ', error);
     }
