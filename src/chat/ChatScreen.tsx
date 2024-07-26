@@ -23,6 +23,7 @@ import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import { useChatContext, useChatSelector } from '../hooks';
 import type {
+  ConversationData,
   ConversationProps,
   CustomConversationInfo,
   IUserInfo,
@@ -50,6 +51,10 @@ interface ChatScreenProps extends GiftedChatProps {
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customContainerStyle?: StyleProp<ViewStyle>;
+  customTextStyle?: StyleProp<ViewStyle>;
+  unReadSentMessage?: string;
+  unReadSeenMessage?: string;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -79,6 +84,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -86,6 +92,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
+  // Fetch latest conversation and messages data
   useEffect(() => {
     if (conversationInfo?.id) {
       onStartLoad?.();
@@ -97,6 +104,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
         setHasMoreMessages(res.length === maxPageSize);
+        const firstMessage = res?.length > 0 && res[0];
+        if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+          firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+        }
         onLoadEnd?.();
       });
     }
@@ -108,6 +119,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     memberIds,
     partners,
     maxPageSize,
+    userInfo?.id,
   ]);
 
   const onSend = useCallback(
@@ -166,6 +178,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   }, [maxPageSize, firebaseInstance]);
 
+  // Clear conversation data when exit ChatScreen
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
@@ -173,6 +186,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [chatDispatch, firebaseInstance]);
 
+  // Listener of current conversation data
+  useEffect(() => {
+    let userConversation: () => void;
+    userConversation = firebaseInstance.userConversationListener(
+      (data: ConversationData | undefined) => {
+        if (userInfo?.id) {
+          const unReads = data?.unRead ?? {};
+          const latestMessageID = unReads[userInfo.id];
+          const hasUnreadMessages = Object.entries(unReads).some(
+            ([_, value]) => value !== latestMessageID
+          );
+          setUserUnreadMessage(hasUnreadMessages);
+          //handle clear timeout message [FC-8]
+          // if (!hasUnreadMessages && timeoutMessageRef.current) {
+          //   clearTimeout(timeoutMessageRef.current);
+          //   timeoutMessageRef.current = null;
+          // }
+        }
+      }
+    );
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners, userInfo?.id]);
+
+  // Listener of current conversation list messages
   useEffect(() => {
     let receiveMessageRef: () => void;
     if (conversationRef.current?.id) {
@@ -183,6 +225,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
+          // await for unread number status to completely update before change unread data
+          setTimeout(
+            () => firebaseInstance.changeReadMessage(message.id, userInfo?.id),
+            500
+          );
         }
       );
     }
@@ -242,6 +289,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         }}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
+        userUnreadMessage={userUnreadMessage}
+        customContainerStyle={props.customContainerStyle}
+        customTextStyle={props.customTextStyle}
+        unReadSentMessage={props.unReadSentMessage}
+        unReadSeenMessage={props.unReadSeenMessage}
       />
     );
   };

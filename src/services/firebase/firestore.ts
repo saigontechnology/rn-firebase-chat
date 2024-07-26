@@ -14,6 +14,7 @@ import {
   getCurrentTimestamp,
 } from '../../utilities';
 import {
+  ConversationData,
   ConversationProps,
   EncryptionFunctions,
   EncryptionOptions,
@@ -123,10 +124,10 @@ export class FirestoreServices {
   getUrlWithPrefix = (url: string) =>
     this.prefix ? `${this.prefix}-${url}` : url;
 
-  // We remove 'blackListWords' because the prop is converted to 'regexBlacklist'
   getConfiguration = <
     K extends keyof Omit<
       FirestoreProps,
+      // We remove these the props because they are converted to different props name
       'blackListWords' | 'encryptionOptions' | 'encryptionFuncProps'
     >
   >(
@@ -323,45 +324,80 @@ export class FirestoreServices {
         'Please create conversation before send the first message!'
       );
     }
-    /** Update latest message for each member */
-    firestore()
-      .collection(
+    const userConversationRef = firestore()
+      .collection<Partial<ConversationProps>>(
         this.getUrlWithPrefix(
           `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
         )
       )
-      .doc(this.conversationId)
-      .set(
-        {
-          latestMessage: latestMessageData,
-          updatedAt: getCurrentTimestamp(),
-        },
-        { merge: true }
-      )
-      .then();
-  };
-
-  changeReadMessage = () => {
-    if (!this.conversationId) {
-      throw new Error(
-        'Please create conversation before send the first message!'
-      );
-    }
-    if (this.userId) {
-      firestore()
-        .collection(
-          this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
-        )
-        .doc(this.conversationId)
+      .doc(this.conversationId);
+    if (userId === this.userId) {
+      /** Update latest message for each member */
+      userConversationRef
         .set(
           {
-            unRead: {
-              [this.userId]: 0,
-            },
+            latestMessage: latestMessageData,
+            updatedAt: getCurrentTimestamp(),
+            /** Update unRead for this user to 0 */
+            unRead: 0,
           },
           { merge: true }
         )
         .then();
+    } else {
+      userConversationRef.get().then((snapshot) => {
+        /** Get unRead count for other members */
+        const unReadCount = snapshot.data()?.unRead;
+        userConversationRef
+          .set(
+            {
+              latestMessage: latestMessageData,
+              updatedAt: getCurrentTimestamp(),
+              /** Increase unRead for other uses */
+              unRead: unReadCount ? unReadCount + 1 : 1,
+            },
+            { merge: true }
+          )
+          .then();
+      });
+    }
+  };
+
+  changeReadMessage = async (messageId: string, userId?: string) => {
+    if (!userId || !this.conversationId) {
+      return;
+    }
+    const conversationRef = firestore()
+      .collection<ConversationData>(
+        this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
+      )
+      .doc(this.conversationId);
+    const userConversationRef = firestore()
+      .collection<Partial<ConversationProps>>(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        )
+      )
+      .doc(this.conversationId);
+
+    try {
+      await firestore().runTransaction(async (transaction) => {
+        const conversationDoc = await transaction.get(conversationRef);
+        let unRead: Record<string, string> = {};
+
+        if (conversationDoc.exists) {
+          const conversationData = conversationDoc.data();
+          if (conversationData && conversationData.unRead) {
+            unRead = conversationData.unRead;
+          }
+        }
+
+        unRead[userId] = messageId;
+        transaction.set(conversationRef, { unRead }, { merge: true });
+        transaction.set(userConversationRef, { unRead: 0 }, { merge: true });
+      });
+    } catch (error) {
+      console.error('Error updating unread message ID: ', error);
     }
   };
 
