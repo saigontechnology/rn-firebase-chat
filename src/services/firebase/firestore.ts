@@ -396,8 +396,6 @@ export class FirestoreServices {
         transaction.set(conversationRef, { unRead }, { merge: true });
         transaction.set(userConversationRef, { unRead: 0 }, { merge: true });
       });
-
-      console.log('Unread message ID updated successfully');
     } catch (error) {
       console.error('Error updating unread message ID: ', error);
     }
