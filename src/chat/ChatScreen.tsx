@@ -177,6 +177,9 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           customConversationInfo?.name
         );
 
+        if (messages.type === 'videoCall' || messages.type === 'voiceCall') {
+          return;
+        }
         timeoutMessageRef.current = setTimeout(() => {
           sendMessageNotification?.();
           if (timeoutMessageRef.current) {
