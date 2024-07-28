@@ -18,13 +18,13 @@ import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
 import { CaptureCameraButton } from './CaptureButton';
 import Video from 'react-native-video';
-import type { MessageProps } from '../../interfaces/message';
+import type { MessageProps } from '../../../interfaces/message';
 import { v4 as uuidv4 } from 'uuid';
-import { MessageTypes, type IUserInfo } from '../../interfaces';
+import { MessageTypes, type IUserInfo } from '../../../interfaces';
 import {
   getAbsoluteFilePath,
   getMediaTypeFromExtension,
-} from '../../utilities';
+} from '../../../utilities';
 
 type CameraViewProps = {
   onSend: (message: MessageProps) => void;
@@ -38,12 +38,12 @@ export interface CameraViewRef {
 }
 
 const iconPaths = {
-  close: require('../../images/close.png'),
-  send: require('../../images/send.png'),
-  cameraChange: require('../../images/camera_change.png'),
-  flashOn: require('../../images/flash_on.png'),
-  flashOff: require('../../images/flash_off.png'),
-  back: require('../../images/back.png'),
+  close: require('../../../images/close.png'),
+  send: require('../../../images/send.png'),
+  cameraChange: require('../../../images/camera_change.png'),
+  flashOn: require('../../../images/flash_on.png'),
+  flashOff: require('../../../images/flash_off.png'),
+  back: require('../../../images/back.png'),
 };
 
 const initialMediaState = {

@@ -29,7 +29,10 @@ import type {
   MessageProps,
 } from '../interfaces';
 import { formatMessageText, isOtherUserTyping } from '../utilities';
-import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
+import {
+  CameraView,
+  CameraViewRef,
+} from '../chat/components/camera/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
