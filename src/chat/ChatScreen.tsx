@@ -64,7 +64,7 @@ interface ChatScreenProps extends GiftedChatProps {
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
   enableSeenMessage?: boolean;
-  viewUnReadCustom?: () => JSX.Element;
+  viewUnReadCustom?: (hasUnread: boolean) => JSX.Element;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({

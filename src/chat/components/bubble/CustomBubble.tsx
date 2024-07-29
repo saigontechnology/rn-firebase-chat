@@ -19,7 +19,7 @@ interface CustomBubbleProps {
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
   enableSeenMessage: boolean;
-  viewUnReadCustom?: () => JSX.Element;
+  viewUnReadCustom?: (hasUnread: boolean) => JSX.Element;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -43,7 +43,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   const viewUnRead = (
     isMyLatestMsg: boolean,
     enableSeenMsg: boolean,
-    viewUnReadCustomUI?: () => JSX.Element
+    viewUnReadCustomUI?: (hasUnread: boolean) => JSX.Element
   ) => {
     if (!isMyLatestMsg || !enableSeenMsg) return null;
 
