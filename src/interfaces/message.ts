@@ -64,4 +64,15 @@ type MediaType =
   | 'voiceCall'
   | undefined;
 
-export { MessageProps, LatestMessageProps, SendMessageProps, MediaType };
+interface UploadingFile {
+  id: string;
+  progress: number;
+}
+
+export {
+  MessageProps,
+  LatestMessageProps,
+  SendMessageProps,
+  MediaType,
+  UploadingFile,
+};

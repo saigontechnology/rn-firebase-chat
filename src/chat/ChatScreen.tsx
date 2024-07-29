@@ -39,6 +39,7 @@ import type {
   CustomConversationInfo,
   IUserInfo,
   MessageProps,
+  UploadingFile,
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
@@ -106,6 +107,10 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
     const [hasMoreMessages, setHasMoreMessages] = useState(false);
     const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
+    const [uploadingFile, setUploadingFile] = useState<UploadingFile>({
+      id: '',
+      progress: 0,
+    });
     const isLoadingRef = useRef(false);
     const cameraViewRef = useRef<CameraViewRef>(null);
     const fileAttachmentRef = useRef<FileAttachmentModalRef>(null);
@@ -167,6 +172,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             partners
           );
         }
+
+        setUploadingFile({
+          id: messages._id.toString(),
+          progress: 0,
+        });
+
         /** Add new message to message list  */
         setMessagesList((previousMessages) =>
           GiftedChat.append(previousMessages, [messages])
@@ -174,7 +185,14 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
 
         await firebaseInstance.sendMessage(
           messages,
-          customConversationInfo?.name
+          customConversationInfo?.name,
+          (messageId, progress) => {
+            if (progress < 100) {
+              setUploadingFile({ id: messageId, progress });
+            } else {
+              setUploadingFile({ id: '', progress: 0 });
+            }
+          }
         );
 
         if (messages.type === 'videoCall' || messages.type === 'voiceCall') {
@@ -314,6 +332,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
             currentPlayingMessageId === bubble.currentMessage?.id
           }
           renderCallBubble={renderCallBubble}
+          uploadingFile={uploadingFile}
         />
       );
     };

@@ -151,7 +151,10 @@ export class FirestoreServices {
     return { ...conversationData, id: conversationRef.id } as ConversationProps;
   };
 
-  sendMessageWithFile = async (message: SendMessageProps) => {
+  sendMessageWithFile = async (
+    message: SendMessageProps,
+    uploadCallback?: (progress: number) => void
+  ) => {
     const { path, extension, type } = message;
 
     if (!path || !extension || this.conversationId === null || !type) {
@@ -163,8 +166,12 @@ export class FirestoreServices {
         path,
         this.conversationId,
         extension,
-        type
+        type,
+        (progress) => {
+          uploadCallback?.(progress);
+        }
       );
+
       const imgURL = await storage()
         .ref(uploadResult.metadata.fullPath)
         .getDownloadURL();
@@ -174,9 +181,6 @@ export class FirestoreServices {
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .add({ ...message, path: imgURL });
-
-      const snapShot = await messageRef;
-      await snapShot.update({ path: imgURL });
 
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
@@ -193,7 +197,11 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps, conversationName?: string) => {
+  sendMessage = async (
+    message: MessageProps,
+    conversationName?: string,
+    fileUploadCallback?: (messageId: string, progress: number) => void
+  ) => {
     if (!this.conversationId) {
       throw new Error(
         'Please create conversation before send the first message!'
@@ -219,7 +227,9 @@ export class FirestoreServices {
         size,
         duration
       );
-      this.sendMessageWithFile(messageData);
+      this.sendMessageWithFile(messageData, (progress) =>
+        fileUploadCallback?.(message._id.toString(), progress)
+      );
     } else {
       /** Format message */
       if (isCallMessage) {
