@@ -18,6 +18,8 @@ interface CustomBubbleProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  enableSeenMessage: boolean;
+  viewUnReadCustom?: () => JSX.Element;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -30,24 +32,41 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customTextStyle,
   unReadSeenMessage,
   unReadSentMessage,
+  enableSeenMessage,
+  viewUnReadCustom,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
   };
 
-  const renderBubble = (currentMessage: MessageProps) => {
-    const isMyLatestMessage =
-      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
-      position === 'right';
-    const ViewRead = isMyLatestMessage && (
+  const viewUnRead = (
+    isMyLatestMsg: boolean,
+    enableSeenMsg: boolean,
+    viewUnReadCustomUI?: () => JSX.Element
+  ) => {
+    if (!isMyLatestMsg || !enableSeenMsg) return null;
+
+    return (
       <ViewUnaread
         userUnreadMessage={userUnreadMessage}
         customContainerStyle={customContainerStyle}
         customTextStyle={customTextStyle}
         unReadSentMessage={unReadSentMessage}
         unReadSeenMessage={unReadSeenMessage}
+        viewUnReadCustom={viewUnReadCustomUI}
       />
+    );
+  };
+
+  const renderBubble = (currentMessage: MessageProps) => {
+    const isMyLatestMessage =
+      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
+      position === 'right';
+    const ViewRead = viewUnRead(
+      isMyLatestMessage,
+      enableSeenMessage,
+      viewUnReadCustom
     );
 
     switch (currentMessage?.type) {
