@@ -136,25 +136,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     userInfo?.id,
   ]);
 
-  useEffect(() => {
-    let userConversation: () => void;
-    userConversation = firebaseInstance.userConversationListener(
-      (data: ConversationData | undefined) => {
-        const memberId = partners[0]?.id;
-        if (memberId && data?.typing) {
-          const isOthersTyping = isOtherUserTyping(data.typing, memberId);
-          setIsTyping(isOthersTyping);
-        }
-      }
-    );
-
-    return () => {
-      if (userConversation) {
-        userConversation();
-      }
-    };
-  }, [firebaseInstance, partners]);
-
   const onSend = useCallback(
     async (messages: MessageProps) => {
       /** If the conversation not created yet. it will create at the first message sent */
@@ -233,23 +214,32 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   // Listener of current conversation data
   useEffect(() => {
     let userConversation: () => void;
-    userConversation = firebaseInstance.userConversationListener(
-      (data: ConversationData | undefined) => {
-        if (userInfo?.id) {
-          const unReads = data?.unRead ?? {};
-          const latestMessageID = unReads[userInfo.id];
-          const hasUnreadMessages = Object.entries(unReads).some(
-            ([_, value]) => value !== latestMessageID
-          );
-          setUserUnreadMessage(hasUnreadMessages);
-          // Clear timeout message when push notification
-          if (!hasUnreadMessages && timeoutMessageRef.current) {
-            clearTimeout(timeoutMessageRef.current);
-            timeoutMessageRef.current = null;
+    if (conversationRef.current?.id) {
+      userConversation = firebaseInstance.userConversationListener(
+        (data: ConversationData | undefined) => {
+          if (userInfo?.id) {
+            const unReads = data?.unRead ?? {};
+            const latestMessageID = unReads[userInfo.id];
+            const hasUnreadMessages = Object.entries(unReads).some(
+              ([_, value]) => value !== latestMessageID
+            );
+            setUserUnreadMessage(hasUnreadMessages);
+            // Clear timeout message when push notification
+            if (!hasUnreadMessages && timeoutMessageRef.current) {
+              clearTimeout(timeoutMessageRef.current);
+              timeoutMessageRef.current = null;
+            }
+            if (data?.typing) {
+              const isOthersTyping = isOtherUserTyping(
+                data.typing,
+                userInfo.id
+              );
+              setIsTyping(isOthersTyping);
+            }
           }
         }
-      }
-    );
+      );
+    }
 
     return () => {
       if (userConversation) {
