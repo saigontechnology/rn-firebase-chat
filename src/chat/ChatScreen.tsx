@@ -37,6 +37,7 @@ import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
+import { DEFAULT_PUSH_NOTIFICATION } from '../constants';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -55,6 +56,8 @@ interface ChatScreenProps extends GiftedChatProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  sendMessageNotification?: () => void;
+  timeoutSendNotify?: number;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -68,6 +71,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   inputToolbarProps,
   customConversationInfo,
   customImageVideoBubbleProps,
+  sendMessageNotification,
+  timeoutSendNotify = DEFAULT_PUSH_NOTIFICATION,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -85,6 +90,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
+  const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -158,8 +164,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
 
       await firebaseInstance.sendMessage(messages);
+
+      timeoutMessageRef.current = setTimeout(() => {
+        sendMessageNotification?.();
+      }, timeoutSendNotify);
     },
-    [firebaseInstance, customConversationInfo, memberIds, partners]
+    [
+      firebaseInstance,
+      timeoutSendNotify,
+      customConversationInfo,
+      memberIds,
+      partners,
+      sendMessageNotification,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
@@ -198,11 +215,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             ([_, value]) => value !== latestMessageID
           );
           setUserUnreadMessage(hasUnreadMessages);
-          //handle clear timeout message [FC-8]
-          // if (!hasUnreadMessages && timeoutMessageRef.current) {
-          //   clearTimeout(timeoutMessageRef.current);
-          //   timeoutMessageRef.current = null;
-          // }
+          // Clear timeout message when push notification
+          if (!hasUnreadMessages && timeoutMessageRef.current) {
+            clearTimeout(timeoutMessageRef.current);
+            timeoutMessageRef.current = null;
+          }
         }
       }
     );
