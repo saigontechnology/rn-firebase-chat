@@ -10,7 +10,6 @@ import {
   Modal,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
   ViewStyle,
   StyleProp,
@@ -26,6 +25,8 @@ import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
 import uuid from 'react-native-uuid';
 import RNFS from 'react-native-fs';
 import { formatSize } from '../../utilities/misc';
+
+const MAX_FILE_SIZE = 200000000; // 200MB
 
 interface FileAttachmentModalProps {
   isVisible?: boolean;
@@ -56,7 +57,7 @@ const FileAttachmentModal = forwardRef<
     shareIcon = require('../../images/file-sharing.png'),
     shareIconStyle,
     modalTitle = 'Share a file',
-    modalDescription = 'Choose any file from your device to send directly to the chat.',
+    modalDescription = 'Choose any file from your device to send directly to the chat.\n(Max size: 200 MB)',
     modalTitleStyle,
     modalDescriptionStyle,
     modalButtonStyle,
@@ -73,10 +74,6 @@ const FileAttachmentModal = forwardRef<
   }));
 
   const handleOutsidePress = () => {
-    setModalVisible(false);
-  };
-
-  const handleScroll = () => {
     setModalVisible(false);
   };
 
@@ -124,7 +121,15 @@ const FileAttachmentModal = forwardRef<
         ],
       });
       const media = result[0] as DocumentPickerResponse;
-      if (media) {
+      if (media && media.size) {
+        if (media.size > MAX_FILE_SIZE) {
+          setModalVisible(false);
+          Alert.alert(
+            'File is too large',
+            'File size should not exceed 200 MB. Please try again'
+          );
+          return;
+        }
         if (media.uri.startsWith('content://')) {
           const destPath = `${RNFS.DocumentDirectoryPath}/${media.name}`;
           await RNFS.copyFile(media.uri, destPath);
@@ -148,28 +153,24 @@ const FileAttachmentModal = forwardRef<
   const renderModalView = () => {
     return (
       <View style={styles.modalContainer}>
-        <ScrollView onScroll={handleScroll} scrollEventThrottle={16}>
-          <View style={styles.modalContent}>
-            <Image
-              source={shareIcon}
-              style={[styles.iconStyle, shareIconStyle]}
-            />
-            <Text style={[styles.modalTitle, modalTitleStyle]}>
-              {modalTitle}
+        <View style={styles.modalContent}>
+          <Image
+            source={shareIcon}
+            style={[styles.iconStyle, shareIconStyle]}
+          />
+          <Text style={[styles.modalTitle, modalTitleStyle]}>{modalTitle}</Text>
+          <Text style={[styles.modalDescription, modalDescriptionStyle]}>
+            {modalDescription}
+          </Text>
+          <TouchableOpacity
+            onPress={handleDocumentPick}
+            style={[styles.modalButton, modalButtonStyle]}
+          >
+            <Text style={[styles.modalButtonText, modalButtonTextStyle]}>
+              {buttonTitle}
             </Text>
-            <Text style={[styles.modalDescription, modalDescriptionStyle]}>
-              {modalDescription}
-            </Text>
-            <TouchableOpacity
-              onPress={handleDocumentPick}
-              style={[styles.modalButton, modalButtonStyle]}
-            >
-              <Text style={[styles.modalButtonText, modalButtonTextStyle]}>
-                {buttonTitle}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#CBD2D9',
     textAlign: 'center',
-    marginBottom: 45,
+    marginBottom: 36,
   },
   modalButton: {
     padding: 15,
