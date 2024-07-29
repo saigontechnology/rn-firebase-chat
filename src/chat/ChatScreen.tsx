@@ -37,7 +37,7 @@ import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
-import { DEFAULT_PUSH_NOTIFICATION } from '../constants';
+import { DEFAULT_CLEAR_SEND_NOTIFICATION } from '../constants';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -72,7 +72,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   customConversationInfo,
   customImageVideoBubbleProps,
   sendMessageNotification,
-  timeoutSendNotify = DEFAULT_PUSH_NOTIFICATION,
+  timeoutSendNotify = DEFAULT_CLEAR_SEND_NOTIFICATION,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
