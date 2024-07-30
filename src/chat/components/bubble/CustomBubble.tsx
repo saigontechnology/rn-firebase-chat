@@ -1,6 +1,10 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { MessageTypes, type MessageProps } from '../../../interfaces';
+import { Animated, StyleSheet, Text, View } from 'react-native';
+import {
+  MessageTypes,
+  UploadingFile,
+  type MessageProps,
+} from '../../../interfaces';
 import {
   Bubble,
   IMessage,
@@ -23,6 +27,7 @@ interface CustomBubbleProps {
   onSetCurrentId: (id: string) => void;
   isCurrentlyPlaying: boolean;
   renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
+  uploadingFile?: UploadingFile;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -33,6 +38,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   onSetCurrentId,
   isCurrentlyPlaying,
   renderCallBubble,
+  uploadingFile,
 }) => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const styleBuble = {
@@ -64,6 +70,23 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     );
   };
 
+  const renderUploadIndicator = () => {
+    const messageId = bubbleMessage.currentMessage?._id;
+    const isUploading =
+      messageId === uploadingFile?.id && uploadingFile?.progress !== 100;
+
+    return isUploading ? (
+      <View style={styles.indicatorWrapper}>
+        <Animated.View
+          style={[
+            styles.uploadIndicator,
+            { width: `${uploadingFile?.progress}%` },
+          ]}
+        />
+      </View>
+    ) : null;
+  };
+
   const renderBubble = (currentMessage: MessageProps) => {
     switch (currentMessage?.type) {
       case MessageTypes.image:
@@ -73,12 +96,17 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             {...bubbleMessage}
             renderCustomView={() =>
               currentMessage && (
-                <CustomImageVideoBubble
-                  {...customImageVideoBubbleProps}
-                  message={currentMessage}
-                  onSelectImgVideoUrl={(message) => onSelectedMessage(message)}
-                  position={position}
-                />
+                <>
+                  <CustomImageVideoBubble
+                    {...customImageVideoBubbleProps}
+                    message={currentMessage}
+                    onSelectImgVideoUrl={(message) =>
+                      onSelectedMessage(message)
+                    }
+                    position={position}
+                  />
+                  {renderUploadIndicator()}
+                </>
               )
             }
             wrapperStyle={styleBuble}
@@ -90,10 +118,13 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             {...bubbleMessage}
             renderCustomView={() =>
               currentMessage && (
-                <CustomDocumentBubble
-                  message={currentMessage}
-                  position={position}
-                />
+                <>
+                  <CustomDocumentBubble
+                    message={currentMessage}
+                    position={position}
+                  />
+                  {renderUploadIndicator()}
+                </>
               )
             }
             wrapperStyle={styleBuble}
@@ -105,12 +136,15 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             {...bubbleMessage}
             renderCustomView={() =>
               currentMessage && (
-                <CustomBubbleVoice
-                  position={position}
-                  currentMessage={currentMessage}
-                  onSetCurrentId={onSetCurrentId}
-                  isCurrentlyPlaying={isCurrentlyPlaying}
-                />
+                <>
+                  <CustomBubbleVoice
+                    position={position}
+                    currentMessage={currentMessage}
+                    onSetCurrentId={onSetCurrentId}
+                    isCurrentlyPlaying={isCurrentlyPlaying}
+                  />
+                  {renderUploadIndicator()}
+                </>
               )
             }
             wrapperStyle={styleBuble}
@@ -143,5 +177,18 @@ const styles = StyleSheet.create({
   messageUsername: {
     color: '#fff',
     marginBottom: 4,
+  },
+  indicatorWrapper: {
+    height: 5,
+    width: '70%',
+    borderWidth: 1,
+    borderRadius: 6,
+    alignSelf: 'flex-end',
+    borderColor: '#CCC',
+  },
+  uploadIndicator: {
+    height: '100%',
+    width: `0%`,
+    backgroundColor: '#CCC',
   },
 });
