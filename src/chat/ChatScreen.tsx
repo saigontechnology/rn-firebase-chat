@@ -333,7 +333,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   };
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
-      firebaseInstance.setUserConversationTyping(value).then(callback);
+      conversationRef.current?.id &&
+        firebaseInstance.setUserConversationTyping(value).then(callback);
     },
     [firebaseInstance]
   );
