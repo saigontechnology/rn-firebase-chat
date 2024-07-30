@@ -68,6 +68,7 @@ const DurationTimer: React.FC<DurationTimerProps> = ({
 
 const styles = StyleSheet.create({
   viewDuration: {
+    height: 50,
     marginLeft: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
   indicator: {
     width: 8,
     height: 8,
+    marginRight: 8,
     borderRadius: 4,
     backgroundColor: 'red',
   },

@@ -62,7 +62,7 @@ export default WaveForm;
 
 const styles = StyleSheet.create({
   waveformContainer: {
-    height: 40,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 15,
     paddingVertical: 5,
-    marginBottom: 20,
+    marginVertical: 20,
   },
   viewWave: {
     flex: 1,

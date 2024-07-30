@@ -30,7 +30,7 @@ import {
   type AudioSet,
 } from 'react-native-audio-recorder-player';
 import uuid from 'react-native-uuid';
-import { convertExtension } from '../../utilities';
+import { animateLayout, convertExtension } from '../../utilities';
 import {
   MessageTypes,
   type IUserInfo,
@@ -143,7 +143,7 @@ const VoiceRecorderModal = forwardRef<
   const startRecording = useCallback(async () => {
     setIsRecord(true);
     audioRecorderPlayer.removeRecordBackListener();
-    audioRecorderPlayer.stopRecorder();
+    await audioRecorderPlayer.stopRecorder();
     await audioRecorderPlayer.startRecorder(undefined, audioSet, true);
     audioRecorderPlayer.addRecordBackListener((e) => {
       const { currentMetering } = e || {};
@@ -177,21 +177,24 @@ const VoiceRecorderModal = forwardRef<
   }, [reset, stopRecording]);
 
   const handleReplay = useCallback(() => {
+    animateLayout();
     setIsRecord(false);
     setReplay(true);
     stopRecording();
   }, [stopRecording]);
 
   const handleSend = useCallback(async () => {
-    if (isRecord) {
-      const path = await getPathRecord();
-      setUri(path);
-      onSendMessage(path);
-      setIsVisible(false);
+    if (isRecord || isReplay) {
+      const path = uri || (await getPathRecord());
+      if (path) {
+        setUri(path);
+        onSendMessage(path);
+        setIsVisible(false);
+      }
     } else {
       startRecording();
     }
-  }, [getPathRecord, isRecord, onSendMessage, startRecording]);
+  }, [getPathRecord, isRecord, isReplay, onSendMessage, startRecording, uri]);
 
   const handleOutsidePress = () => {
     if (isRecord || isReplay) {
@@ -220,12 +223,12 @@ const VoiceRecorderModal = forwardRef<
         {isRecord && (
           <TouchableOpacity style={styles.button} onPress={handleDelete}>
             <View style={styles.iconViewContainer}>
-              <Image source={ImageURL.delete} style={[styles.icon]} />
+              <Image source={ImageURL.delete} style={styles.icon} />
             </View>
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={styles.sendButton}
+          style={[styles.sendButton, !isRecord && { width: '100%' }]}
           onPress={isRecord ? handleReplay : handleSend}
         >
           <View style={styles.iconViewContainer}>
@@ -236,9 +239,9 @@ const VoiceRecorderModal = forwardRef<
           </View>
         </TouchableOpacity>
         {isRecord && (
-          <TouchableOpacity style={styles.button} onPress={handleReplay}>
+          <TouchableOpacity style={styles.button} onPress={handleSend}>
             <View style={styles.iconViewContainer}>
-              <Image source={ImageURL.sendAudio} style={styles.icon} />
+              <Image source={ImageURL.sendAudio} style={styles.iconSend} />
             </View>
           </TouchableOpacity>
         )}
@@ -251,7 +254,7 @@ const VoiceRecorderModal = forwardRef<
       <View style={styles.viewPlayAudio}>
         <PlayAudio uri={uri} />
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { marginHorizontal: 0, marginLeft: 8 }]}
           onPress={() => {
             setIsRecord(false);
             setReplay(false);
@@ -264,7 +267,7 @@ const VoiceRecorderModal = forwardRef<
           </View>
         </TouchableOpacity>
       </View>
-      <View style={styles.containerReplay}>
+      <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleDelete}>
           <View style={styles.iconViewContainer}>
             <Image source={ImageURL.delete} style={styles.icon} />
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     alignItems: 'center',
-    height: 260,
+    height: 200,
     justifyContent: 'center',
     zIndex: 1,
     position: 'absolute',
@@ -334,26 +337,21 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
   },
-  containerReplay: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 20,
+  bottomStack: {
+    bottom: 8,
+    position: 'absolute',
   },
   button: {
     alignItems: 'center',
-    marginHorizontal: 30,
   },
   sendButton: {
     alignItems: 'center',
   },
   viewPlayAudio: {
-    marginBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0f0f0',
+    // backgroundColor: '#f0f0f0',
     marginBottom: 5,
   },
   iconText: {
@@ -373,18 +371,18 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   icon: {
-    width: 25,
-    height: 25,
+    width: 32,
+    height: 32,
     resizeMode: 'contain',
   },
   iconRecord: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
   },
   iconSend: {
-    width: 55,
-    height: 55,
+    width: 36,
+    height: 36,
     resizeMode: 'contain',
   },
   label: {
