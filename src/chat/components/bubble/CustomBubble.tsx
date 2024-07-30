@@ -70,6 +70,27 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     );
   };
 
+  const renderUsername = () => {
+    if (
+      firebaseInstance.userId === bubbleMessage.currentMessage?.user?._id ||
+      (isSameUser(
+        bubbleMessage.currentMessage as IMessage,
+        bubbleMessage.previousMessage
+      ) &&
+        isSameDay(
+          bubbleMessage.currentMessage as IMessage,
+          bubbleMessage.previousMessage
+        ))
+    ) {
+      return null;
+    }
+    return (
+      <Text style={styles.messageUsername}>
+        {bubbleMessage?.currentMessage?.user?.name}
+      </Text>
+    );
+  };
+
   const renderUploadIndicator = () => {
     const messageId = bubbleMessage.currentMessage?._id;
     const isUploading =
@@ -97,6 +118,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             renderCustomView={() =>
               currentMessage && (
                 <>
+                  {renderUsername()}
                   <CustomImageVideoBubble
                     {...customImageVideoBubbleProps}
                     message={currentMessage}
@@ -119,6 +141,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             renderCustomView={() =>
               currentMessage && (
                 <>
+                  {renderUsername()}
                   <CustomDocumentBubble
                     message={currentMessage}
                     position={position}
@@ -137,6 +160,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             renderCustomView={() =>
               currentMessage && (
                 <>
+                  {renderUsername()}
                   <CustomBubbleVoice
                     position={position}
                     currentMessage={currentMessage}
@@ -152,7 +176,12 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         );
       case MessageTypes.videoCall:
       case MessageTypes.voiceCall:
-        return renderCallBubble?.(bubbleMessage);
+        return (
+          <>
+            {renderUsername()}
+            {renderCallBubble?.(bubbleMessage)}
+          </>
+        );
       default:
         return renderTextBubble();
     }

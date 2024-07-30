@@ -176,7 +176,7 @@ const FileAttachmentModal = forwardRef<
   };
 
   return (
-    <Modal animationType="slide" transparent={true} visible={modalVisible}>
+    <Modal animationType="none" transparent={true} visible={modalVisible}>
       <Pressable style={styles.overlay} onPress={handleOutsidePress}>
         {renderModalView()}
       </Pressable>
@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
     height: 340,
