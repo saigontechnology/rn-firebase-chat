@@ -191,6 +191,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
               setUploadingFile({ id: messageId, progress });
             } else {
               setUploadingFile({ id: '', progress: 0 });
+              timeoutMessageRef.current = setTimeout(() => {
+                sendMessageNotification?.();
+                if (timeoutMessageRef.current) {
+                  clearTimeout(timeoutMessageRef.current);
+                }
+              }, timeoutSendNotification);
             }
           }
         );
@@ -198,12 +204,14 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
         if (messages.type === 'videoCall' || messages.type === 'voiceCall') {
           return;
         }
-        timeoutMessageRef.current = setTimeout(() => {
-          sendMessageNotification?.();
-          if (timeoutMessageRef.current) {
-            clearTimeout(timeoutMessageRef.current);
-          }
-        }, timeoutSendNotification);
+        if (!messages.extension) {
+          timeoutMessageRef.current = setTimeout(() => {
+            sendMessageNotification?.();
+            if (timeoutMessageRef.current) {
+              clearTimeout(timeoutMessageRef.current);
+            }
+          }, timeoutSendNotification);
+        }
       },
       [
         firebaseInstance,

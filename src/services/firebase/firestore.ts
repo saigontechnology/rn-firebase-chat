@@ -168,7 +168,9 @@ export class FirestoreServices {
         extension,
         type,
         (progress) => {
-          uploadCallback?.(progress);
+          if (progress < 100) {
+            uploadCallback?.(progress);
+          }
         }
       );
 
@@ -176,11 +178,13 @@ export class FirestoreServices {
         .ref(uploadResult.metadata.fullPath)
         .getDownloadURL();
 
-      const messageRef = firestore()
+      await firestore()
         .collection<SendMessageProps>(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
         .add({ ...message, path: imgURL });
+
+      uploadCallback?.(100);
 
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
