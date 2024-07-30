@@ -49,10 +49,11 @@ export interface VoiceRecorderModalRef {
 }
 
 const ImageURL = {
-  delete: require('../../images/delete.png'),
+  delete: require('../../images/trash.png'),
   recordAudio: require('../../images/record_icon.png'),
-  sendAudio: require('../../images/send_audio.png'),
-  replay: require('../../images/replay.png'),
+  sendAudio: require('../../images/blue_send.png'),
+  renew: require('../../images/plus_circle.png'),
+  pause: require('../../images/pause_red.png'),
 };
 
 const audioSet: AudioSet = {
@@ -147,7 +148,7 @@ const VoiceRecorderModal = forwardRef<
     audioRecorderPlayer.addRecordBackListener((e) => {
       const { currentMetering } = e || {};
       const volume = getLevel(Math.abs(currentMetering || 0));
-      console.log('volume: ', volume);
+      // console.log('volume: ', volume);
       setWaveform((prevWaveform) => [...prevWaveform, volume]);
       setRecordTime(Math.floor(e.currentPosition / 1000));
     });
@@ -203,6 +204,7 @@ const VoiceRecorderModal = forwardRef<
         {
           text: 'Delete',
           onPress: reset,
+          style: 'destructive',
         },
       ]);
     } else {
@@ -220,13 +222,15 @@ const VoiceRecorderModal = forwardRef<
             <View style={styles.iconViewContainer}>
               <Image source={ImageURL.delete} style={[styles.icon]} />
             </View>
-            <Text style={styles.label}>Delete</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={isRecord ? handleReplay : handleSend}
+        >
           <View style={styles.iconViewContainer}>
             <Image
-              source={isRecord ? ImageURL.sendAudio : ImageURL.recordAudio}
+              source={isRecord ? ImageURL.pause : ImageURL.recordAudio}
               style={styles.iconRecord}
             />
           </View>
@@ -234,9 +238,8 @@ const VoiceRecorderModal = forwardRef<
         {isRecord && (
           <TouchableOpacity style={styles.button} onPress={handleReplay}>
             <View style={styles.iconViewContainer}>
-              <Image source={ImageURL.replay} style={styles.icon} />
+              <Image source={ImageURL.sendAudio} style={styles.icon} />
             </View>
-            <Text style={styles.label}>Replay</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -247,19 +250,30 @@ const VoiceRecorderModal = forwardRef<
     <View style={styles.modalContainer}>
       <View style={styles.viewPlayAudio}>
         <PlayAudio uri={uri} />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            setIsRecord(false);
+            setReplay(false);
+            setUri('');
+            setRecordTime(0);
+          }}
+        >
+          <View style={styles.iconViewContainer}>
+            <Image source={ImageURL.renew} style={styles.icon} />
+          </View>
+        </TouchableOpacity>
       </View>
       <View style={styles.containerReplay}>
         <TouchableOpacity style={styles.button} onPress={handleDelete}>
           <View style={styles.iconViewContainer}>
             <Image source={ImageURL.delete} style={styles.icon} />
           </View>
-          <Text style={styles.label}>Delete</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleSend}>
           <View style={styles.iconViewContainer}>
             <Image source={ImageURL.sendAudio} style={styles.iconSend} />
           </View>
-          <Text style={styles.label}>Send</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -340,6 +354,8 @@ const styles = StyleSheet.create({
   },
   viewPlayAudio: {
     marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconViewContainer: {
     justifyContent: 'center',

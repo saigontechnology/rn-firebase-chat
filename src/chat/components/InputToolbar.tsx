@@ -106,6 +106,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
             type: mediaType,
             path: file?.uri ?? '',
             extension: extension,
+            duration: file?.duration,
           },
           true
         );

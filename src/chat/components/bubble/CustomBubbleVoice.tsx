@@ -110,6 +110,7 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
       currentDurationSec={currentDurationSec}
       currentPositionSec={currentPositionSec}
       onSlide={onSlide}
+      totalDurationSec={currentMessage?.duration || 0}
     />
   );
 };

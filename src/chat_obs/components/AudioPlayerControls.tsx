@@ -14,6 +14,7 @@ interface AudioPlayerControlsProps {
   isPlaying: boolean;
   downloading: boolean;
   playPause: () => void;
+  totalDurationSec: number;
   currentPositionSec: number;
   currentDurationSec: number;
   onSlide: (value: number) => void;
@@ -28,6 +29,7 @@ export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
   isPlaying,
   playPause,
   downloading,
+  totalDurationSec,
   currentPositionSec,
   currentDurationSec,
   onSlide,
@@ -57,7 +59,7 @@ export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
           disabled
         />
       </View>
-      <Text style={styles.timer}>{formatTime(currentPositionSec / 1000)}</Text>
+      <Text style={styles.timer}>{formatTime(totalDurationSec)}</Text>
     </View>
   );
 };
