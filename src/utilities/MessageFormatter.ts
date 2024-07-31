@@ -101,7 +101,6 @@ const formatLatestMessage = (
   type?: MediaType,
   path?: string,
   extension?: string,
-  name?: string,
   size?: string
 ): LatestMessageProps => ({
   text: message ?? '',
@@ -113,7 +112,6 @@ const formatLatestMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
-  name: name ?? '',
   size: size ?? '',
 });
 
