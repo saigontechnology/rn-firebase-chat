@@ -18,7 +18,6 @@ interface LatestMessageProps {
   path?: string;
   extension?: string;
   size?: string;
-  name?: string;
   duration?: number;
 }
 
