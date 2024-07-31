@@ -367,18 +367,18 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   icon: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     resizeMode: 'contain',
   },
   iconRecord: {
-    width: 50,
-    height: 50,
+    width: 48,
+    height: 48,
     resizeMode: 'contain',
   },
   iconSend: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     resizeMode: 'contain',
   },
   plusIcon: {

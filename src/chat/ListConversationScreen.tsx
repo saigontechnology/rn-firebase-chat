@@ -63,6 +63,8 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
           return `${senderInfo} photo`;
         case MessageTypes.video:
           return `${senderInfo} video`;
+        case MessageTypes.document:
+          return `${senderInfo} file`;
         case MessageTypes.voice:
           return `${senderInfo} voice message`;
         default:
