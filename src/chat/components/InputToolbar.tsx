@@ -7,6 +7,7 @@ import {
   ViewStyle,
   ImageStyle,
   TextStyle,
+  Alert,
 } from 'react-native';
 import {
   Composer,
@@ -26,6 +27,8 @@ import {
 } from '../../utilities';
 import type { FileAttachmentModalRef } from './FileAttachmentModal';
 import type { VoiceRecorderModalRef } from './VoiceRecorderModal';
+
+const MAX_FILE_SIZE = 200000000; // 200MB
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -98,6 +101,13 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
       if (result?.assets) {
         const file = result?.assets[0];
+        if (file?.fileSize && file?.fileSize > MAX_FILE_SIZE) {
+          Alert.alert(
+            'File is too large',
+            'File size should not exceed 200 MB. Please try again'
+          );
+          return;
+        }
         const mediaType = getMediaTypeFromExtension(file?.uri);
         const extension = convertExtension(file?.uri);
 
