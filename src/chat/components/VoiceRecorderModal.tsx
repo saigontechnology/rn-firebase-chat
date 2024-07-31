@@ -384,6 +384,7 @@ const styles = StyleSheet.create({
   plusIcon: {
     backgroundColor: '#E6F3FF',
     borderRadius: 25,
+    marginLeft: 8,
     alignItems: 'center',
     justifyContent: 'center',
     height: 50,
