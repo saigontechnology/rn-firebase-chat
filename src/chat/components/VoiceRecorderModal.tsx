@@ -171,12 +171,10 @@ const VoiceRecorderModal = forwardRef<
 
   const handleDelete = useCallback(() => {
     reset();
-    stopRecording();
-  }, [reset, stopRecording]);
+  }, [reset]);
 
   const handleReplay = useCallback(() => {
     animateLayout();
-    setIsRecord(false);
     setReplay(true);
     stopRecording();
   }, [stopRecording]);
