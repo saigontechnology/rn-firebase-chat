@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#E6F3FF',
     borderRadius: 25,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
     paddingVertical: 5,
     marginBottom: 20,
     marginTop: 20,
