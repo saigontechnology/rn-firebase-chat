@@ -24,12 +24,10 @@ interface ConversationProps extends BaseEntity {
   typing?: {
     [userId: string]: boolean;
   };
-  unRead?: {
-    [userId: string]: number;
-  };
+  unRead?: number;
 }
 interface ConversationData {
-  unRead?: { [key: string]: number };
+  unRead?: { [key: string]: string };
   typing?: { [key: string]: boolean };
 }
 
@@ -44,10 +42,10 @@ enum MessageTypes {
 }
 
 enum MessageStatus {
-  seen,
   sent,
-  failed,
   received,
+  seen,
+  failed,
 }
 
 enum ConversationActions {
@@ -60,6 +58,7 @@ export {
   MemberProps,
   MessageTypes,
   MessageStatus,
+  ConversationData,
   ConversationActions,
   CustomConversationInfo,
 };

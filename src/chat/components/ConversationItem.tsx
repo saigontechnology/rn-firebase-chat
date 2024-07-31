@@ -21,6 +21,8 @@ export interface IConversationItemProps {
   CustomImage?: typeof Image;
   renderMessage?: () => React.ReactNode;
   userInfo: IUserInfo | null;
+  unReadWrapperStyle?: StyleProp<ViewStyle>;
+  unReadStyle?: StyleProp<TextStyle>;
 }
 
 export const ConversationItem: React.FC<IConversationItemProps> = ({
@@ -33,6 +35,8 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   CustomImage,
   renderMessage,
   userInfo,
+  unReadWrapperStyle,
+  unReadStyle,
 }) => {
   const Avatar = CustomImage ?? Image;
 
@@ -103,6 +107,18 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             </Text>
           </View>
         )}
+        {!!data.unRead && (
+          <View
+            style={[
+              styles.unReadWrapper,
+              StyleSheet.flatten(unReadWrapperStyle),
+            ]}
+          >
+            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+              {data.unRead}
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -115,6 +131,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   avatarContainer: {
     width: 50,
@@ -131,8 +148,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#acacac',
   },
   avatar: {
     width: 50,
@@ -149,6 +164,18 @@ const styles = StyleSheet.create({
   },
   textAvatar: {
     fontSize: 24,
+    color: '#fff',
+  },
+  unReadWrapper: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#2684FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unRead: {
+    fontSize: 10,
     color: '#fff',
   },
 });

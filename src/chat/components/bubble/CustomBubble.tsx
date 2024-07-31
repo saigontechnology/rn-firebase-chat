@@ -1,5 +1,12 @@
 import React, { useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import {
   MessageTypes,
   UploadingFile,
@@ -18,6 +25,7 @@ import {
 import { CustomDocumentBubble } from './CustomDocumentBubble';
 import { FirestoreServices } from '../../../services/firebase';
 import { CustomBubbleVoice } from './CustomBubbleVoice';
+import ViewUnRead from '../ViewUnRead';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -28,6 +36,11 @@ interface CustomBubbleProps {
   isCurrentlyPlaying: boolean;
   renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
   uploadingFile?: UploadingFile;
+  userUnreadMessage: boolean;
+  customContainerStyle?: StyleProp<ViewStyle>;
+  customTextStyle?: StyleProp<ViewStyle>;
+  unReadSentMessage?: string;
+  unReadSeenMessage?: string;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -39,6 +52,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   isCurrentlyPlaying,
   renderCallBubble,
   uploadingFile,
+  userUnreadMessage,
+  customContainerStyle,
+  customTextStyle,
+  unReadSeenMessage,
+  unReadSentMessage,
 }) => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const styleBuble = {
@@ -109,6 +127,19 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   };
 
   const renderBubble = (currentMessage: MessageProps) => {
+    const isMyLatestMessage =
+      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
+      position === 'right';
+    const ViewRead = isMyLatestMessage && (
+      <ViewUnRead
+        userUnreadMessage={userUnreadMessage}
+        customContainerStyle={customContainerStyle}
+        customTextStyle={customTextStyle}
+        unReadSentMessage={unReadSentMessage}
+        unReadSeenMessage={unReadSeenMessage}
+      />
+    );
+
     switch (currentMessage?.type) {
       case MessageTypes.image:
       case MessageTypes.video:

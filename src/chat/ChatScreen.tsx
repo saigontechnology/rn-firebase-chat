@@ -40,6 +40,7 @@ import type {
   IUserInfo,
   MessageProps,
   UploadingFile,
+  ConversationData,
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
@@ -51,11 +52,6 @@ import { clearConversation } from '../reducer';
 
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
-}
-
-interface ConversationData {
-  unRead?: { [key: string]: number };
-  typing?: { [key: string]: boolean };
 }
 
 interface ChatScreenProps extends GiftedChatProps {
@@ -73,6 +69,10 @@ interface ChatScreenProps extends GiftedChatProps {
   sendMessageNotification?: () => void;
   timeoutSendNotification?: number;
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
+  customContainerStyle?: StyleProp<ViewStyle>;
+  customTextStyle?: StyleProp<ViewStyle>;
+  unReadSentMessage?: string;
+  unReadSeenMessage?: string;
   renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
 }
 
@@ -142,6 +142,10 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           setMessagesList(res);
           setHasMoreMessages(res.length === maxPageSize);
           // firebaseInstance.changeReadMessage();
+          const firstMessage = res?.length > 0 && res[0];
+          if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+            firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+          }
           onLoadEnd?.();
         });
       }
@@ -153,6 +157,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       memberIds,
       partners,
       maxPageSize,
+      userInfo?.id,
     ]);
 
     const onSend = useCallback(
@@ -246,6 +251,34 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       };
     }, [chatDispatch, firebaseInstance]);
 
+    // Listener of current conversation data
+    useEffect(() => {
+      let userConversation: () => void;
+      userConversation = firebaseInstance.userConversationListener(
+        (data: ConversationData | undefined) => {
+          if (userInfo?.id) {
+            const unReads = data?.unRead ?? {};
+            const latestMessageID = unReads[userInfo.id];
+            const hasUnreadMessages = Object.entries(unReads).some(
+              ([_, value]) => value !== latestMessageID
+            );
+            setUserUnreadMessage(hasUnreadMessages);
+            //handle clear timeout message [FC-8]
+            // if (!hasUnreadMessages && timeoutMessageRef.current) {
+            //   clearTimeout(timeoutMessageRef.current);
+            //   timeoutMessageRef.current = null;
+            // }
+          }
+        }
+      );
+
+      return () => {
+        if (userConversation) {
+          userConversation();
+        }
+      };
+    }, [firebaseInstance, partners, userInfo?.id]);
+
     useEffect(() => {
       let receiveMessageRef: () => void;
       const currentTime = Date.now();
@@ -269,7 +302,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
                 GiftedChat.append(previousMessages, [formatMessage])
               );
             }
-            // firebaseInstance.changeReadMessage();
+            // await for unread number status to completely update before change unread data
+            setTimeout(
+              () =>
+                firebaseInstance.changeReadMessage(message.id, userInfo?.id),
+              500
+            );
           }
         );
       }
@@ -341,6 +379,11 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           }
           renderCallBubble={renderCallBubble}
           uploadingFile={uploadingFile}
+          userUnreadMessage={userUnreadMessage}
+          customContainerStyle={props.customContainerStyle}
+          customTextStyle={props.customTextStyle}
+          unReadSentMessage={props.unReadSentMessage}
+          unReadSeenMessage={props.unReadSeenMessage}
         />
       );
     };
@@ -365,26 +408,6 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       }),
       [onSend]
     );
-
-    // useEffect(() => {
-    //   let userConversation: () => void;
-    //   userConversation = firebaseInstance.userConversationListener(
-    //     (data: ConversationData | undefined) => {
-    //       const memberId = partners[0]?.id;
-    //       const unReads = data?.unRead ?? {};
-    //       const hasUnreadMessages = Object.entries(unReads).some(
-    //         ([key, value]) => key !== memberId && value > 0
-    //       );
-    //       setUserUnreadMessage(hasUnreadMessages);
-    //     }
-    //   );
-
-    //   return () => {
-    //     if (userConversation) {
-    //       userConversation();
-    //     }
-    //   };
-    // }, [firebaseInstance, partners]);
 
     return (
       <View style={[styles.container, style]}>
