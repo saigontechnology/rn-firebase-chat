@@ -67,34 +67,34 @@ export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
 const styles = StyleSheet.create({
   container: {
     minWidth: 100,
-    minHeight: 50,
+    // minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     fexDirection: 'row',
     backgroundColor: '#2F80ED',
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
     borderColor: '#d3d3d3',
   },
   buttonPlaying: {
-    marginLeft: 10,
+    marginLeft: 0,
   },
   icon: {
-    width: 25,
-    height: 25,
+    width: 20,
+    height: 20,
     tintColor: 'white',
   },
   controls: {
     width: 140,
-    height: 40,
+    height: 30,
   },
   slider: {
     flex: 1,
     marginHorizontal: 10,
   },
   timer: {
-    width: 50,
     color: 'white',
     textAlign: 'center',
   },
