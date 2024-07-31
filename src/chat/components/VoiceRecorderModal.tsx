@@ -2,10 +2,8 @@ import React, {
   useState,
   useImperativeHandle,
   forwardRef,
-  useRef,
   useCallback,
   useMemo,
-  useEffect,
 } from 'react';
 import {
   Modal,
@@ -52,7 +50,7 @@ const ImageURL = {
   delete: require('../../images/trash.png'),
   recordAudio: require('../../images/record_icon.png'),
   sendAudio: require('../../images/blue_send.png'),
-  renew: require('../../images/plus_circle.png'),
+  renew: require('../../images/plus.png'),
   pause: require('../../images/pause_red.png'),
 };
 
@@ -254,7 +252,7 @@ const VoiceRecorderModal = forwardRef<
       <View style={styles.viewPlayAudio}>
         <PlayAudio uri={uri} />
         <TouchableOpacity
-          style={[styles.button, { marginHorizontal: 0, marginLeft: 8 }]}
+          style={[styles.button, styles.plusIcon]}
           onPress={() => {
             setIsRecord(false);
             setReplay(false);
@@ -384,6 +382,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     resizeMode: 'contain',
+  },
+  plusIcon: {
+    backgroundColor: '#E6F3FF',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    paddingTop: 5,
   },
   label: {
     color: 'white',
