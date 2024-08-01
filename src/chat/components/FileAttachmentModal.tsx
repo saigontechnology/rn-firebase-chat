@@ -53,7 +53,7 @@ const FileAttachmentModal = forwardRef<
   FileAttachmentModalProps
 >((props, ref) => {
   const {
-    buttonTitle = 'Choose files',
+    buttonTitle = 'Select file',
     shareIcon = require('../../images/file-sharing.png'),
     shareIconStyle,
     modalTitle = 'Share a file',
@@ -205,12 +205,12 @@ const styles = StyleSheet.create({
   iconStyle: {
     width: 50,
     height: 50,
-    marginBottom: 30,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 16,
     textAlign: 'center',
     color: 'white',
   },
