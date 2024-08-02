@@ -13,11 +13,7 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
-import {
-  launchImageLibrary,
-  type ImageLibraryOptions,
-  type ImagePickerResponse,
-} from 'react-native-image-picker';
+import ImagePicker from 'react-native-image-crop-picker';
 import { MessageTypes } from '../../interfaces';
 import { convertExtension } from '../../utilities';
 
@@ -68,15 +64,15 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   const openGallery = useCallback(async () => {
     try {
-      const options: ImageLibraryOptions = {
-        mediaType: 'mixed',
-      };
+      const result = await ImagePicker.openPicker({
+        multiple: true,
+        maxFiles: 1,
+        mediaType: 'any',
+      });
 
-      const result: ImagePickerResponse = await launchImageLibrary(options);
-
-      if (result?.assets) {
-        const file = result?.assets[0];
-        const mediaType = file?.type?.startsWith('image')
+      if (result?.length) {
+        const file = result[0];
+        const mediaType = file?.mime?.startsWith('image')
           ? MessageTypes.image
           : MessageTypes.video;
         const extension = convertExtension(file);
@@ -84,7 +80,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         onSend?.(
           {
             type: mediaType,
-            path: file?.uri ?? '',
+            path: (file?.path || file?.sourceURL) ?? '',
             extension: extension,
           },
           true

@@ -11,9 +11,9 @@ import {
   type MediaType,
   MessageTypes,
 } from '../interfaces';
-import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './Blacklist';
 import { getCurrentTimestamp } from './Date';
+import { ImageOrVideo } from 'react-native-image-crop-picker';
 
 const convertTextMessage = async (
   text: string,
@@ -130,8 +130,8 @@ export const getMediaTypeFromExtension = (path: string): MediaType => {
   }
 };
 
-export const convertExtension = (file: Asset | undefined): string => {
-  if (!file || file.type?.startsWith('image')) {
+export const convertExtension = (file: ImageOrVideo | undefined): string => {
+  if (!file || file.mime?.startsWith('image')) {
     return 'jpg';
   } else {
     return 'mp4';
