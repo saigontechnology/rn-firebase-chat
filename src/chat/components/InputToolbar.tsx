@@ -20,6 +20,7 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
+import ImagePicker, { Video } from 'react-native-image-crop-picker';
 import {
   animateLayout,
   convertExtension,
@@ -95,28 +96,32 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   const openGallery = useCallback(async () => {
     try {
-      const result: ImagePickerResponse = await launchImageLibrary(
-        libraryOptions
-      );
+      const result = await ImagePicker.openPicker({
+        multiple: true,
+        maxFiles: 1,
+        mediaType: 'any',
+      });
 
-      if (result?.assets) {
-        const file = result?.assets[0];
-        if (file?.fileSize && file?.fileSize > MAX_FILE_SIZE) {
+      if (result?.length) {
+        const file = result[0];
+        if (file?.size && file?.size > MAX_FILE_SIZE) {
           Alert.alert(
             'File is too large',
             'File size should not exceed 200 MB. Please try again'
           );
           return;
         }
-        const mediaType = getMediaTypeFromExtension(file?.uri);
-        const extension = convertExtension(file?.uri);
+        const mediaType = getMediaTypeFromExtension(
+          file?.path || file.sourceURL
+        );
+        const extension = convertExtension(file);
 
         onSend?.(
           {
             type: mediaType,
-            path: file?.uri ?? '',
+            path: (file?.path || file.sourceURL) ?? '',
             extension: extension,
-            duration: file?.duration,
+            duration: (file as Video)?.duration || 0,
           },
           true
         );
@@ -124,7 +129,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     } catch (error) {
       console.log('Error while opening gallery:');
     }
-  }, [libraryOptions, onSend]);
+  }, [onSend]);
 
   const handleShowLeftView = useCallback((focus: boolean) => {
     animateLayout();
