@@ -6,7 +6,7 @@ import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
-import ViewUnaread from '../ViewUnRead';
+import MessageStatus from '../MessageStatus';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -18,6 +18,8 @@ interface CustomBubbleProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  messageStatusEnable: boolean;
+  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -30,24 +32,41 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customTextStyle,
   unReadSeenMessage,
   unReadSentMessage,
+  messageStatusEnable,
+  customMessageStatus,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
   };
 
-  const renderBubble = (currentMessage: MessageProps) => {
-    const isMyLatestMessage =
-      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
-      position === 'right';
-    const ViewRead = isMyLatestMessage && (
-      <ViewUnaread
+  const renderMessageStatus = (
+    isMyLatestMsg: boolean,
+    msgStatusEnable: boolean,
+    customMessageStatusUI?: (hasUnread: boolean) => JSX.Element
+  ) => {
+    if (!isMyLatestMsg || !msgStatusEnable) return null;
+
+    return (
+      <MessageStatus
         userUnreadMessage={userUnreadMessage}
         customContainerStyle={customContainerStyle}
         customTextStyle={customTextStyle}
         unReadSentMessage={unReadSentMessage}
         unReadSeenMessage={unReadSeenMessage}
+        customMessageStatus={customMessageStatusUI}
       />
+    );
+  };
+
+  const renderBubble = (currentMessage: MessageProps) => {
+    const isMyLatestMessage =
+      !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
+      position === 'right';
+    const ViewMessageStatus = renderMessageStatus(
+      isMyLatestMessage,
+      messageStatusEnable,
+      customMessageStatus
     );
 
     switch (currentMessage?.type) {
@@ -72,7 +91,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
               }
               wrapperStyle={styleBuble}
             />
-            {ViewRead}
+            {ViewMessageStatus}
           </View>
         );
 
@@ -80,7 +99,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         return (
           <View>
             <Bubble {...bubbleMessage} />
-            {ViewRead}
+            {ViewMessageStatus}
           </View>
         );
       }

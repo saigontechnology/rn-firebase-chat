@@ -8,22 +8,26 @@ import {
   TextStyle,
 } from 'react-native';
 
-interface ViewUnReadProps {
+interface MessageStatusProps {
   userUnreadMessage: boolean;
   customContainerStyle?: StyleProp<ViewStyle>;
   customTextStyle?: StyleProp<TextStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
 }
 
-const ViewUnRead: React.FC<ViewUnReadProps> = ({
+const MessageStatus: React.FC<MessageStatusProps> = ({
   userUnreadMessage,
   customContainerStyle,
   customTextStyle,
   unReadSentMessage = 'Sent',
   unReadSeenMessage = 'Seen',
+  customMessageStatus,
 }) => {
-  return (
+  return customMessageStatus ? (
+    customMessageStatus(userUnreadMessage)
+  ) : (
     <View style={[styles.statusContainer, customContainerStyle]}>
       <Text style={[styles.statusText, customTextStyle]}>
         {userUnreadMessage ? unReadSentMessage : unReadSeenMessage}
@@ -49,4 +53,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ViewUnRead;
+export default MessageStatus;
