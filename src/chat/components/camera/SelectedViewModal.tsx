@@ -1,19 +1,29 @@
 import React from 'react';
-import { Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ImageRequireSource,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { MessageTypes } from '../../../interfaces';
 import VideoPlayer from './VideoPlayer';
+import Images from '../../asset';
 
 interface SelectedViewModalProps {
   url?: string;
   type?: string;
   onClose: () => void;
+  iconClose?: ImageRequireSource;
 }
 
 const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
   url,
   type,
   onClose,
+  iconClose,
 }) => {
   const renderPlayVideo = () => {
     return (
@@ -29,7 +39,7 @@ const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
     <FastImage
       style={styles.image}
       source={{
-        uri: url ? url : require('../../../images/place_holder.png'),
+        uri: url ?? Images.placeHolder,
         priority: FastImage.priority.high,
       }}
       resizeMode={FastImage.resizeMode.contain}
@@ -42,10 +52,7 @@ const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
         {type === MessageTypes.video ? renderPlayVideo() : renderImage()}
       </View>
       <TouchableOpacity style={styles.onClose} onPress={onClose}>
-        <Image
-          source={require('../../../images/close.png')}
-          style={styles.iconClose}
-        />
+        <Image source={iconClose ?? Images.close} style={styles.iconClose} />
       </TouchableOpacity>
     </Modal>
   );

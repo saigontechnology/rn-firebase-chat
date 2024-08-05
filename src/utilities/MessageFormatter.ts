@@ -1,7 +1,7 @@
 /**
  * Created by NL on 6/1/23.
  */
-import { decryptedMessageData } from './AESCrypto';
+import { decryptedMessageData } from './aesCrypto';
 import {
   type IUserInfo,
   type LatestMessageProps,
@@ -12,8 +12,8 @@ import {
   MessageTypes,
 } from '../interfaces';
 import type { Asset } from 'react-native-image-picker';
-import { getTextMessage } from './Blacklist';
-import { getCurrentTimestamp } from './Date';
+import { getTextMessage } from './blacklist';
+import { getCurrentTimestamp } from './date';
 
 const convertTextMessage = async (
   text: string,

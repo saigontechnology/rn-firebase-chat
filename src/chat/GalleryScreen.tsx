@@ -6,12 +6,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  ImageRequireSource,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { FirestoreServices } from '../services/firebase';
 import { MessageTypes, type MediaFile } from '../interfaces';
 import ThumbnailVideoPlayer from './components/camera/ThumbnailVideoPlayer';
 import SelectedViewModal from './components/camera/SelectedViewModal';
+import { GalleryType } from '../interfaces/gallery';
 type MediaItem = {
   item: MediaFile;
   index: number;
@@ -24,6 +26,7 @@ interface GalleryModalProps {
   renderCustomMedia?: ({ item, index }: MediaItem) => JSX.Element | null;
   renderCustomFile?: () => JSX.Element;
   renderCustomLink?: () => JSX.Element;
+  iconCloseModal?: ImageRequireSource;
 }
 
 export const GalleryScreen: React.FC<GalleryModalProps> = ({
@@ -31,14 +34,15 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   renderCustomMedia,
   renderCustomFile,
   renderCustomLink,
+  iconCloseModal,
 }) => {
-  const [activeTab, setActiveTab] = useState('Media');
+  const [activeTab, setActiveTab] = useState(GalleryType.MEDIA);
   const [media, setMedia] = useState<MediaFile[]>([]);
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [mediaSelected, setMediaSelected] = useState<MediaFile>();
 
   useEffect(() => {
-    if (activeTab === 'Media') {
+    if (activeTab === GalleryType.MEDIA) {
       const loadImages = async () => {
         const urls = await firebaseInstance.getMediaFilesByConversationId();
         setMedia(urls);
@@ -64,7 +68,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
     if (renderCustomHeader) return renderCustomHeader();
     return (
       <View style={styles.tabContainer}>
-        {['Media', 'File', 'Link'].map((tab) => (
+        {[GalleryType.MEDIA, GalleryType.FILE, GalleryType.LINK].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tab, activeTab === tab && styles.activeTab]}
@@ -87,7 +91,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'Media':
+      case GalleryType.MEDIA:
         return (
           <View>
             <FlatList
@@ -100,17 +104,18 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
               url={mediaSelected?.path}
               type={mediaSelected?.type}
               onClose={() => setMediaSelected(undefined)}
+              iconClose={iconCloseModal}
             />
           </View>
         );
-      case 'File':
+      case GalleryType.FILE:
         if (renderCustomFile) return renderCustomFile();
         return (
           <View style={styles.centeredView}>
             <Text>No Files Available</Text>
           </View>
         );
-      case 'Link':
+      case GalleryType.LINK:
         if (renderCustomLink) return renderCustomLink();
         return (
           <View style={styles.centeredView}>

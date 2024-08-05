@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   Image,
   Text,
+  ImageSourcePropType,
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
@@ -25,26 +26,28 @@ import {
   getAbsoluteFilePath,
   getMediaTypeFromExtension,
 } from '../../../utilities';
+import Images from '../../asset/index';
 
-type CameraViewProps = {
+export type IconPaths = {
+  close?: ImageSourcePropType;
+  send?: ImageSourcePropType;
+  cameraChange?: ImageSourcePropType;
+  flashOn?: ImageSourcePropType;
+  flashOff?: ImageSourcePropType;
+  back?: ImageSourcePropType;
+};
+
+export type CameraViewProps = {
   onSend: (message: MessageProps) => void;
   userInfo?: IUserInfo | null;
   ref: any;
+  iconProps?: IconPaths;
 };
 
 export interface CameraViewRef {
   show: () => void;
   hide: () => void;
 }
-
-const iconPaths = {
-  close: require('../../../images/close.png'),
-  send: require('../../../images/send.png'),
-  cameraChange: require('../../../images/camera_change.png'),
-  flashOn: require('../../../images/flash_on.png'),
-  flashOff: require('../../../images/flash_off.png'),
-  back: require('../../../images/back.png'),
-};
 
 const initialMediaState = {
   type: MessageTypes.image,
@@ -53,7 +56,8 @@ const initialMediaState = {
 
 export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
   (props, ref) => {
-    const { onSend, userInfo } = props;
+    const { onSend, userInfo, iconProps } = props;
+
     const camera = useRef<Camera>(null);
     const [media, setMedia] = useState(initialMediaState);
     const [isVideoPress, setIsVideoPress] = useState(false);
@@ -160,17 +164,26 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
               setIsShowCamera(true);
             }}
           >
-            <Image source={iconPaths.close} style={styles.iconClose} />
+            <Image
+              source={iconProps?.close ?? Images.close}
+              style={styles.iconClose}
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.saveButton} onPress={onSendPressed}>
             <Image
-              source={iconPaths.send}
+              source={iconProps?.send || Images.send}
               style={[styles.icon, styles.iconColor]}
             />
           </TouchableOpacity>
         </View>
       );
-    }, [media, onSendPressed]);
+    }, [
+      iconProps?.close,
+      iconProps?.send,
+      media.path,
+      media.type,
+      onSendPressed,
+    ]);
 
     const renderTimerView = useCallback(() => {
       return (
@@ -225,7 +238,10 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
             />
           )}
           <TouchableOpacity style={styles.backBtton} onPress={onCloseCamera}>
-            <Image source={iconPaths.back} style={styles.iconBack} />
+            <Image
+              source={iconProps?.back || Images.back}
+              style={styles.iconBack}
+            />
           </TouchableOpacity>
           {isVideoPress && (
             <View style={styles.timerContainer}>
@@ -248,14 +264,19 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
               style={styles.button}
               onPress={onFlipCameraPressed}
             >
-              <Image style={styles.icon} source={iconPaths.cameraChange} />
+              <Image
+                style={styles.icon}
+                source={iconProps?.cameraChange ?? Images.cameraChange}
+              />
             </TouchableOpacity>
             {supportsFlash && (
               <TouchableOpacity style={styles.button} onPress={onFlashPressed}>
                 <Image
                   style={styles.icon}
                   source={
-                    flash === 'on' ? iconPaths.flashOn : iconPaths.flashOff
+                    flash === 'on'
+                      ? iconProps?.flashOn ?? Images.flashOn
+                      : iconProps?.flashOff ?? Images.flashOff
                   }
                 />
               </TouchableOpacity>
@@ -266,6 +287,10 @@ export const CameraView = forwardRef<CameraViewRef, CameraViewProps>(
       ),
       [
         device,
+        iconProps?.back,
+        iconProps?.cameraChange,
+        iconProps?.flashOff,
+        iconProps?.flashOn,
         flash,
         isRecording,
         isVideoPress,
