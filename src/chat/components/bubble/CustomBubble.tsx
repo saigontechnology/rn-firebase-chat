@@ -40,7 +40,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     right: { backgroundColor: 'transparent' },
   };
 
-  const viewUnRead = (
+  const renderViewUnRead = (
     isMyLatestMsg: boolean,
     disableSeenMsg: boolean,
     customUnReadViewUI?: (hasUnread: boolean) => JSX.Element
@@ -63,7 +63,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     const isMyLatestMessage =
       !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
       position === 'right';
-    const ViewRead = viewUnRead(
+    const ViewRead = renderViewUnRead(
       isMyLatestMessage,
       disableSeenMessage,
       customUnReadView
