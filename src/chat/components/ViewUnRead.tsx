@@ -14,7 +14,7 @@ interface ViewUnReadProps {
   customTextStyle?: StyleProp<TextStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
-  viewUnReadCustom?: (hasUnread: boolean) => JSX.Element;
+  customUnReadView?: (hasUnread: boolean) => JSX.Element;
 }
 
 const ViewUnRead: React.FC<ViewUnReadProps> = ({
@@ -23,10 +23,10 @@ const ViewUnRead: React.FC<ViewUnReadProps> = ({
   customTextStyle,
   unReadSentMessage = 'Sent',
   unReadSeenMessage = 'Seen',
-  viewUnReadCustom,
+  customUnReadView,
 }) => {
-  return viewUnReadCustom ? (
-    viewUnReadCustom(userUnreadMessage)
+  return customUnReadView ? (
+    customUnReadView(userUnreadMessage)
   ) : (
     <View style={[styles.statusContainer, customContainerStyle]}>
       <Text style={[styles.statusText, customTextStyle]}>

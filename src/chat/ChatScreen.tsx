@@ -63,8 +63,8 @@ interface ChatScreenProps extends GiftedChatProps {
   timeoutSendNotify?: number;
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
-  enableSeenMessage?: boolean;
-  viewUnReadCustom?: (hasUnread: boolean) => JSX.Element;
+  disableSeenMessage?: boolean;
+  customUnReadView?: (hasUnread: boolean) => JSX.Element;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -82,7 +82,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   timeoutSendNotify = DEFAULT_CLEAR_SEND_NOTIFICATION,
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
-  enableSeenMessage = true,
+  disableSeenMessage = false,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -331,8 +331,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         customTextStyle={props.customTextStyle}
         unReadSentMessage={props.unReadSentMessage}
         unReadSeenMessage={props.unReadSeenMessage}
-        viewUnReadCustom={props.viewUnReadCustom}
-        enableSeenMessage={enableSeenMessage}
+        customUnReadView={props.customUnReadView}
+        disableSeenMessage={disableSeenMessage}
       />
     );
   };
