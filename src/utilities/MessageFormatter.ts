@@ -12,7 +12,6 @@ import {
   MessageTypes,
 } from '../interfaces';
 import { getCurrentTimestamp } from './Date';
-import { ImageOrVideo } from 'react-native-image-crop-picker';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
   return {
@@ -143,12 +142,12 @@ export const getMediaTypeFromExtension = (
   }
 };
 
-export const convertExtension = (file: ImageOrVideo | undefined): string => {
-  if (!file || file.mime?.startsWith('image')) {
+export const convertExtension = (path: string | undefined): string => {
+  if (!path) {
     return 'jpg';
-  } else {
-    return 'mp4';
   }
+  const extension = path.split('.').pop();
+  return extension ? extension : 'jpg';
 };
 
 export {

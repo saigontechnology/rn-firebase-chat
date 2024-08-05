@@ -112,14 +112,14 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           return;
         }
         const mediaType = getMediaTypeFromExtension(
-          file?.path || file.sourceURL
+          file?.path || file?.sourceURL
         );
-        const extension = convertExtension(file);
+        const extension = convertExtension(file?.path || file?.sourceURL);
 
         onSend?.(
           {
             type: mediaType,
-            path: (file?.path || file.sourceURL) ?? '',
+            path: (file?.path || file?.sourceURL) ?? '',
             extension: extension,
             duration: (file as Video)?.duration || 0,
           },
