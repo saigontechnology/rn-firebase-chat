@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import ImageView from 'react-native-image-viewing';
 import { MessageTypes, type MessageProps } from '../../interfaces';
 import VideoPlayer from '../../chat_obs/components/VideoPlayer';
 
@@ -57,6 +58,18 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
       </TouchableOpacity>
     );
   };
+
+  if (message?.type === 'image') {
+    return (
+      <ImageView
+        images={[{ uri: message?.path }]}
+        imageIndex={0}
+        visible={!!message?.path}
+        onRequestClose={onClose}
+        presentationStyle="fullScreen"
+      />
+    );
+  }
 
   return (
     <Modal visible={!!message} transparent={false} onRequestClose={onClose}>
