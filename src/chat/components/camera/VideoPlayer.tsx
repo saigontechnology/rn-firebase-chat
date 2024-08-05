@@ -14,11 +14,12 @@ import Video, {
 } from 'react-native-video';
 import { formatTime } from '../../../utilities';
 import CustomSlider from '../slider';
+import Images from '../../../asset';
 
 const { height, width } = Dimensions.get('window');
 interface VideoPlayerProps {
   videoUri: string;
-  sliderCustom?: (
+  customSlider?: (
     currentTime: number,
     duration: number,
     paused: boolean,
@@ -26,14 +27,9 @@ interface VideoPlayerProps {
   ) => React.ReactNode;
 }
 
-const ImageAssets = {
-  playIcon: require('../../../images/play_white.png'),
-  pauseIcon: require('../../../images/pause_white.png'),
-};
-
-const VideoPlayer: React.FC<VideoPlayerProps> = ({
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoUri,
-  sliderCustom,
+  customSlider,
 }) => {
   const [paused, setPaused] = useState(true);
   const [duration, setDuration] = useState<number>(0);
@@ -49,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const togglePlayPause = () => {
-    setPaused(!paused);
+    setPaused((prev) => !prev);
   };
 
   const handleSlide = (value: number) => {
@@ -79,7 +75,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onPress={togglePlayPause}
         >
           <Image
-            source={paused ? ImageAssets.playIcon : ImageAssets.pauseIcon}
+            source={paused ? Images.playIcon : Images.pauseWhiteIcon}
             style={styles.image}
           />
         </TouchableOpacity>
@@ -107,8 +103,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         resizeMode="contain"
         onEnd={onEnd}
       />
-      {sliderCustom
-        ? sliderCustom(currentTime, duration, paused, videoRef.current)
+      {customSlider
+        ? customSlider(currentTime, duration, paused, videoRef.current)
         : renderSlider()}
     </View>
   );
@@ -164,5 +160,3 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
 });
-
-export default VideoPlayer;

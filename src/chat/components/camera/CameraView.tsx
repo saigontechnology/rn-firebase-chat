@@ -26,7 +26,7 @@ import {
   getAbsoluteFilePath,
   getMediaTypeFromExtension,
 } from '../../../utilities';
-import Images from '../../asset/index';
+import Images from '../../../asset/index';
 
 export type IconPaths = {
   close?: ImageSourcePropType;

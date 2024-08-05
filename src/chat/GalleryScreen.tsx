@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   Dimensions,
   ImageRequireSource,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { FirestoreServices } from '../services/firebase';
 import { MessageTypes, type MediaFile } from '../interfaces';
-import ThumbnailVideoPlayer from './components/camera/ThumbnailVideoPlayer';
-import SelectedViewModal from './components/camera/SelectedViewModal';
 import { GalleryType } from '../interfaces/gallery';
+import { VideoRef } from 'react-native-video';
+import { SelectedViewModal, ThumbnailVideoPlayer } from './components/camera';
 type MediaItem = {
   item: MediaFile;
   index: number;
@@ -27,6 +29,19 @@ interface GalleryModalProps {
   renderCustomFile?: () => JSX.Element;
   renderCustomLink?: () => JSX.Element;
   iconCloseModal?: ImageRequireSource;
+  customSlider?: (
+    currentTime: number,
+    duration: number,
+    paused: boolean,
+    videoRef: VideoRef | null
+  ) => React.ReactNode;
+  headerStyle?: StyleProp<ViewStyle>;
+  tabStyle?: StyleProp<ViewStyle>;
+  activeTabStyle?: StyleProp<ViewStyle>;
+  tabTextStyle?: StyleProp<ViewStyle>;
+  activeTabTextStyle?: StyleProp<ViewStyle>;
+  tabIndicatorStyle?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export const GalleryScreen: React.FC<GalleryModalProps> = ({
@@ -35,6 +50,14 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   renderCustomFile,
   renderCustomLink,
   iconCloseModal,
+  customSlider,
+  headerStyle,
+  tabStyle,
+  activeTabStyle,
+  tabTextStyle,
+  activeTabTextStyle,
+  tabIndicatorStyle,
+  containerStyle,
 }) => {
   const [activeTab, setActiveTab] = useState(GalleryType.MEDIA);
   const [media, setMedia] = useState<MediaFile[]>([]);
@@ -67,22 +90,26 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   const renderHeader = (): JSX.Element => {
     if (renderCustomHeader) return renderCustomHeader();
     return (
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, headerStyle]}>
         {[GalleryType.MEDIA, GalleryType.FILE, GalleryType.LINK].map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={[styles.tab, tabStyle, activeTab === tab && activeTabStyle]}
             onPress={() => setActiveTab(tab)}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab && styles.activeTabText,
+                tabTextStyle,
+                (activeTab === tab && styles.activeTabText) ||
+                  activeTabTextStyle,
               ]}
             >
               {tab.toUpperCase()}
             </Text>
-            {activeTab === tab && <View style={styles.tabIndicator} />}
+            {activeTab === tab && (
+              <View style={[styles.tabIndicator, tabIndicatorStyle]} />
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -105,6 +132,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
               type={mediaSelected?.type}
               onClose={() => setMediaSelected(undefined)}
               iconClose={iconCloseModal}
+              customSlider={customSlider}
             />
           </View>
         );
@@ -128,7 +156,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {renderHeader()}
       {renderContent()}
     </View>

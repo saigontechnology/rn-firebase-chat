@@ -9,27 +9,35 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { MessageTypes } from '../../../interfaces';
-import VideoPlayer from './VideoPlayer';
-import Images from '../../asset';
+import Images from '../../../asset';
+import { VideoRef } from 'react-native-video';
+import { VideoPlayer } from './VideoPlayer';
 
 interface SelectedViewModalProps {
   url?: string;
   type?: string;
   onClose: () => void;
   iconClose?: ImageRequireSource;
+  customSlider?: (
+    currentTime: number,
+    duration: number,
+    paused: boolean,
+    videoRef: VideoRef | null
+  ) => React.ReactNode;
 }
 
-const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
+export const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
   url,
   type,
   onClose,
   iconClose,
+  customSlider,
 }) => {
   const renderPlayVideo = () => {
     return (
-      url && (
+      !!url && (
         <View style={styles.contain}>
-          <VideoPlayer videoUri={url} />
+          <VideoPlayer customSlider={customSlider} videoUri={url} />
         </View>
       )
     );
@@ -83,5 +91,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-export default SelectedViewModal;

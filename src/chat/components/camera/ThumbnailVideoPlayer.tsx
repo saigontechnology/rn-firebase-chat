@@ -9,7 +9,7 @@ interface ThumbnailVideoPlayerProps {
   videoUrl: string;
 }
 
-const ThumbnailVideoPlayer: React.FC<ThumbnailVideoPlayerProps> = ({
+export const ThumbnailVideoPlayer: React.FC<ThumbnailVideoPlayerProps> = ({
   videoUrl,
 }) => {
   const [duration, setDuration] = useState<number>(0);
@@ -60,5 +60,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default ThumbnailVideoPlayer;
