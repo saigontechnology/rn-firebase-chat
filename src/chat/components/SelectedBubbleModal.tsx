@@ -1,8 +1,14 @@
 import React from 'react';
-import { Image, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import {
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Text,
+} from 'react-native';
 import ImageView from 'react-native-image-viewing';
-import { MessageTypes, type MessageProps } from '../../interfaces';
+import type { MessageProps } from '../../interfaces';
 import VideoPlayer from '../../chat_obs/components/VideoPlayer';
 
 interface SelectedBubbleModalProps {
@@ -10,52 +16,28 @@ interface SelectedBubbleModalProps {
   onClose: () => void;
 }
 
+const HIT_SLOP = { top: 16, left: 16, bottom: 16, right: 16 };
+
 const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
   message,
   onClose,
 }) => {
-  const renderFullScreenImage = () => {
-    if (!message || !message.path) return <View />;
-    return (
-      <TouchableOpacity
-        style={styles.modalContainer}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <FastImage
-          style={styles.image}
-          source={{
-            uri: message.path,
-            priority: FastImage.priority.high,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
-        />
-      </TouchableOpacity>
-    );
-  };
-
   const renderPlayVideo = () => {
     if (!message || !message.path) return <View />;
     return <VideoPlayer videoUri={message.path} />;
   };
 
-  const renderFullScreenBubble = (messageBubble: MessageProps) => {
-    switch (messageBubble.type) {
-      case MessageTypes.video:
-        return renderPlayVideo();
-      default:
-        return renderFullScreenImage();
-    }
-  };
-
   const renderCloseIcon = () => {
     return (
-      <TouchableOpacity style={styles.onClose} onPress={onClose}>
-        <Image
-          source={require('../../images/close.png')}
-          style={styles.iconClose}
-        />
-      </TouchableOpacity>
+      <SafeAreaView style={styles.root}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+          hitSlop={HIT_SLOP}
+        >
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
     );
   };
 
@@ -64,6 +46,7 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
       <ImageView
         images={[{ uri: message?.path }]}
         imageIndex={0}
+        backgroundColor="#323F4B"
         visible={!!message?.path}
         onRequestClose={onClose}
         presentationStyle="fullScreen"
@@ -73,7 +56,7 @@ const SelectedBubbleModal: React.FC<SelectedBubbleModalProps> = ({
 
   return (
     <Modal visible={!!message} transparent={false} onRequestClose={onClose}>
-      {message && renderFullScreenBubble(message)}
+      {message && renderPlayVideo()}
       {renderCloseIcon()}
     </Modal>
   );
@@ -90,15 +73,27 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  onClose: {
+  root: {
+    right: 0,
     position: 'absolute',
-    right: 10,
-    top: 50,
+    alignItems: 'flex-end',
   },
-  iconClose: {
-    width: 30,
-    height: 30,
-    tintColor: 'white',
+  closeButton: {
+    marginRight: 8,
+    marginTop: 8,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: '#00000077',
+  },
+  closeText: {
+    lineHeight: 22,
+    fontSize: 19,
+    textAlign: 'center',
+    color: '#FFF',
+    includeFontPadding: false,
   },
 });
 
