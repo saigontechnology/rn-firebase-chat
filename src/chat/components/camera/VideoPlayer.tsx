@@ -75,7 +75,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onPress={togglePlayPause}
         >
           <Image
-            source={paused ? Images.playIcon : Images.pauseWhiteIcon}
+            source={paused ? Images.playWhiteIcon : Images.pauseWhiteIcon}
             style={styles.image}
           />
         </TouchableOpacity>
