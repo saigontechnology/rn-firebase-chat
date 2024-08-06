@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  MessageTextProps,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -45,6 +46,7 @@ import {
 import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { customPreviewLinkStyles } from './components/PreviewLink';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -70,6 +72,7 @@ interface ChatScreenProps extends GiftedChatProps {
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   iconsCamera: IconPaths;
+  customPreviewLinkStyles?: customPreviewLinkStyles;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -88,6 +91,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  customPreviewLinkStyles,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -338,9 +342,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         unReadSeenMessage={props.unReadSeenMessage}
         customMessageStatus={props.customMessageStatus}
         messageStatusEnable={messageStatusEnable}
+        customPreviewLinkStyles={customPreviewLinkStyles}
       />
     );
   };
+
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
       conversationRef.current?.id &&

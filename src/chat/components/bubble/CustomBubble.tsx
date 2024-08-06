@@ -1,12 +1,16 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble } from 'react-native-gifted-chat';
+import { Bubble, BubbleProps } from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
 import MessageStatus from '../MessageStatus';
+import {
+  customPreviewLinkStyles as customPreviewLinkStylesProps,
+  PreviewLink,
+} from '../PreviewLink';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -20,6 +24,11 @@ interface CustomBubbleProps {
   unReadSeenMessage?: string;
   messageStatusEnable: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  customPreviewLinkStyles?: customPreviewLinkStylesProps;
+  customPreviewLink: (
+    urls: string[],
+    bubbleMessage: BubbleProps<MessageProps>
+  ) => JSX.Element;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -34,6 +43,8 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   unReadSentMessage,
   messageStatusEnable,
   customMessageStatus,
+  customPreviewLinkStyles,
+  customPreviewLink,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -98,7 +109,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <Bubble {...bubbleMessage} />
+            <PreviewLink
+              bubbleMessage={bubbleMessage}
+              customPreviewLinkStyles={customPreviewLinkStyles}
+              customPreviewLink={customPreviewLink}
+            />
             {ViewMessageStatus}
           </View>
         );

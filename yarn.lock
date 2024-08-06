@@ -1960,6 +1960,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@flyerhq/react-native-link-preview@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "@flyerhq/react-native-link-preview@npm:1.6.0"
+  dependencies:
+    html-entities: ^2.3.2
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 36ff85956eab57720e9181b09cb7a81eab92a53b0302c5705f294884c3234c3a0cebb7cc8f6499c1b1e1fb421b2cdc73d905b1d2cdeb5340a1ec85f0e32ec210
+  languageName: node
+  linkType: hard
+
 "@hapi/hoek@npm:^9.0.0":
   version: 9.3.0
   resolution: "@hapi/hoek@npm:9.3.0"
@@ -7222,6 +7234,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-entities@npm:^2.3.2":
+  version: 2.5.2
+  resolution: "html-entities@npm:2.5.2"
+  checksum: b23f4a07d33d49ade1994069af4e13d31650e3fb62621e92ae10ecdf01d1a98065c78fd20fdc92b4c7881612210b37c275f2c9fba9777650ab0d6f2ceb3b99b6
+  languageName: node
+  linkType: hard
+
 "html-escaper@npm:^2.0.0":
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
@@ -12227,6 +12246,7 @@ __metadata:
   dependencies:
     "@commitlint/config-conventional": ^17.0.2
     "@evilmartians/lefthook": ^1.2.2
+    "@flyerhq/react-native-link-preview": ^1.6.0
     "@react-native-community/eslint-config": ^3.0.2
     "@react-native-firebase/app": 20.1.0
     "@react-native-firebase/firestore": 20.1.0
