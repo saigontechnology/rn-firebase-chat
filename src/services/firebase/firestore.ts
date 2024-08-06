@@ -611,7 +611,12 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (
+    callback: (
+      _: ConversationProps,
+      type: FirebaseFirestoreTypes.DocumentChangeType
+    ) => void
+  ) => {
     const regex = this.regexBlacklist;
 
     return firestore()
@@ -623,12 +628,13 @@ export class FirestoreServices {
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
-            if (change.type === 'modified') {
-              const data = {
-                ...(change.doc.data() as ConversationProps),
-                id: change.doc.id,
-              };
-              const message = {
+            const data = {
+              ...(change.doc.data() as ConversationProps),
+              id: change.doc.id,
+            };
+            let message = data;
+            if (change.type !== 'removed') {
+              message = {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
@@ -639,10 +645,83 @@ export class FirestoreServices {
                     )
                   : data.latestMessage,
               } as ConversationProps;
-              callback?.(message);
             }
+            callback?.(message, change.type);
           }
         }
       });
+  };
+
+  checkConversationExist = async (id: string) => {
+    const conversation = await firestore()
+      .collection(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+      )
+      .doc(id)
+      .get();
+
+    return conversation?.exists;
+  };
+
+  /**
+   * delete conversation from list
+   * @param forAllMembers indicates whether to remove conversation for all other members or simply remove from user's list
+   */
+  deleteConversation = async (
+    conversationId: string,
+    forAllMembers?: boolean
+  ): Promise<boolean> => {
+    try {
+      const isConversationExist = await this.checkConversationExist(
+        conversationId
+      );
+      if (!isConversationExist) {
+        throw new Error('Conversation does not exist!');
+      }
+
+      /** Get conversation ref from current user's conversations collection */
+      const userConversation = firestore()
+        .collection(
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
+        )
+        .doc(conversationId);
+
+      /** Get ID array of conversation's partners (exclude current user) */
+      const partnerIds = (
+        (await userConversation.get())?.data() as ConversationProps
+      )?.members?.filter((e) => e !== this.userId);
+
+      /** Delete latest message of that conversation for user (exclude from list) */
+      await userConversation.delete();
+      if (!forAllMembers) return true;
+
+      /** Delete latest message of that conversation for all other partners */
+      const partnerBatch = firestore().batch();
+      partnerIds?.forEach(async (id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              this.getUrlWithPrefix(
+                `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+              )
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
+      });
+
+      await partnerBatch.commit();
+
+      return true;
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      return false;
+    }
   };
 }

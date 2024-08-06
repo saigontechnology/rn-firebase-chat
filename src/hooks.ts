@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
 import type { ChatState } from './reducer';
+import { FirestoreServices } from './services/firebase';
 
 const useChat = () => {
   // const firebaseInstant
@@ -20,6 +21,13 @@ const useChatSelector = <T>(selector: (chatState: ChatState) => T): T => {
   const { chatState } = useChatContext();
   return selector(chatState);
 };
+
+const useConversation = () => {
+  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
+
+  return { deleteConversation: firebaseInstance.deleteConversation };
+};
+
 /**
  * Custom hook to manage typing indicator behavior based on user input.
  * @param enableTyping Boolean flag indicating whether typing indicator should be enabled.
@@ -72,4 +80,4 @@ const useTypingIndicator = (
   };
 };
 
-export { useChatContext, useChatSelector, useTypingIndicator };
+export { useChatContext, useChatSelector, useTypingIndicator, useConversation };
