@@ -279,6 +279,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           }
         };
       }
+      return;
     }, [firebaseInstance, partners, userInfo?.id, conversationInfo]);
 
     useEffect(() => {
