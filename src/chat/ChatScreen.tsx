@@ -254,30 +254,32 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
     // Listener of current conversation data
     useEffect(() => {
       let userConversation: () => void;
-      userConversation = firebaseInstance.userConversationListener(
-        (data: ConversationData | undefined) => {
-          if (userInfo?.id) {
-            const unReads = data?.unRead ?? {};
-            const latestMessageID = unReads[userInfo.id];
-            const hasUnreadMessages = Object.entries(unReads).some(
-              ([_, value]) => value !== latestMessageID
-            );
-            setUserUnreadMessage(hasUnreadMessages);
-            //handle clear timeout message [FC-8]
-            // if (!hasUnreadMessages && timeoutMessageRef.current) {
-            //   clearTimeout(timeoutMessageRef.current);
-            //   timeoutMessageRef.current = null;
-            // }
+      if (conversationInfo?.id) {
+        userConversation = firebaseInstance.userConversationListener(
+          (data: ConversationData | undefined) => {
+            if (userInfo?.id) {
+              const unReads = data?.unRead ?? {};
+              const latestMessageID = unReads[userInfo.id];
+              const hasUnreadMessages = Object.entries(unReads).some(
+                ([_, value]) => value !== latestMessageID
+              );
+              setUserUnreadMessage(hasUnreadMessages);
+              //handle clear timeout message [FC-8]
+              // if (!hasUnreadMessages && timeoutMessageRef.current) {
+              //   clearTimeout(timeoutMessageRef.current);
+              //   timeoutMessageRef.current = null;
+              // }
+            }
           }
-        }
-      );
+        );
 
-      return () => {
-        if (userConversation) {
-          userConversation();
-        }
-      };
-    }, [firebaseInstance, partners, userInfo?.id]);
+        return () => {
+          if (userConversation) {
+            userConversation();
+          }
+        };
+      }
+    }, [firebaseInstance, partners, userInfo?.id, conversationInfo]);
 
     useEffect(() => {
       let receiveMessageRef: () => void;
