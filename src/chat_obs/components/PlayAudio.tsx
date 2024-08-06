@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
   timer: {
     width: 50,
     textAlign: 'center',
+    color: 'black',
   },
   controls: {
     width: 160,

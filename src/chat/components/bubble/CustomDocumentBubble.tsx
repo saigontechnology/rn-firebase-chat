@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   },
   groupText: {
     marginLeft: 10,
+    flexShrink: 1,
   },
   text: {
     fontSize: 15,
