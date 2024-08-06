@@ -49,6 +49,7 @@ import VoiceRecorderModal, {
   VoiceRecorderModalRef,
 } from './components/VoiceRecorderModal';
 import { clearConversation } from '../reducer';
+import { DEFAULT_CLEAR_SEND_NOTIFICATION } from './constants';
 
 export interface ChatScreenRef {
   sendMessage: (message: MessageProps) => void;
@@ -89,7 +90,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
       inputToolbarProps,
       customConversationInfo,
       sendMessageNotification,
-      timeoutSendNotification = 0,
+      timeoutSendNotification = DEFAULT_CLEAR_SEND_NOTIFICATION,
       customImageVideoBubbleProps,
       renderCallBubble,
       ...props
@@ -264,11 +265,12 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
                 ([_, value]) => value !== latestMessageID
               );
               setUserUnreadMessage(hasUnreadMessages);
-              //handle clear timeout message [FC-8]
-              // if (!hasUnreadMessages && timeoutMessageRef.current) {
-              //   clearTimeout(timeoutMessageRef.current);
-              //   timeoutMessageRef.current = null;
-              // }
+
+              // Clear timeout message when push notification
+              if (!hasUnreadMessages && timeoutMessageRef.current) {
+                clearTimeout(timeoutMessageRef.current);
+                timeoutMessageRef.current = null;
+              }
             }
           }
         );
