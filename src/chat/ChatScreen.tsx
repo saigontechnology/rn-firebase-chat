@@ -21,21 +21,26 @@ import {
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
-import { useChatContext, useChatSelector } from '../hooks';
 import type {
+  ConversationData,
   ConversationProps,
   CustomConversationInfo,
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageText } from '../utilities';
-import { getConversation } from '../reducer/selectors';
-import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { formatMessageText, isOtherUserTyping } from '../utilities';
 import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
+import {
+  DEFAULT_CLEAR_SEND_NOTIFICATION,
+  DEFAULT_TYPING_TIMEOUT_SECONDS,
+} from '../constants';
+import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
+import { getConversation } from '../reducer/selectors';
+import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -50,6 +55,16 @@ interface ChatScreenProps extends GiftedChatProps {
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customContainerStyle?: StyleProp<ViewStyle>;
+  customTextStyle?: StyleProp<ViewStyle>;
+  unReadSentMessage?: string;
+  unReadSeenMessage?: string;
+  sendMessageNotification?: () => void;
+  timeoutSendNotify?: number;
+  enableTyping?: boolean;
+  typingTimeoutSeconds?: number;
+  messageStatusEnable?: boolean;
+  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -63,6 +78,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   inputToolbarProps,
   customConversationInfo,
   customImageVideoBubbleProps,
+  sendMessageNotification,
+  timeoutSendNotify = DEFAULT_CLEAR_SEND_NOTIFICATION,
+  enableTyping = true,
+  typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
+  messageStatusEnable = true,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -75,10 +95,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const isLoadingRef = useRef(false);
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
+  const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -86,6 +109,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
+  // Fetch latest conversation and messages data
   useEffect(() => {
     if (conversationInfo?.id) {
       onStartLoad?.();
@@ -97,6 +121,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
         setMessagesList(res);
         setHasMoreMessages(res.length === maxPageSize);
+        const firstMessage = res?.length > 0 && res[0];
+        if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+          firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+        }
         onLoadEnd?.();
       });
     }
@@ -108,6 +136,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     memberIds,
     partners,
     maxPageSize,
+    userInfo?.id,
   ]);
 
   const onSend = useCallback(
@@ -146,8 +175,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       );
 
       await firebaseInstance.sendMessage(messages);
+
+      timeoutMessageRef.current = setTimeout(() => {
+        sendMessageNotification?.();
+      }, timeoutSendNotify);
     },
-    [firebaseInstance, customConversationInfo, memberIds, partners]
+    [
+      firebaseInstance,
+      timeoutSendNotify,
+      customConversationInfo,
+      memberIds,
+      partners,
+      sendMessageNotification,
+    ]
   );
 
   const onLoadEarlier = useCallback(async () => {
@@ -166,6 +206,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   }, [maxPageSize, firebaseInstance]);
 
+  // Clear conversation data when exit ChatScreen
   useEffect(() => {
     return () => {
       firebaseInstance.clearConversationInfo();
@@ -173,6 +214,44 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [chatDispatch, firebaseInstance]);
 
+  // Listener of current conversation data
+  useEffect(() => {
+    let userConversation: () => void;
+    if (conversationRef.current?.id) {
+      userConversation = firebaseInstance.userConversationListener(
+        (data: ConversationData | undefined) => {
+          if (userInfo?.id) {
+            const unReads = data?.unRead ?? {};
+            const latestMessageID = unReads[userInfo.id];
+            const hasUnreadMessages = Object.entries(unReads).some(
+              ([_, value]) => value !== latestMessageID
+            );
+            setUserUnreadMessage(hasUnreadMessages);
+            // Clear timeout message when push notification
+            if (!hasUnreadMessages && timeoutMessageRef.current) {
+              clearTimeout(timeoutMessageRef.current);
+              timeoutMessageRef.current = null;
+            }
+            if (data?.typing) {
+              const isOthersTyping = isOtherUserTyping(
+                data.typing,
+                userInfo.id
+              );
+              setIsTyping(isOthersTyping);
+            }
+          }
+        }
+      );
+    }
+
+    return () => {
+      if (userConversation) {
+        userConversation();
+      }
+    };
+  }, [firebaseInstance, partners, userInfo?.id]);
+
+  // Listener of current conversation list messages
   useEffect(() => {
     let receiveMessageRef: () => void;
     if (conversationRef.current?.id) {
@@ -183,6 +262,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
+          // await for unread number status to completely update before change unread data
+          setTimeout(
+            () => firebaseInstance.changeReadMessage(message.id, userInfo?.id),
+            500
+          );
         }
       );
     }
@@ -242,9 +326,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         }}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
+        userUnreadMessage={userUnreadMessage}
+        customContainerStyle={props.customContainerStyle}
+        customTextStyle={props.customTextStyle}
+        unReadSentMessage={props.unReadSentMessage}
+        unReadSeenMessage={props.unReadSeenMessage}
+        customMessageStatus={props.customMessageStatus}
+        messageStatusEnable={messageStatusEnable}
       />
     );
   };
+  const changeUserConversationTyping = useCallback(
+    (value: boolean, callback?: () => void) => {
+      conversationRef.current?.id &&
+        firebaseInstance.setUserConversationTyping(value).then(callback);
+    },
+    [firebaseInstance]
+  );
+
+  const { handleTextChange } = useTypingIndicator(
+    enableTyping,
+    changeUserConversationTyping,
+    typingTimeoutSeconds
+  );
 
   return (
     <View style={[styles.container, style]}>
@@ -263,6 +367,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
           renderBubble={renderBubble}
+          onInputTextChanged={handleTextChange}
+          isTyping={isTyping}
           {...props}
         />
       </KeyboardAvoidingView>

@@ -4,7 +4,11 @@
 import React, { useMemo } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { MessageTypes, type ConversationProps } from '../../interfaces';
+import {
+  IUserInfo,
+  MessageTypes,
+  type ConversationProps,
+} from '../../interfaces';
 import { randomColor } from '../../utilities';
 
 export interface IConversationItemProps {
@@ -14,8 +18,11 @@ export interface IConversationItemProps {
   wrapperStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
   lastMessageStyle?: StyleProp<TextStyle>;
+  unReadWrapperStyle?: StyleProp<ViewStyle>;
+  unReadStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
   renderMessage?: () => React.ReactNode;
+  userInfo: IUserInfo | null;
 }
 
 export const ConversationItem: React.FC<IConversationItemProps> = ({
@@ -25,8 +32,11 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   wrapperStyle,
   titleStyle,
   lastMessageStyle,
+  unReadWrapperStyle,
+  unReadStyle,
   CustomImage,
   renderMessage,
+  userInfo,
 }) => {
   const Avatar = CustomImage ?? Image;
 
@@ -34,6 +44,35 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     if (!data.image) return randomColor(data.name || '');
     return undefined;
   }, [data.image, data.name]);
+
+  const getInitialsChat = (type: string | undefined): string => {
+    if (!data?.latestMessage || !type) return '';
+
+    const { latestMessage } = data;
+    const { senderId, text } = latestMessage;
+    const isCurrentUser = senderId === userInfo?.id;
+
+    const getMessageText = (messageType: string): string => {
+      const senderInfo = `${
+        isCurrentUser ? 'You' : data.latestMessage?.name
+      } sent a`;
+
+      switch (messageType) {
+        case MessageTypes.text:
+          return text;
+        case MessageTypes.image:
+          return `${senderInfo} Photo`;
+        case MessageTypes.video:
+          return `${senderInfo} Video`;
+        case MessageTypes.voice:
+          return `${senderInfo} Voice`;
+        default:
+          return '';
+      }
+    };
+
+    return getMessageText(type);
+  };
 
   return (
     <TouchableOpacity
@@ -64,11 +103,19 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
               numberOfLines={1}
             >
-              {data?.latestMessage?.type === MessageTypes.text
-                ? data?.latestMessage?.text
-                : data?.latestMessage?.type === MessageTypes.image
-                ? 'Photo'
-                : 'Video'}
+              {getInitialsChat(data?.latestMessage?.type)}
+            </Text>
+          </View>
+        )}
+        {!!data.unRead && (
+          <View
+            style={[
+              styles.unReadWrapper,
+              StyleSheet.flatten(unReadWrapperStyle),
+            ]}
+          >
+            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+              {data.unRead}
             </Text>
           </View>
         )}
@@ -84,6 +131,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   avatarContainer: {
     width: 50,
@@ -100,8 +148,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#acacac',
   },
   avatar: {
     width: 50,
@@ -118,6 +164,18 @@ const styles = StyleSheet.create({
   },
   textAvatar: {
     fontSize: 24,
+    color: '#fff',
+  },
+  unReadWrapper: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#2684FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unRead: {
+    fontSize: 10,
     color: '#fff',
   },
 });

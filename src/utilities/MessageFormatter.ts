@@ -100,6 +100,7 @@ const formatSendMessage = (
 
 const formatLatestMessage = (
   userId: string,
+  name: string,
   message: string,
   type?: MediaType,
   path?: string,
@@ -107,6 +108,7 @@ const formatLatestMessage = (
 ): LatestMessageProps => ({
   text: message ?? '',
   senderId: userId,
+  name: name,
   readBy: {
     [userId]: true,
   },
@@ -134,6 +136,10 @@ export const convertExtension = (file: Asset | undefined): string => {
   } else {
     return 'mp4';
   }
+};
+
+export const getAbsoluteFilePath = (path: string) => {
+  return path?.startsWith?.('file:/') ? path : `file://${path}`;
 };
 
 export {

@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 12,
-    marginTop: 12,
+    marginTop: 4,
   },
   composeWrapper: {
     flex: 1,
