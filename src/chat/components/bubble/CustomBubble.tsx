@@ -9,7 +9,7 @@ import {
 import MessageStatus from '../MessageStatus';
 import {
   customPreviewLinkStyles as customPreviewLinkStylesProps,
-  PreviewLink,
+  PreviewLink as MessageWithPreviewLink,
 } from '../PreviewLink';
 
 interface CustomBubbleProps {
@@ -109,7 +109,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <PreviewLink
+            <MessageWithPreviewLink
               bubbleMessage={bubbleMessage}
               customPreviewLinkStyles={customPreviewLinkStyles}
               customPreviewLink={customPreviewLink}

@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Linking,
   StyleProp,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -30,7 +29,7 @@ interface PreviewLinkProps {
 export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
   const { bubbleMessage, customPreviewLinkStyles, customPreviewLink } = props;
   const { currentMessage } = bubbleMessage;
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlRegex = useMemo(() => /(https?:\/\/[^\s]+)/g, []);
   const urls = currentMessage?.text.match(urlRegex);
 
   const {
@@ -40,56 +39,76 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
     customMessagePreviewStyle,
   } = customPreviewLinkStyles || {};
 
-  const handleLinkPress = (url: string) => {
+  const handleLinkPress = useCallback((url: string) => {
     Linking.openURL(url).catch((err) =>
       console.error('Error opening URL:', err)
     );
-  };
+  }, []);
 
-  const renderTextWithLinks = (text: string) => {
-    const parts = text.split(urlRegex);
-    return parts.map((part, index) => {
-      if (urlRegex.test(part)) {
-        return (
-          <TouchableOpacity key={index} onPress={() => handleLinkPress(part)}>
-            <Text style={[styles.linkText, customLinkTextStyle]}>{part}</Text>
-          </TouchableOpacity>
-        );
-      }
-      return <Text key={index}>{part}</Text>;
-    });
-  };
+  const renderTextWithLinks = useCallback(
+    (text: string) => {
+      const parts = text.split(urlRegex);
+      return parts.map((part, index) => {
+        if (urlRegex.test(part)) {
+          return (
+            <Text
+              key={index}
+              onPress={() => handleLinkPress(part)}
+              style={[styles.linkText, customLinkTextStyle]}
+            >
+              {part}
+            </Text>
+          );
+        }
+        return <Text key={index}>{part}</Text>;
+      });
+    },
+    [customLinkTextStyle, handleLinkPress, urlRegex]
+  );
 
-  const renderPreview = (urlsLink: string[]) => {
-    const firstUrl = urlsLink[0];
+  const renderPreview = useCallback(
+    (urlsLink: string[]) => {
+      const firstUrl = urlsLink[0];
 
-    return (
-      <View
-        style={[
-          styles.bubbleContainer,
-          customContainerStyle,
-          bubbleMessage.position === 'left' ? styles.flexStart : styles.flexEnd,
-        ]}
-      >
-        <View style={styles.bubble}>
-          <Text style={[styles.messagePreview, customMessagePreviewStyle]}>
-            {currentMessage?.text && renderTextWithLinks(currentMessage.text)}
-          </Text>
-          {firstUrl && (
-            <LinkPreview
-              containerStyle={[
-                styles.previewContainer,
-                customPreviewContainerStyle,
-              ]}
-              enableAnimation
-              text={firstUrl}
-              renderText={() => null}
-            />
-          )}
+      return (
+        <View
+          style={[
+            styles.bubbleContainer,
+            customContainerStyle,
+            bubbleMessage.position === 'left'
+              ? styles.flexStart
+              : styles.flexEnd,
+          ]}
+        >
+          <View style={styles.bubble}>
+            <Text style={[styles.messagePreview, customMessagePreviewStyle]}>
+              {!!currentMessage?.text &&
+                renderTextWithLinks(currentMessage.text)}
+            </Text>
+            {!!firstUrl && (
+              <LinkPreview
+                containerStyle={[
+                  styles.previewContainer,
+                  customPreviewContainerStyle,
+                ]}
+                enableAnimation
+                text={firstUrl}
+                renderText={() => null}
+              />
+            )}
+          </View>
         </View>
-      </View>
-    );
-  };
+      );
+    },
+    [
+      bubbleMessage.position,
+      currentMessage?.text,
+      customContainerStyle,
+      customMessagePreviewStyle,
+      customPreviewContainerStyle,
+      renderTextWithLinks,
+    ]
+  );
 
   if (!urls) {
     return <Bubble {...bubbleMessage} />;
