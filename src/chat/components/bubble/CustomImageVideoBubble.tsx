@@ -14,6 +14,7 @@ import FastImage, {
   type ImageStyle as FastImageStyle,
 } from 'react-native-fast-image';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
+import Images from '../../../asset';
 
 export interface CustomImageVideoBubbleProps {
   message: MessageProps;
@@ -32,7 +33,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   position,
   message,
   onSelectImgVideoUrl,
-  playIcon = require('../../../images/play.png'),
+  playIcon = Images.playIcon,
   bubbleContainerStyle,
   bubbleStyle,
   imageStyle,

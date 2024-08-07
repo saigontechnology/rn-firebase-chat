@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
-import { MessageTypes } from '../../interfaces';
+import { MessageTypes } from '../../../interfaces';
 export const CAPTURE_BUTTON_SIZE = 78;
 
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;

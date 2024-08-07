@@ -29,7 +29,11 @@ import type {
   MessageProps,
 } from '../interfaces';
 import { formatMessageText, isOtherUserTyping } from '../utilities';
-import { CameraView, CameraViewRef } from '../chat_obs/components/CameraView';
+import {
+  CameraView,
+  CameraViewRef,
+  IconPaths,
+} from '../chat/components/camera/CameraView';
 import SelectedImageModal from './components/SelectedImage';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
@@ -65,6 +69,7 @@ interface ChatScreenProps extends GiftedChatProps {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  iconsCamera: IconPaths;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -376,7 +381,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
       />
-      <CameraView onSend={onSend} userInfo={userInfo} ref={cameraViewRef} />
+      <CameraView
+        iconProps={props?.iconsCamera}
+        onSend={onSend}
+        userInfo={userInfo}
+        ref={cameraViewRef}
+      />
     </View>
   );
 };
