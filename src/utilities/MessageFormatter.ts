@@ -11,7 +11,6 @@ import {
   type MediaType,
   MessageTypes,
 } from '../interfaces';
-import type { Asset } from 'react-native-image-picker';
 import { getCurrentTimestamp } from './Date';
 
 const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
