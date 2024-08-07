@@ -5,6 +5,7 @@ import {
   chatReducer,
   setListConversation,
   updateConversation,
+  updateListConversation,
 } from '../reducer';
 
 const firestoreServices = FirestoreServices.getInstance();
@@ -36,7 +37,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
           dispatch(setListConversation(res));
         });
         unsubscribeListener = firestoreServices.listenConversationUpdate(
-          (data) => {
+          (data, type) => {
+            if (type === 'removed') {
+              dispatch(updateListConversation(data));
+              return;
+            }
             dispatch(updateConversation(data));
           }
         );
