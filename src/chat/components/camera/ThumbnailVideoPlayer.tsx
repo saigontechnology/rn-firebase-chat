@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Video, { OnLoadData } from 'react-native-video';
 import { formatTime } from '../../../utilities';
@@ -14,9 +14,9 @@ export const ThumbnailVideoPlayer: React.FC<ThumbnailVideoPlayerProps> = ({
 }) => {
   const [duration, setDuration] = useState<number>(0);
 
-  const handleLoad = (meta: OnLoadData) => {
+  const handleLoad = useCallback((meta: OnLoadData) => {
     setDuration(meta.duration);
-  };
+  }, []);
 
   return (
     <View style={styles.container}>

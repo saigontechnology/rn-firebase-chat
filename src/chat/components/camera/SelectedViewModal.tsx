@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Image,
   ImageRequireSource,
@@ -33,7 +33,7 @@ export const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
   iconClose,
   customSlider,
 }) => {
-  const renderPlayVideo = () => {
+  const renderPlayVideo = useCallback(() => {
     return (
       !!url && (
         <View style={styles.contain}>
@@ -41,17 +41,20 @@ export const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
         </View>
       )
     );
-  };
+  }, [customSlider, url]);
 
-  const renderImage = () => (
-    <FastImage
-      style={styles.image}
-      source={{
-        uri: url ?? Images.placeHolder,
-        priority: FastImage.priority.high,
-      }}
-      resizeMode={FastImage.resizeMode.contain}
-    />
+  const renderImage = useCallback(
+    () => (
+      <FastImage
+        style={styles.image}
+        source={{
+          uri: url ?? Images.placeHolder,
+          priority: FastImage.priority.high,
+        }}
+        resizeMode={FastImage.resizeMode.contain}
+      />
+    ),
+    [url]
   );
 
   return (

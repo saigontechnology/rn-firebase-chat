@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -74,20 +74,23 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
     }
   }, [activeTab, firebaseInstance]);
 
-  const renderImage = ({ item, index }: MediaItem) => {
-    if (renderCustomMedia) return renderCustomMedia({ item, index });
-    return (
-      <TouchableOpacity onPress={() => setMediaSelected(item)}>
-        {item.type === MessageTypes.video ? (
-          <ThumbnailVideoPlayer videoUrl={item.path} />
-        ) : (
-          <FastImage source={{ uri: item.path }} style={styles.image} />
-        )}
-      </TouchableOpacity>
-    );
-  };
+  const renderImage = useCallback(
+    ({ item, index }: MediaItem) => {
+      if (renderCustomMedia) return renderCustomMedia({ item, index });
+      return (
+        <TouchableOpacity onPress={() => setMediaSelected(item)}>
+          {item.type === MessageTypes.video ? (
+            <ThumbnailVideoPlayer videoUrl={item.path} />
+          ) : (
+            <FastImage source={{ uri: item.path }} style={styles.image} />
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [renderCustomMedia]
+  );
 
-  const renderHeader = (): JSX.Element => {
+  const renderHeader = useCallback((): JSX.Element => {
     if (renderCustomHeader) return renderCustomHeader();
     return (
       <View style={[styles.tabContainer, headerStyle]}>
@@ -114,9 +117,18 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
         ))}
       </View>
     );
-  };
+  }, [
+    activeTab,
+    activeTabStyle,
+    activeTabTextStyle,
+    headerStyle,
+    renderCustomHeader,
+    tabIndicatorStyle,
+    tabStyle,
+    tabTextStyle,
+  ]);
 
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     switch (activeTab) {
       case GalleryType.MEDIA:
         return (
@@ -153,7 +165,17 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
       default:
         return null;
     }
-  };
+  }, [
+    activeTab,
+    customSlider,
+    iconCloseModal,
+    media,
+    mediaSelected?.path,
+    mediaSelected?.type,
+    renderCustomFile,
+    renderCustomLink,
+    renderImage,
+  ]);
 
   return (
     <View style={[styles.container, containerStyle]}>

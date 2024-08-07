@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   PanResponder,
@@ -28,12 +28,12 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
 }) => {
   const [sliderWidth, setSliderWidth] = useState(0);
 
-  const getSliderPosition = () => {
+  const getSliderPosition = useCallback(() => {
     if (duration === 0) {
       return 0;
     }
     return Math.round((currentTime / duration) * sliderWidth);
-  };
+  }, [currentTime, duration, sliderWidth]);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
