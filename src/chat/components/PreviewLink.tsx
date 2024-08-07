@@ -26,10 +26,15 @@ interface PreviewLinkProps {
   ) => JSX.Element;
 }
 
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+const handleLinkPress = (url: string) => {
+  Linking.openURL(url).catch((err) => console.error('Error opening URL:', err));
+};
+
 export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
   const { bubbleMessage, customPreviewLinkStyles, customPreviewLink } = props;
   const { currentMessage } = bubbleMessage;
-  const urlRegex = useMemo(() => /(https?:\/\/[^\s]+)/g, []);
   const urls = currentMessage?.text.match(urlRegex);
 
   const {
@@ -38,12 +43,6 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
     customLinkTextStyle,
     customMessagePreviewStyle,
   } = customPreviewLinkStyles || {};
-
-  const handleLinkPress = useCallback((url: string) => {
-    Linking.openURL(url).catch((err) =>
-      console.error('Error opening URL:', err)
-    );
-  }, []);
 
   const renderTextWithLinks = useCallback(
     (text: string) => {
@@ -63,7 +62,7 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
         return <Text key={index}>{part}</Text>;
       });
     },
-    [customLinkTextStyle, handleLinkPress, urlRegex]
+    [customLinkTextStyle]
   );
 
   const renderPreview = useCallback(
