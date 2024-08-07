@@ -21,6 +21,17 @@ export const chatReducer = (
         ...state,
         listConversation: action.payload as ConversationProps[],
       };
+    case ChatActionKind.UPDATE_LIST_CONVERSATION: {
+      const message = action.payload as ConversationProps;
+      const listConversation = state.listConversation?.filter(
+        (e) => e.id !== message.id
+      );
+
+      return {
+        ...state,
+        listConversation: listConversation as ConversationProps[],
+      };
+    }
     case ChatActionKind.SET_CONVERSATION:
       return {
         ...state,
@@ -31,7 +42,7 @@ export const chatReducer = (
         ...state,
         conversation: undefined,
       };
-    case ChatActionKind.UPDATE_CONVERSATION:
+    case ChatActionKind.UPDATE_CONVERSATION: {
       const message = action.payload as ConversationProps;
       const isExistID = state.listConversation?.some(
         (item) => item.id === message.id
@@ -52,5 +63,9 @@ export const chatReducer = (
         ...state,
         listConversation: newListConversation,
       };
+    }
+
+    default:
+      return state;
   }
 };

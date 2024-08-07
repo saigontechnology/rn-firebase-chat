@@ -248,14 +248,15 @@ export class FirestoreServices {
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
-          formatLatestMessage(
-            this.userId,
-            this.userInfo?.name || '',
-            '',
+          formatLatestMessage({
+            userId: this.userId,
+            name: this.userInfo?.name || '',
+            message: '',
             type,
             path,
-            extension
-          )
+            extension,
+            system: false,
+          })
         );
       });
     } catch (error) {
@@ -280,16 +281,30 @@ export class FirestoreServices {
       message.type === MessageTypes.image ||
       message.type === MessageTypes.video
     ) {
-      messageData = formatSendMessage(this.userId, text, type, path, extension);
+      messageData = formatSendMessage({
+        userId: this.userId,
+        text,
+        type,
+        path,
+        extension,
+      });
       this.sendMessageWithFile(messageData);
     } else {
-      /** Format message */
-      messageData = formatSendMessage(this.userId, text);
-      /** Encrypt the message before store to firestore */
-      if (this.enableEncrypt && this.encryptKey) {
-        messageData.text = this.encryptFunctionProp
-          ? await this.encryptFunctionProp(text)
-          : await encryptData(text, this.encryptKey);
+      if (message.system) {
+        messageData = formatSendMessage({
+          userId: this.userId,
+          text,
+          system: true,
+        });
+      } else {
+        /** Format message text */
+        messageData = formatSendMessage({ userId: this.userId, text });
+        /** Encrypt the message before store to firestore */
+        if (this.enableEncrypt && this.encryptKey) {
+          messageData.text = this.encryptFunctionProp
+            ? await this.encryptFunctionProp(text)
+            : await encryptData(text, this.encryptKey);
+        }
       }
 
       try {
@@ -303,11 +318,12 @@ export class FirestoreServices {
           .add(messageData);
 
         /** Format latest message data */
-        const latestMessageData = formatLatestMessage(
-          this.userId,
-          this.userInfo?.name || '',
-          messageData.text
-        );
+        const latestMessageData = formatLatestMessage({
+          userId: this.userId,
+          name: this.userInfo?.name || '',
+          message: messageData.text,
+          system: messageData.system,
+        });
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
         });
@@ -326,6 +342,8 @@ export class FirestoreServices {
         'Please create conversation before send the first message!'
       );
     }
+    if (userId === this.userId && latestMessageData.system) return;
+
     const userConversationRef = firestore()
       .collection<Partial<ConversationProps>>(
         this.getUrlWithPrefix(
@@ -613,7 +631,9 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (
+    callback: (_: ConversationProps, type: string) => void
+  ) => {
     const regex = this.regexBlacklist;
 
     return firestore()
@@ -625,11 +645,11 @@ export class FirestoreServices {
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
+            const data = {
+              ...(change.doc.data() as ConversationProps),
+              id: change.doc.id,
+            };
             if (change.type === 'modified') {
-              const data = {
-                ...(change.doc.data() as ConversationProps),
-                id: change.doc.id,
-              };
               const message = {
                 ...data,
                 latestMessage: data.latestMessage
@@ -641,7 +661,9 @@ export class FirestoreServices {
                     )
                   : data.latestMessage,
               } as ConversationProps;
-              callback?.(message);
+              callback?.(message, change.type);
+            } else if (change.type === 'removed') {
+              callback?.(data, change.type);
             }
           }
         }
@@ -670,5 +692,132 @@ export class FirestoreServices {
     const fileURLs: MediaFile[] = await Promise.all(filePromises);
 
     return fileURLs;
+  };
+
+  private deleteUnreadAndTypingUser = async (userId: string) => {
+    if (!userId || !this.conversationId) {
+      console.error('User ID or conversation ID is missing');
+      return;
+    }
+
+    const conversationRef = firestore()
+      .collection<ConversationData>(
+        this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
+      )
+      .doc(this.conversationId);
+
+    try {
+      const conversationDoc = await conversationRef.get();
+      if (conversationDoc.exists) {
+        const conversationData = conversationDoc.data();
+        if (
+          conversationData &&
+          conversationData.unRead &&
+          conversationData.unRead[userId]
+        ) {
+          const updatedUnread = { ...conversationData.unRead };
+          delete updatedUnread[userId];
+
+          await conversationRef.update({ unRead: updatedUnread });
+          const updatedTyping = { ...conversationData.typing };
+          delete updatedTyping[userId];
+          await conversationRef.update({ typing: updatedTyping });
+        } else {
+          console.log('User not found in unRead or no unRead field present');
+        }
+      } else {
+        console.log('Conversation document does not exist');
+      }
+    } catch (error) {
+      console.error('Error removing user from unRead: ', error);
+    }
+  };
+
+  private updateConversationMembers = async (
+    conversationId: string,
+    userId: string
+  ): Promise<ConversationProps | null> => {
+    const leftConversation = firestore()
+      .collection(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
+        )
+      )
+      .doc(conversationId);
+
+    try {
+      const leftConversationDoc = await leftConversation.get();
+      if (!leftConversationDoc.exists) {
+        console.error('Conversation document does not exist');
+        return null;
+      }
+
+      const leftConversationData =
+        leftConversationDoc.data() as ConversationProps;
+      const newMembers = leftConversationData?.members?.filter(
+        (e) => e !== userId
+      );
+
+      const batch = firestore().batch();
+      newMembers?.forEach((id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              this.getUrlWithPrefix(
+                `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+              )
+            )
+            .doc(conversationId);
+          batch.set(doc, { members: newMembers }, { merge: true });
+        }
+      });
+
+      await batch.commit();
+      return leftConversationData;
+    } catch (error) {
+      console.error('Error updating conversation members: ', error);
+      return null;
+    }
+  };
+
+  leaveConversation = async (isSilent: boolean = false): Promise<boolean> => {
+    if (!this.conversationId) {
+      throw new Error(
+        'Please create a conversation before sending the first message!'
+      );
+    }
+
+    try {
+      await this.deleteUnreadAndTypingUser(this.userId);
+
+      const leftConversationData = await this.updateConversationMembers(
+        this.conversationId,
+        this.userId
+      );
+
+      if (!leftConversationData) return false;
+
+      if (!isSilent) {
+        await this.sendMessage({
+          text: `${this.userInfo?.name} left the conversation`,
+          system: true,
+        } as MessageProps);
+      }
+
+      const leftConversation = firestore()
+        .collection(
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
+        )
+        .doc(this.conversationId);
+
+      await leftConversation.delete();
+
+      return true;
+    } catch (e) {
+      console.error('Error leaving conversation: ', e);
+      return false;
+    }
   };
 }
