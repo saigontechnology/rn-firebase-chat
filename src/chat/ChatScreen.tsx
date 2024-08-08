@@ -6,20 +6,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  KeyboardAvoidingView,
-  type StyleProp,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native';
-import {
-  type ComposerProps,
-  GiftedChat,
-  Bubble,
+import { KeyboardAvoidingView, StyleSheet, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { GiftedChat } from 'react-native-gifted-chat';
+import type {
+  ComposerProps,
+  GiftedChatProps,
+  BubbleProps,
 } from 'react-native-gifted-chat';
-import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
-import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import type {
@@ -64,7 +58,7 @@ interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
-  customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
+  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   children?: (props: ChildrenProps) => ReactNode | ReactNode;
 }
 
