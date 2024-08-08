@@ -20,7 +20,6 @@ import {
   type ImageLibraryOptions,
   type ImagePickerResponse,
 } from 'react-native-image-picker';
-import ImagePicker, { Video } from 'react-native-image-crop-picker';
 import {
   animateLayout,
   convertExtension,
@@ -96,15 +95,13 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   const openGallery = useCallback(async () => {
     try {
-      const result = await ImagePicker.openPicker({
-        multiple: true,
-        maxFiles: 1,
-        mediaType: 'any',
-      });
+      const result: ImagePickerResponse = await launchImageLibrary(
+        libraryOptions
+      );
 
-      if (result?.length) {
-        const file = result[0];
-        if (file?.size && file?.size > MAX_FILE_SIZE) {
+      if (result?.assets?.length) {
+        const file = result.assets[0];
+        if (file?.fileSize && file?.fileSize > MAX_FILE_SIZE) {
           Alert.alert(
             'File is too large',
             'File size should not exceed 200 MB. Please try again'
@@ -112,16 +109,16 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           return;
         }
         const mediaType = getMediaTypeFromExtension(
-          file?.path || file?.sourceURL
+          file?.uri || file?.originalPath
         );
-        const extension = convertExtension(file?.path || file?.sourceURL);
+        const extension = convertExtension(file?.uri || file?.originalPath);
 
         onSend?.(
           {
             type: mediaType,
-            path: (file?.path || file?.sourceURL) ?? '',
+            path: (file?.uri || file?.originalPath) ?? '',
             extension: extension,
-            duration: (file as Video)?.duration || 0,
+            duration: file?.duration || 0,
           },
           true
         );
@@ -129,7 +126,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     } catch (error) {
       console.log('Error while opening gallery:');
     }
-  }, [onSend]);
+  }, [libraryOptions, onSend]);
 
   const handleShowLeftView = useCallback((focus: boolean) => {
     animateLayout();
