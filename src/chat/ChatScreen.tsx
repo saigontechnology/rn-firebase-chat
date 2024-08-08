@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  BubbleProps,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -45,6 +46,7 @@ import {
 import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import { ICustomBubbleWithLinkPreviewStyles } from './components/bubble/CustomBubbleWithLinkPreview';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -67,9 +69,15 @@ interface ChatScreenProps extends GiftedChatProps {
   timeoutSendNotify?: number;
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
-  messageStatusEnable?: boolean;
+  enableMessageStatus?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   iconsCamera: IconPaths;
+  customLinkPreviewStyles?: ICustomBubbleWithLinkPreviewStyles;
+  customLinkPreview: (
+    urls: string[],
+    bubbleMessage: BubbleProps<MessageProps>
+  ) => JSX.Element;
+  enableLinkPreview?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -87,7 +95,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   timeoutSendNotify = DEFAULT_CLEAR_SEND_NOTIFICATION,
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
-  messageStatusEnable = true,
+  enableMessageStatus = true,
+  customLinkPreviewStyles,
+  customLinkPreview,
+  enableLinkPreview = true,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -337,10 +348,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         unReadSentMessage={props.unReadSentMessage}
         unReadSeenMessage={props.unReadSeenMessage}
         customMessageStatus={props.customMessageStatus}
-        messageStatusEnable={messageStatusEnable}
+        enableMessageStatus={enableMessageStatus}
+        customLinkPreviewStyles={customLinkPreviewStyles}
+        customLinkPreview={customLinkPreview}
+        enableLinkPreview={enableLinkPreview}
       />
     );
   };
+
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
       conversationRef.current?.id &&
