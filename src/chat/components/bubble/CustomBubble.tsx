@@ -8,9 +8,9 @@ import {
 } from './CustomImageVideoBubble';
 import MessageStatus from '../MessageStatus';
 import {
-  customPreviewLinkStyles as customPreviewLinkStylesProps,
-  PreviewLink as MessageWithPreviewLink,
-} from '../PreviewLink';
+  ICustomBubbleWithLinkPreviewStyles,
+  CustomBubbleWithLinkPreview,
+} from './CustomBubbleWithLinkPreview';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -22,13 +22,14 @@ interface CustomBubbleProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
-  messageStatusEnable: boolean;
+  enableMessageStatus: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
-  customPreviewLinkStyles?: customPreviewLinkStylesProps;
-  customPreviewLink: (
+  customLinkPreviewStyles?: ICustomBubbleWithLinkPreviewStyles;
+  customLinkPreview: (
     urls: string[],
     bubbleMessage: BubbleProps<MessageProps>
   ) => JSX.Element;
+  enableLinkPreview: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -41,10 +42,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customTextStyle,
   unReadSeenMessage,
   unReadSentMessage,
-  messageStatusEnable,
+  enableMessageStatus,
   customMessageStatus,
-  customPreviewLinkStyles,
-  customPreviewLink,
+  customLinkPreviewStyles,
+  customLinkPreview,
+  enableLinkPreview,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -76,7 +78,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       position === 'right';
     const ViewMessageStatus = renderMessageStatus(
       isMyLatestMessage,
-      messageStatusEnable,
+      enableMessageStatus,
       customMessageStatus
     );
 
@@ -109,10 +111,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <MessageWithPreviewLink
+            <CustomBubbleWithLinkPreview
               bubbleMessage={bubbleMessage}
-              customPreviewLinkStyles={customPreviewLinkStyles}
-              customPreviewLink={customPreviewLink}
+              customBubbleWithLinkPreviewStyles={customLinkPreviewStyles}
+              customBubbleWithLinkPreview={customLinkPreview}
+              enableLinkPreview={enableLinkPreview}
             />
             {ViewMessageStatus}
           </View>

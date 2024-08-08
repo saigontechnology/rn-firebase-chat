@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
   Linking,
   StyleProp,
@@ -8,22 +8,23 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Bubble, BubbleProps } from 'react-native-gifted-chat';
-import type { MessageProps } from '../../interfaces';
-import { LinkPreview } from '@flyerhq/react-native-link-preview';
+import type { MessageProps } from '../../../interfaces';
+import { LinkPreview } from '../linkPreview';
 
-export interface customPreviewLinkStyles {
+export interface ICustomBubbleWithLinkPreviewStyles {
   customContainerStyle?: StyleProp<ViewStyle>;
   customPreviewContainerStyle?: StyleProp<ViewStyle>;
   customLinkTextStyle?: StyleProp<ViewStyle>;
   customMessagePreviewStyle?: StyleProp<ViewStyle>;
 }
-interface PreviewLinkProps {
+interface ICustomBubbleWithLinkPreviewProps {
   bubbleMessage: BubbleProps<MessageProps>;
-  customPreviewLinkStyles?: customPreviewLinkStyles;
-  customPreviewLink: (
+  customBubbleWithLinkPreviewStyles?: ICustomBubbleWithLinkPreviewStyles;
+  customBubbleWithLinkPreview: (
     urls: string[],
     bubbleMessage: BubbleProps<MessageProps>
   ) => JSX.Element;
+  enableLinkPreview: boolean;
 }
 
 const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -32,8 +33,15 @@ const handleLinkPress = (url: string) => {
   Linking.openURL(url).catch((err) => console.error('Error opening URL:', err));
 };
 
-export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
-  const { bubbleMessage, customPreviewLinkStyles, customPreviewLink } = props;
+export const CustomBubbleWithLinkPreview: React.FC<
+  ICustomBubbleWithLinkPreviewProps
+> = (props) => {
+  const {
+    bubbleMessage,
+    customBubbleWithLinkPreviewStyles,
+    customBubbleWithLinkPreview,
+    enableLinkPreview,
+  } = props;
   const { currentMessage } = bubbleMessage;
   const urls = currentMessage?.text.match(urlRegex);
 
@@ -42,7 +50,7 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
     customPreviewContainerStyle,
     customLinkTextStyle,
     customMessagePreviewStyle,
-  } = customPreviewLinkStyles || {};
+  } = customBubbleWithLinkPreviewStyles || {};
 
   const renderTextWithLinks = useCallback(
     (text: string) => {
@@ -84,7 +92,7 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
               {!!currentMessage?.text &&
                 renderTextWithLinks(currentMessage.text)}
             </Text>
-            {!!firstUrl && (
+            {!!firstUrl && enableLinkPreview && (
               <LinkPreview
                 containerStyle={[
                   styles.previewContainer,
@@ -92,7 +100,6 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
                 ]}
                 enableAnimation
                 text={firstUrl}
-                renderText={() => null}
               />
             )}
           </View>
@@ -105,6 +112,7 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
       customContainerStyle,
       customMessagePreviewStyle,
       customPreviewContainerStyle,
+      enableLinkPreview,
       renderTextWithLinks,
     ]
   );
@@ -113,8 +121,8 @@ export const PreviewLink: React.FC<PreviewLinkProps> = (props) => {
     return <Bubble {...bubbleMessage} />;
   }
 
-  return customPreviewLink
-    ? customPreviewLink(urls, bubbleMessage)
+  return customBubbleWithLinkPreview
+    ? customBubbleWithLinkPreview(urls, bubbleMessage)
     : renderPreview(urls);
 };
 
