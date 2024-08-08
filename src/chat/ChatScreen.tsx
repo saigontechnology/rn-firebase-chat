@@ -58,7 +58,7 @@ interface ChatScreenProps extends GiftedChatProps {
   hasGallery?: boolean;
   onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   customContainerStyle?: StyleProp<ViewStyle>;
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
@@ -69,7 +69,7 @@ interface ChatScreenProps extends GiftedChatProps {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
-  iconsCamera: IconPaths;
+  iconsCamera?: IconPaths;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
