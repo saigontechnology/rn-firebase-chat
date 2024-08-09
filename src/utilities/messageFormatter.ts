@@ -2,6 +2,7 @@
  * Created by NL on 6/1/23.
  */
 import { decryptedMessageData } from './aesCrypto';
+import RNFS from 'react-native-fs';
 import {
   type IUserInfo,
   type LatestMessageProps,
@@ -14,6 +15,17 @@ import {
 import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './blacklist';
 import { getCurrentTimestamp } from './date';
+
+interface FormatLatestMessageParams {
+  userId: string;
+  name: string;
+  text: string;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
+  fileName?: string;
+  size?: string;
+}
 
 const convertTextMessage = async (
   text: string,
@@ -84,7 +96,9 @@ const formatSendMessage = (
   text: string,
   type?: MediaType,
   path?: string,
-  extension?: string
+  extension?: string,
+  fileName?: string,
+  size?: string
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -96,17 +110,21 @@ const formatSendMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  fileName: fileName ?? '',
+  size: size ?? '',
 });
 
-const formatLatestMessage = (
-  userId: string,
-  name: string,
-  message: string,
-  type?: MediaType,
-  path?: string,
-  extension?: string
-): LatestMessageProps => ({
-  text: message ?? '',
+const formatLatestMessage = ({
+  userId,
+  name,
+  text,
+  type,
+  path,
+  extension,
+  fileName,
+  size,
+}: FormatLatestMessageParams): LatestMessageProps => ({
+  text: text ?? '',
   senderId: userId,
   name: name,
   readBy: {
@@ -115,9 +133,11 @@ const formatLatestMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  fileName: fileName ?? '',
+  size: size ?? '',
 });
 
-export const getMediaTypeFromExtension = (path: string): MediaType => {
+const getMediaTypeFromExtension = (path: string): MediaType => {
   const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
   const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
   const extension = path.split('.').pop();
@@ -130,7 +150,7 @@ export const getMediaTypeFromExtension = (path: string): MediaType => {
   }
 };
 
-export const convertExtension = (file: Asset | undefined): string => {
+const convertExtension = (file?: Asset): string => {
   if (!file || file.type?.startsWith('image')) {
     return 'jpg';
   } else {
@@ -138,7 +158,20 @@ export const convertExtension = (file: Asset | undefined): string => {
   }
 };
 
-export const getAbsoluteFilePath = (path: string) => {
+const getAbsoluteFilePath = (path: string) => {
+  return path?.startsWith?.('file:/') ? path : `file://${path}`;
+};
+
+const getAbsoluteFilePathWithName = async (path: string, name: string) => {
+  if (path.startsWith('content://') && name) {
+    try {
+      const destPath = `${RNFS.TemporaryDirectoryPath}/${name}`;
+      await RNFS.copyFile(path, destPath);
+      path = destPath;
+    } catch (error) {
+      console.error('Error copying file:', error);
+    }
+  }
   return path?.startsWith?.('file:/') ? path : `file://${path}`;
 };
 
@@ -148,4 +181,8 @@ export {
   formatSendMessage,
   formatLatestMessage,
   formatMessageText,
+  getMediaTypeFromExtension,
+  getAbsoluteFilePathWithName,
+  getAbsoluteFilePath,
+  convertExtension,
 };

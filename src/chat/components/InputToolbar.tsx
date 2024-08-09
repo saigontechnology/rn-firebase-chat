@@ -20,6 +20,7 @@ import {
 } from 'react-native-image-picker';
 import { MessageTypes } from '../../interfaces';
 import { convertExtension } from '../../utilities';
+import { FileAttachmentModalRef } from './FileAttachmentModal';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -39,8 +40,13 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  renderLeftCustomView?: () => React.ReactNode;
+  renderLeftCustomView?: ({
+    documentRef,
+  }: {
+    documentRef: FileAttachmentModalRef | null;
+  }) => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  documentRef: FileAttachmentModalRef | null;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -57,6 +63,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  documentRef,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -97,7 +104,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {renderLeftCustomView && renderLeftCustomView()}
+      {renderLeftCustomView && renderLeftCustomView({ documentRef })}
       {hasCamera && (
         <PressableIcon
           icon={cameraIcon}
