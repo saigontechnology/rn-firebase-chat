@@ -45,6 +45,9 @@ import {
 import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
+import FileAttachmentModal, {
+  FileAttachmentModalRef,
+} from './components/FileAttachmentModal';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -104,6 +107,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const isLoadingRef = useRef(false);
   const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
+  const fileAttachmentRef = useRef<FileAttachmentModalRef>(null);
   const { hasPermission, requestPermission } = useCameraPermission();
   const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
   const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
@@ -308,6 +312,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           hasCamera={props.hasCamera}
           hasGallery={props.hasGallery}
           {...inputToolbarProps}
+          documentRef={fileAttachmentRef.current}
         />
       );
     },
@@ -386,6 +391,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onSend={onSend}
         userInfo={userInfo}
         ref={cameraViewRef}
+      />
+      <FileAttachmentModal
+        userInfo={userInfo}
+        ref={fileAttachmentRef}
+        onSend={onSend}
       />
     </View>
   );
