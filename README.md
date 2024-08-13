@@ -95,7 +95,53 @@ export const ChatScreen: React.FC = () => {
 
 ```
 
+## Addons
+Additional features for chat are:
 
+#### Image/Video Picker and Camera
+This feature will require additional libraries:
+
+- Using [npm](https://www.npmjs.com/#getting-started):
+```sh
+npm install react-native-fast-image react-native-video react-native-vision-camera uuid --save
+```
+- Using [Yarn](https://yarnpkg.com/):
+```sh
+yarn add react-native-fast-image react-native-video react-native-vision-camera uuid
+```
+
+Then using our Addons component in ChatScreen
+```javascript
+import React from 'react'
+import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
+import {CameraView, useCamera} from 'rn-firebase-chat/addons'
+
+...
+
+export const ChatScreen: React.FC = () => {
+  const {onPressCamera, onPressGallery} = useCamera()
+  return (
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+      hasCamera={true}
+      hasGallery={true}
+      inputToolbarProps={{
+        onPressCamera,
+        onPressGallery,
+      }}
+    >
+    {({onSend, userInfo}) => (
+      <CameraView
+        onSend={onSend}
+        userInfo={userInfo}
+      />
+    )}
+    </BaseChatScreen>
+  )
+}
+
+```
 
 ## Contributing
 

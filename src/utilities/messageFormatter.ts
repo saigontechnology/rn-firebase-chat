@@ -11,7 +11,6 @@ import {
   type MediaType,
   MessageTypes,
 } from '../interfaces';
-import type { Asset } from 'react-native-image-picker';
 import { getTextMessage } from './blacklist';
 import { getCurrentTimestamp } from './date';
 
@@ -127,14 +126,6 @@ export const getMediaTypeFromExtension = (path: string): MediaType => {
     return MessageTypes.video;
   } else {
     return undefined;
-  }
-};
-
-export const convertExtension = (file: Asset | undefined): string => {
-  if (!file || file.type?.startsWith('image')) {
-    return 'jpg';
-  } else {
-    return 'mp4';
   }
 };
 
