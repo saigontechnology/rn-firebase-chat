@@ -2,15 +2,16 @@ import React, { useCallback, useRef } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
-import { MessageTypes } from '../../../interfaces';
-export const CAPTURE_BUTTON_SIZE = 78;
+import type { OnOffType } from './interface';
+import { CAPTURE_BUTTON_SIZE } from './constants';
+import { MessageTypes } from '../../src/interfaces';
 
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
 
 interface Props extends ViewProps {
   camera: React.RefObject<Camera>;
   onMediaCaptured: (media: PhotoFile | VideoFile, type: MessageTypes) => void;
-  flash: 'off' | 'on';
+  flash: OnOffType;
   isPhoto: boolean;
   onStartRecording: () => void;
   onStopRecording: () => void;
@@ -27,7 +28,7 @@ const CaptureButton: React.FC<Props> = ({
   ...props
 }): React.ReactElement => {
   const isRecording = useRef(false);
-  //#region Camera Capture
+  // #region Camera Capture
   const takePhoto = useCallback(async () => {
     try {
       if (camera.current == null) throw new Error('Camera ref is null!');

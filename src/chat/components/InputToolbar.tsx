@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -13,13 +13,7 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
-import {
-  launchImageLibrary,
-  type ImageLibraryOptions,
-  type ImagePickerResponse,
-} from 'react-native-image-picker';
-import { MessageTypes } from '../../interfaces';
-import { convertExtension } from '../../utilities';
+import type { ImagePickerValue } from '../../../addons/camera/interface';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
@@ -30,7 +24,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
-  onPressGallery?: () => void;
+  onPressGallery?: () => Promise<ImagePickerValue | void>;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
   composerTextInputStyle?: StyleProp<ViewStyle>;
@@ -66,35 +60,6 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
-  const openGallery = useCallback(async () => {
-    try {
-      const options: ImageLibraryOptions = {
-        mediaType: 'mixed',
-      };
-
-      const result: ImagePickerResponse = await launchImageLibrary(options);
-
-      if (result?.assets) {
-        const file = result?.assets[0];
-        const mediaType = file?.type?.startsWith('image')
-          ? MessageTypes.image
-          : MessageTypes.video;
-        const extension = convertExtension(file);
-
-        onSend?.(
-          {
-            type: mediaType,
-            path: file?.uri ?? '',
-            extension: extension,
-          },
-          true
-        );
-      }
-    } catch (error) {
-      console.error('Error while opening gallery:', error);
-    }
-  }, [onSend]);
-
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
@@ -107,7 +72,13 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       )}
       {hasGallery && (
         <PressableIcon
-          onPress={onPressGallery || openGallery}
+          onPress={() =>
+            onPressGallery?.().then((res) => {
+              if (res) {
+                onSend?.(res, true);
+              }
+            })
+          }
           icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />
