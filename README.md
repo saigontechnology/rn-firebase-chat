@@ -81,7 +81,7 @@ import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
 const partnerInfo = {
   id: 'ayz123',
   name: 'Tony',
-  image: 'https://example.com/tony.jpg'
+  avatar: 'https://example.com/tony.jpg'
 }
 
 export const ChatScreen: React.FC = () => {

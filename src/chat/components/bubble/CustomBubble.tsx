@@ -11,7 +11,7 @@ import MessageStatus from '../MessageStatus';
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
   position: 'left' | 'right';
-  customImageVideoBubbleProps: CustomImageVideoBubbleProps;
+  customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
   userUnreadMessage: boolean;
   customContainerStyle?: StyleProp<ViewStyle>;
