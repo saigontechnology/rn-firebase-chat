@@ -57,6 +57,7 @@
     "react": "18.2.0",
     "react-native": "0.71.8",
     "react-native-builder-bob": "^0.20.0",
+    "react-native-fast-image": "^8.6.3",
     "release-it": "^15.0.0",
     "typescript": "^4.5.2"
   },
@@ -151,7 +152,6 @@
     "@types/uuid": "^9.0.8",
     "randomcolor": "^0.6.2",
     "react-native-aes-crypto": "^2.1.1",
-    "react-native-fast-image": "^8.6.3",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-image-picker": "^7.1.2",
     "react-native-video": "^6.2.0",
