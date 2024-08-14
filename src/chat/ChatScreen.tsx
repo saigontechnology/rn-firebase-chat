@@ -42,7 +42,6 @@ import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
 type ChildrenProps = {
   onSend: (messages: MessageProps) => Promise<void>;
-  userInfo: IUserInfo | null;
 };
 
 interface ChatScreenProps extends GiftedChatProps {
@@ -363,7 +362,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onClose={() => setImgVideoUrl('')}
       />
       {typeof props.children === 'function'
-        ? props.children({ onSend, userInfo })
+        ? props.children({ onSend })
         : props.children}
     </View>
   );

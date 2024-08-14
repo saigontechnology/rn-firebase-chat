@@ -13,7 +13,7 @@ import {
   SendProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
-import type { ImagePickerValue } from '../../../addons/camera/interface';
+import type { ImagePickerValue } from '../../addons/camera/interface';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
