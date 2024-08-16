@@ -129,12 +129,7 @@ export const ChatScreen: React.FC = () => {
         onPressGallery,
       }}
     >
-    {({onSend, userInfo}) => (
-      <CameraView
-        onSend={onSend}
-        userInfo={userInfo}
-      />
-    )}
+    {({onSend}) => (<CameraView onSend={onSend} /> )}
     </BaseChatScreen>
   )
 }

@@ -8,8 +8,7 @@
   "source": "src/index",
   "files": [
     "src",
-    "lib",
-    "addons"
+    "lib"
   ],
   "scripts": {
     "test": "jest",
