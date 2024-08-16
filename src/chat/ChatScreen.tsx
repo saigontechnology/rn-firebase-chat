@@ -52,9 +52,6 @@ interface ChatScreenProps extends GiftedChatProps {
   onLoadEnd?: () => void;
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
-  hasCamera?: boolean;
-  hasGallery?: boolean;
-  onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   customContainerStyle?: StyleProp<ViewStyle>;
@@ -286,19 +283,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         <InputToolbar
           onSend={onSend}
           {...composeProps}
-          hasCamera={props.hasCamera}
-          hasGallery={props.hasGallery}
           {...inputToolbarProps}
         />
       );
     },
-    [
-      renderComposer,
-      onSend,
-      props.hasCamera,
-      props.hasGallery,
-      inputToolbarProps,
-    ]
+    [renderComposer, onSend, inputToolbarProps]
   );
 
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {

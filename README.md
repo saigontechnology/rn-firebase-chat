@@ -122,9 +122,9 @@ export const ChatScreen: React.FC = () => {
     <BaseChatScreen
       memberIds={[partnerInfo.id]}
       partners={[partnerInfo]}
-      hasCamera={true}
-      hasGallery={true}
       inputToolbarProps={{
+        hasCamera: true,
+        hasGallery: true,
         onPressCamera,
         onPressGallery,
       }}
