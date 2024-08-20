@@ -221,7 +221,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   // Listener of current conversation data
   useEffect(() => {
-    let userConversation: () => void;
+    let userConversation: (() => void) | undefined;
     if (conversationRef.current?.id) {
       userConversation = firebaseInstance.userConversationListener(
         (data: ConversationData | undefined) => {
@@ -344,7 +344,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
       conversationRef.current?.id &&
-        firebaseInstance.setUserConversationTyping(value).then(callback);
+        firebaseInstance?.setUserConversationTyping(value)?.then(callback);
     },
     [firebaseInstance]
   );
