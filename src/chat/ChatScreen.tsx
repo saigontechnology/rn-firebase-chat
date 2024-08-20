@@ -1,4 +1,5 @@
 import React, {
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -11,7 +12,6 @@ import {
   StyleSheet,
   View,
   type ViewStyle,
-  Keyboard,
 } from 'react-native';
 import {
   type ComposerProps,
@@ -29,13 +29,7 @@ import type {
   MessageProps,
 } from '../interfaces';
 import { formatMessageText, isOtherUserTyping } from '../utilities';
-import {
-  CameraView,
-  CameraViewRef,
-  IconPaths,
-} from '../chat/components/camera/CameraView';
 import SelectedImageModal from './components/SelectedImage';
-import { useCameraPermission } from 'react-native-vision-camera';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
 import {
@@ -46,6 +40,10 @@ import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
+type ChildrenProps = {
+  onSend: (messages: MessageProps) => Promise<void>;
+};
+
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
@@ -54,9 +52,6 @@ interface ChatScreenProps extends GiftedChatProps {
   onLoadEnd?: () => void;
   maxPageSize?: number;
   inputToolbarProps?: IInputToolbar;
-  hasCamera?: boolean;
-  hasGallery?: boolean;
-  onPressCamera?: () => void;
   customConversationInfo?: CustomConversationInfo;
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   customContainerStyle?: StyleProp<ViewStyle>;
@@ -69,7 +64,7 @@ interface ChatScreenProps extends GiftedChatProps {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
-  iconsCamera?: IconPaths;
+  children?: (props: ChildrenProps) => ReactNode | ReactNode;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -102,9 +97,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const isLoadingRef = useRef(false);
-  const cameraViewRef = useRef<CameraViewRef>(null);
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
-  const { hasPermission, requestPermission } = useCameraPermission();
   const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
   const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -283,42 +276,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     };
   }, [firebaseInstance, userInfo, conversationRef.current?.id]);
 
-  const onPressCamera = useCallback(() => {
-    if (props.onPressCamera) return props.onPressCamera();
-    if (!hasPermission) {
-      requestPermission();
-      return;
-    }
-    if (Keyboard.isVisible()) {
-      Keyboard.dismiss();
-      return;
-    }
-
-    cameraViewRef.current?.show();
-  }, [hasPermission, props, requestPermission]);
-
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
       if (renderComposer) return renderComposer(composeProps);
       return (
         <InputToolbar
-          onPressCamera={onPressCamera}
           onSend={onSend}
           {...composeProps}
-          hasCamera={props.hasCamera}
-          hasGallery={props.hasGallery}
           {...inputToolbarProps}
         />
       );
     },
-    [
-      renderComposer,
-      onPressCamera,
-      onSend,
-      props.hasCamera,
-      props.hasGallery,
-      inputToolbarProps,
-    ]
+    [renderComposer, onSend, inputToolbarProps]
   );
 
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
@@ -381,12 +350,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
       />
-      <CameraView
-        iconProps={props?.iconsCamera}
-        onSend={onSend}
-        userInfo={userInfo}
-        ref={cameraViewRef}
-      />
+      {typeof props.children === 'function'
+        ? props.children({ onSend })
+        : props.children}
     </View>
   );
 };
