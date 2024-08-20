@@ -73,7 +73,7 @@ export class FirestoreServices {
 
   get userId(): string {
     if (!this.userInfo?.id) {
-      throw new Error('Please set userInfo before call chat  function');
+      console.error('Please set userInfo before call chat  function');
     }
     return this.userInfo?.id || '';
   }
@@ -224,7 +224,8 @@ export class FirestoreServices {
     const { path, extension, type } = message;
 
     if (!path || !extension || this.conversationId === null) {
-      throw new Error('Please provide path and extension');
+      console.error('Please provide path and extension');
+      return;
     }
 
     try {
@@ -269,9 +270,10 @@ export class FirestoreServices {
    */
   sendMessage = async (message: MessageProps) => {
     if (!this.conversationId) {
-      throw new Error(
+      console.error(
         'Please create conversation before send the first message!'
       );
+      return;
     }
     const { text, type, path, extension } = message;
     let messageData;
@@ -322,9 +324,10 @@ export class FirestoreServices {
     latestMessageData: LatestMessageProps
   ) => {
     if (!this.conversationId) {
-      throw new Error(
+      console.error(
         'Please create conversation before send the first message!'
       );
+      return;
     }
     const userConversationRef = firestore()
       .collection<Partial<ConversationProps>>(
@@ -519,9 +522,10 @@ export class FirestoreServices {
     callBack?: (data: FirebaseFirestoreTypes.DocumentData | undefined) => void
   ) => {
     if (!this.conversationId) {
-      throw new Error(
+      console.error(
         'Please create conversation before send the first message!'
       );
+      return;
     }
     return firestore()
       .collection(this.getUrlWithPrefix(`${FireStoreCollection.conversations}`))
@@ -555,9 +559,10 @@ export class FirestoreServices {
 
   setUserConversationTyping = (isTyping: boolean) => {
     if (!this.conversationId) {
-      throw new Error(
+      console.error(
         'Please create conversation before send the first message!'
       );
+      return;
     }
     if (this.userId) {
       return firestore()
@@ -650,9 +655,10 @@ export class FirestoreServices {
 
   getMediaFilesByConversationId = async (): Promise<MediaFile[]> => {
     if (!this.conversationId) {
-      throw new Error(
+      console.error(
         'Please create conversation before sending the first message!'
       );
+      return [];
     }
 
     const listRef = storage().ref(this.conversationId);
