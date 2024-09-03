@@ -1,6 +1,6 @@
 {
   "name": "rn-firebase-chat",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React Native Firebase Chat",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
