@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble } from 'react-native-gifted-chat';
+import { Bubble, BubbleProps } from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
@@ -20,6 +20,7 @@ interface CustomBubbleProps {
   unReadSeenMessage?: string;
   messageStatusEnable: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  bubbleMessageProps?: BubbleProps<MessageProps>;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -34,6 +35,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   unReadSentMessage,
   messageStatusEnable,
   customMessageStatus,
+  bubbleMessageProps,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -90,6 +92,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                 )
               }
               wrapperStyle={styleBuble}
+              {...bubbleMessageProps}
             />
             {ViewMessageStatus}
           </View>
@@ -98,7 +101,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <Bubble {...bubbleMessage} />
+            <Bubble {...bubbleMessage} {...bubbleMessageProps} />
             {ViewMessageStatus}
           </View>
         );

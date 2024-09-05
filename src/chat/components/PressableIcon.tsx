@@ -7,6 +7,7 @@ import {
   ImageStyle,
   type Insets,
   ImageResizeMode,
+  StyleSheet,
 } from 'react-native';
 
 const defaultHitSlop = {
@@ -27,6 +28,7 @@ export const PressableIcon: React.FC<{
   size?: number;
 }> = ({
   icon,
+  style,
   iconStyle,
   onPress,
   resizeMode = 'contain',
@@ -37,7 +39,14 @@ export const PressableIcon: React.FC<{
     disabled={disabled}
     hitSlop={{ ...defaultHitSlop, ...hitSlop }}
     onPress={onPress}
+    style={[disabled && styles.disabledStyle, StyleSheet.flatten(style)]}
   >
     <Image source={icon} style={iconStyle} resizeMode={resizeMode} />
   </TouchableOpacity>
 );
+
+const styles = StyleSheet.create({
+  disabledStyle: {
+    opacity: 0.5,
+  },
+});

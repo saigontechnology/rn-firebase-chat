@@ -988,6 +988,9 @@ PODS:
     - glog
   - react-native-aes (2.0.0):
     - React-Core
+  - react-native-image-picker (7.1.2):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - react-native-safe-area-context (4.6.3):
     - RCT-Folly
     - RCTRequired
@@ -1127,6 +1130,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-aes (from `../node_modules/react-native-aes-crypto`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1213,6 +1217,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-aes:
     :path: "../node_modules/react-native-aes-crypto"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-video:
@@ -1297,6 +1303,7 @@ SPEC CHECKSUMS:
   React-jsinspector: b6ed4cb3ffa27a041cd440300503dc512b761450
   React-logger: 186dd536128ae5924bc38ed70932c00aa740cd5b
   react-native-aes: c75c46aa744bef7c2415fdf7f5b2dcb75ca4364d
+  react-native-image-picker: 51fdb07f7ef722988c8a219e1416153760a25e4d
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d
   react-native-video: 5fcc6f44a6ed3ccdf008ab037fff2dd2612f4e65
   React-perflogger: e706562ab7eb8eb590aa83a224d26fa13963d7f2
@@ -1321,4 +1328,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 0d533e50e579fdf28523b5003b49c2d8261f8ca0
 
-COCOAPODS: 1.14.2
+COCOAPODS: 1.15.2

@@ -1,6 +1,6 @@
 {
   "name": "rn-firebase-chat",
-  "version": "0.4.0",
+  "version": "0.3.0",
   "description": "React Native Firebase Chat",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -47,6 +47,7 @@
     "@types/jest": "^28.1.2",
     "@types/react": "18.2.0",
     "@types/react-native": "0.71.8",
+    "@types/uuid": "^9.0.8",
     "commitlint": "^17.0.2",
     "del-cli": "^5.0.0",
     "eslint": "^8.4.1",
@@ -59,6 +60,7 @@
     "react-native": "0.71.8",
     "react-native-builder-bob": "^0.20.0",
     "react-native-fast-image": "^8.6.3",
+    "react-native-image-picker": "^7.1.2",
     "react-native-video": "^6.2.0",
     "react-native-vision-camera": "^4.1.0",
     "release-it": "^15.0.0",
@@ -153,10 +155,8 @@
     ]
   },
   "dependencies": {
-    "@types/uuid": "^9.0.8",
     "randomcolor": "^0.6.2",
     "react-native-aes-crypto": "^2.1.1",
-    "react-native-gifted-chat": "^2.4.0",
-    "react-native-image-picker": "^7.1.2"
+    "react-native-gifted-chat": "^2.4.0"
   }
 }

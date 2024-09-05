@@ -17,6 +17,7 @@ interface LatestMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  system?: boolean;
 }
 
 interface MessageProps extends BaseEntity, IMessage {
@@ -42,6 +43,7 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  system?: boolean;
 }
 
 type MediaType = 'image' | 'video' | 'text' | undefined;

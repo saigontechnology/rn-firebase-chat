@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -33,8 +33,11 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  iconContainerStyle?: StyleProp<ViewStyle>;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  alwaysShowSendButton?: boolean;
+  renderRightCustomButtons?: () => React.ReactNode;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -49,11 +52,15 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  iconContainerStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  alwaysShowSendButton = false,
+  renderRightCustomButtons,
   ...props
 }) => {
   const { onSend, text } = props;
+  const scrollRef = useRef<ScrollView>(null);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
@@ -84,18 +91,24 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         />
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
-        <ScrollView scrollEnabled={false}>
+        <ScrollView scrollEnabled={false} ref={scrollRef}>
           <Composer
             {...props}
             textInputStyle={[styles.textInput, composerTextInputStyle]}
+            onInputSizeChanged={() =>
+              scrollRef?.current && scrollRef?.current.scrollToEnd()
+            }
           />
         </ScrollView>
+        {renderRightCustomButtons && renderRightCustomButtons()}
       </View>
-      {!!text && (
+      {(alwaysShowSendButton || !!text) && (
         <PressableIcon
+          disabled={!text}
           iconStyle={flattenedIconStyle}
-          onPress={() => onSend?.({ text: text }, true)}
+          onPress={() => !!text?.trim() && onSend?.({ text: text }, true)} // only send when there are text
           icon={iconSend}
+          style={iconContainerStyle}
         />
       )}
       {renderRightCustomView && renderRightCustomView()}
@@ -118,6 +131,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     flexDirection: 'row',
     marginRight: 10,
+    alignItems: 'center',
   },
   textInput: {
     marginHorizontal: 20,

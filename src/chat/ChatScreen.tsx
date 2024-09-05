@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  BubbleProps,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -58,6 +59,8 @@ interface ChatScreenProps extends GiftedChatProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  onSendMessage?: (text: string) => void;
+  bubbleMessageProps?: BubbleProps<MessageProps>;
   sendMessageNotification?: () => void;
   timeoutSendNotify?: number;
   enableTyping?: boolean;
@@ -78,6 +81,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   inputToolbarProps,
   customConversationInfo,
   customImageVideoBubbleProps,
+  onSendMessage,
+  bubbleMessageProps,
   sendMessageNotification,
   timeoutSendNotify = DEFAULT_CLEAR_SEND_NOTIFICATION,
   enableTyping = true,
@@ -139,6 +144,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
+      onSendMessage?.(messages.text);
       /** If the conversation not created yet. it will create at the first message sent */
       isLoadingRef.current = false;
       if (!conversationRef.current?.id) {
@@ -184,6 +190,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       customConversationInfo,
       memberIds,
       partners,
+      onSendMessage,
       sendMessageNotification,
     ]
   );
@@ -307,6 +314,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         unReadSeenMessage={props.unReadSeenMessage}
         customMessageStatus={props.customMessageStatus}
         messageStatusEnable={messageStatusEnable}
+        bubbleMessageProps={bubbleMessageProps}
       />
     );
   };
@@ -334,7 +342,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             _id: userInfo?.id || '',
             ...userInfo,
           }}
-          keyboardShouldPersistTaps={'never'}
+          keyboardShouldPersistTaps={false}
           infiniteScroll
           loadEarlier={hasMoreMessages}
           renderChatFooter={() => <TypingIndicator />}
