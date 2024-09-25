@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  BubbleProps,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -43,6 +44,7 @@ import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 type ChildrenProps = {
   onSend: (messages: MessageProps) => Promise<void>;
 };
+import { ICustomBubbleWithLinkPreviewStyles } from './components/bubble/CustomBubbleWithLinkPreview';
 
 interface ChatScreenProps extends GiftedChatProps {
   style?: StyleProp<ViewStyle>;
@@ -65,6 +67,12 @@ interface ChatScreenProps extends GiftedChatProps {
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   children?: (props: ChildrenProps) => ReactNode | ReactNode;
+  customLinkPreviewStyles?: ICustomBubbleWithLinkPreviewStyles;
+  customLinkPreview: (
+    urls: string[],
+    bubbleMessage: BubbleProps<MessageProps>
+  ) => JSX.Element;
+  enableLinkPreview?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -83,6 +91,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  customLinkPreviewStyles,
+  customLinkPreview,
+  enableLinkPreview = true,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -307,6 +318,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         unReadSeenMessage={props.unReadSeenMessage}
         customMessageStatus={props.customMessageStatus}
         messageStatusEnable={messageStatusEnable}
+        customLinkPreviewStyles={customLinkPreviewStyles}
+        customLinkPreview={customLinkPreview}
+        enableLinkPreview={enableLinkPreview}
       />
     );
   };
