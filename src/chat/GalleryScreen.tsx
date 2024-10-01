@@ -12,10 +12,17 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { FirestoreServices } from '../services/firebase';
-import { MessageTypes, type MediaFile } from '../interfaces';
+import {
+  LinksType,
+  MessageTypes,
+  SectionData,
+  type MediaFile,
+} from '../interfaces';
 import { GalleryType } from '../interfaces/gallery';
 import { VideoRef } from 'react-native-video';
 import { SelectedViewModal, ThumbnailVideoPlayer } from './components/camera';
+import { LinkList } from './components/linkPreview';
+import { transformLinksDataForSectionList } from '../utilities';
 type MediaItem = {
   item: MediaFile;
   index: number;
@@ -61,16 +68,35 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(GalleryType.MEDIA);
   const [media, setMedia] = useState<MediaFile[]>([]);
+  const [links, setLinks] = useState<SectionData[]>([]);
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [mediaSelected, setMediaSelected] = useState<MediaFile>();
 
   useEffect(() => {
-    if (activeTab === GalleryType.MEDIA) {
-      const loadImages = async () => {
-        const urls = await firebaseInstance.getMediaFilesByConversationId();
-        setMedia(urls);
-      };
-      loadImages();
+    switch (activeTab) {
+      case GalleryType.MEDIA:
+        const loadImages = async () => {
+          const urls = await firebaseInstance.getMediaFilesByConversationId();
+          setMedia(urls);
+        };
+        loadImages();
+        break;
+      case GalleryType.LINK:
+        const loadLinks = async () => {
+          const linksFromConversation =
+            await firebaseInstance.getUserLinksFromConversation();
+          if (linksFromConversation) {
+            const getLinks = transformLinksDataForSectionList(
+              linksFromConversation as LinksType
+            );
+            setLinks(getLinks);
+          }
+        };
+        loadLinks();
+        break;
+      default:
+        // TODO: handle other type
+        break;
     }
   }, [activeTab, firebaseInstance]);
 
@@ -157,11 +183,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
         );
       case GalleryType.LINK:
         if (renderCustomLink) return renderCustomLink();
-        return (
-          <View style={styles.centeredView}>
-            <Text>No Links Available</Text>
-          </View>
-        );
+        return <LinkList links={links} />;
       default:
         return null;
     }
@@ -169,6 +191,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
     activeTab,
     customSlider,
     iconCloseModal,
+    links,
     media,
     mediaSelected?.path,
     mediaSelected?.type,

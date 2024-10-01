@@ -12,8 +12,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { PreviewData, PreviewDataImage } from './type';
-import { getPreviewData } from './utils';
+import { PreviewData, PreviewDataImage } from '../../../interfaces';
+import { getPreviewData } from '../../../utilities';
 
 export interface LinkPreviewProps {
   containerStyle?: StyleProp<ViewStyle>;
@@ -87,14 +87,13 @@ export const LinkPreview = ({
     }
   }, [data?.link]);
 
-  const renderDescriptionNode = useCallback(
-    (description: string) => (
+  const renderDescriptionNode = useCallback((description: string) => {
+    return (
       <Text numberOfLines={3} style={styles.description}>
         {description}
       </Text>
-    ),
-    []
-  );
+    );
+  }, []);
 
   const renderImageNode = useCallback(
     (image: PreviewDataImage) => {
