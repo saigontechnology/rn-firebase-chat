@@ -13,6 +13,9 @@ import {
   generateEncryptionKey,
   getCurrentTimestamp,
   getMediaTypeFromExtension,
+  getCurrentFormattedDate,
+  addLinkByDate,
+  extractLinks,
 } from '../../utilities';
 import {
   ConversationData,
@@ -21,6 +24,7 @@ import {
   EncryptionOptions,
   FireStoreCollection,
   FirestoreReference,
+  LinksType,
   MediaFile,
   MessageTypes,
   type IUserInfo,
@@ -310,8 +314,11 @@ export class FirestoreServices {
           this.userInfo?.name || '',
           messageData.text
         );
+
+        const links = extractLinks(message.text);
+
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+          this.updateUserConversation(memberId, latestMessageData, links);
         });
       } catch (e) {
         console.log(e);
@@ -319,9 +326,29 @@ export class FirestoreServices {
     }
   };
 
-  updateUserConversation = (
+  getUserLinksFromConversation = async () => {
+    if (!this.conversationId) {
+      console.error(
+        'Please create conversation before send the first message!'
+      );
+      return;
+    }
+    const conversationRef = firestore()
+      .collection<ConversationProps>(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+      )
+      .doc(this.conversationId);
+    const doc = await conversationRef.get();
+    const existingLinks = doc.data()?.links || [];
+    return existingLinks;
+  };
+
+  updateUserConversation = async (
     userId: string,
-    latestMessageData: LatestMessageProps
+    latestMessageData: LatestMessageProps,
+    links?: string[] | undefined
   ) => {
     if (!this.conversationId) {
       console.error(
@@ -336,6 +363,11 @@ export class FirestoreServices {
         )
       )
       .doc(this.conversationId);
+    const conversationDoc = await userConversationRef.get();
+    const getToday = getCurrentFormattedDate();
+    const existingLinks = (conversationDoc.data()?.links || []) as LinksType;
+    const currentLinks = addLinkByDate(existingLinks, links, getToday);
+
     if (userId === this.userId) {
       /** Update latest message for each member */
       userConversationRef
@@ -345,6 +377,8 @@ export class FirestoreServices {
             updatedAt: getCurrentTimestamp(),
             /** Update unRead for this user to 0 */
             unRead: 0,
+            /** Update links */
+            links: currentLinks,
           },
           { merge: true }
         )
@@ -360,6 +394,8 @@ export class FirestoreServices {
               updatedAt: getCurrentTimestamp(),
               /** Increase unRead for other uses */
               unRead: unReadCount ? unReadCount + 1 : 1,
+              /** Update links */
+              links: currentLinks,
             },
             { merge: true }
           )
