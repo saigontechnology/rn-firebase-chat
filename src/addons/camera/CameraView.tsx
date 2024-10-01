@@ -17,7 +17,7 @@ import {
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
 import Video from 'react-native-video';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 import { CaptureCameraButton } from './CaptureButton';
 import type {
   CameraViewMethods,
@@ -90,7 +90,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   const onSendPressed = useCallback(async () => {
     const extension = getMediaTypeFromExtension(media.path);
-    const id = uuidv4();
+    const id = uuid.v4();
     const message = {
       id: id,
       _id: id,
