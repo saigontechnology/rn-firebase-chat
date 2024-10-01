@@ -221,18 +221,18 @@ export class FirestoreServices {
   };
 
   sendMessageWithFile = async (message: SendMessageProps) => {
-    const { path, extension, type } = message;
+    const { path, extension, type, fileName, size } = message;
 
-    if (!path || !extension || this.conversationId === null) {
-      console.error('Please provide path and extension');
-      return;
+    if (!path || !extension || this.conversationId === null || !type) {
+      throw new Error('Please provide path and extension');
     }
 
     try {
       const uploadResult = await uploadFileToFirebase(
         path,
         this.conversationId,
-        extension
+        extension,
+        type
       );
       const imgURL = await storage()
         .ref(uploadResult.metadata.fullPath)
@@ -249,14 +249,16 @@ export class FirestoreServices {
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
-          formatLatestMessage(
-            this.userId,
-            this.userInfo?.name || '',
-            '',
-            type,
-            path,
-            extension
-          )
+          formatLatestMessage({
+            userId: this.userId,
+            name: this.userInfo?.name || '',
+            text: '',
+            type: type,
+            path: imgURL,
+            extension: extension,
+            fileName: fileName,
+            size: size,
+          })
         );
       });
     } catch (error) {
@@ -270,19 +272,27 @@ export class FirestoreServices {
    */
   sendMessage = async (message: MessageProps) => {
     if (!this.conversationId) {
-      console.error(
+      throw new Error(
         'Please create conversation before send the first message!'
       );
-      return;
     }
-    const { text, type, path, extension } = message;
+    const { text, type, path, extension, fileName, size } = message;
     let messageData;
 
     if (
       message.type === MessageTypes.image ||
-      message.type === MessageTypes.video
+      message.type === MessageTypes.video ||
+      message.type === MessageTypes.document
     ) {
-      messageData = formatSendMessage(this.userId, text, type, path, extension);
+      messageData = formatSendMessage(
+        this.userId,
+        text,
+        type,
+        path,
+        extension,
+        fileName,
+        size
+      );
       this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
@@ -305,11 +315,11 @@ export class FirestoreServices {
           .add(messageData);
 
         /** Format latest message data */
-        const latestMessageData = formatLatestMessage(
-          this.userId,
-          this.userInfo?.name || '',
-          messageData.text
-        );
+        const latestMessageData = formatLatestMessage({
+          userId: this.userId,
+          name: this.userInfo?.name || '',
+          text: messageData.text,
+        });
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
         });

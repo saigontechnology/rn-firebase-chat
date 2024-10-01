@@ -7,6 +7,7 @@ import {
   CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
 import MessageStatus from '../MessageStatus';
+import { CustomDocumentBubble } from './CustomDocumentBubble';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -94,7 +95,24 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             {ViewMessageStatus}
           </View>
         );
-
+      case MessageTypes.document:
+        return (
+          <View>
+            <Bubble
+              {...bubbleMessage}
+              renderCustomView={() =>
+                currentMessage && (
+                  <CustomDocumentBubble
+                    message={currentMessage}
+                    position={position}
+                  />
+                )
+              }
+              wrapperStyle={styleBuble}
+            />
+            {ViewMessageStatus}
+          </View>
+        );
       default: {
         return (
           <View>
