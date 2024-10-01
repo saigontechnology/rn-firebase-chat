@@ -18,7 +18,6 @@ export interface FileAttachmentRef {
 
 const FileAttachment = forwardRef<FileAttachmentRef, FileAttachmentProps>(
   ({ onSend }, ref) => {
-    console.log('ref:DATA ', ref);
     const { userInfo } = useChatContext();
 
     const checkPermissionAndroid = async () => {
