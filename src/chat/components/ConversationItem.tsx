@@ -66,6 +66,8 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
           return `${senderInfo} Video`;
         case MessageTypes.voice:
           return `${senderInfo} Voice`;
+        case MessageTypes.document:
+          return `${senderInfo} Document`;
         default:
           return '';
       }
