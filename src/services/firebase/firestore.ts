@@ -318,7 +318,7 @@ export class FirestoreServices {
         const links = extractLinks(message.text);
 
         this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData, links);
+          this.updateUserConversation(memberId, latestMessageData, links || []);
         });
       } catch (e) {
         console.log(e);

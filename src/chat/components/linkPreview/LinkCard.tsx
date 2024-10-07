@@ -2,21 +2,36 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MessageText } from 'react-native-gifted-chat';
 import type { MessageProps } from '../../../interfaces';
-import { LinkPreview } from './LinkPreview';
+import { LinkPreview, LinkPreviewProps } from './LinkPreview';
 
-type PreviewLinkProps = {
+interface LinkCardProps extends LinkPreviewProps {
   link?: string;
   currentMessage?: MessageProps;
   customPreviewLink?: (link: string) => JSX.Element;
   iconDefault?: string;
-};
+}
 
-export const LinkCard: React.FC<PreviewLinkProps> = (props) => {
+export type LinkCardPropsWithoutText = Omit<LinkCardProps, 'text'>;
+
+export const LinkCard: React.FC<LinkCardPropsWithoutText> = (props) => {
   const { currentMessage, link, customPreviewLink } = props;
   const urls = currentMessage?.text.match(/(https?:\/\/[^\s]+)/g);
 
   const renderPreview = (url: string, index: number = 0) => {
-    return <LinkPreview key={index} enableAnimation text={url} />;
+    return (
+      <LinkPreview
+        key={index}
+        enableAnimation
+        text={url}
+        thumbnailResizeMode="cover"
+        thumbnailStyle={styles.thumbnail}
+        textContainerStyle={styles.textContainer}
+        metadataContainerStyle={styles.metadataContainer}
+        metadataTextContainerStyle={styles.metadataTextContainer}
+        contentStyle={styles.content}
+        {...props}
+      />
+    );
   };
 
   if (customPreviewLink) {
@@ -31,14 +46,7 @@ export const LinkCard: React.FC<PreviewLinkProps> = (props) => {
     return (
       <View style={styles.containerPreview}>
         <Text>{currentMessage?.text}</Text>
-        {urls.map((item, index) => (
-          <LinkPreview
-            key={index}
-            containerStyle={styles.previewContainer}
-            enableAnimation
-            text={item}
-          />
-        ))}
+        {urls.map((item, index) => renderPreview(item, index))}
       </View>
     );
   }
@@ -57,36 +65,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 16,
   },
-  textPreview: {
-    color: 'blue',
-    textDecorationLine: 'underline',
+  thumbnail: {
+    width: 140,
+    height: 80,
+    alignSelf: 'flex-start',
   },
-
-  renderImage: {
-    width: 100,
-    height: 100,
-    backgroundColor: 'green',
-    position: 'absolute',
-    left: 8,
-    top: 20,
+  textContainer: {
+    flexShrink: 1,
+    marginLeft: 16,
+    marginVertical: 0,
   },
-  imageStyle: {
-    width: 100,
-    height: 100,
-    resizeMode: 'stretch',
+  metadataContainer: {
+    marginTop: 0,
   },
-  viewTitle: {
-    marginLeft: 100,
+  metadataTextContainer: {
+    flex: 0,
   },
-  title: {
-    color: 'black',
-    fontWeight: 'bold',
-  },
-  viewDetail: {
-    marginLeft: 100,
-    marginTop: 10,
-  },
-  textDetails: {
-    color: 'black',
+  content: {
+    flexDirection: 'row',
   },
 });

@@ -9,6 +9,7 @@ import {
   ImageRequireSource,
   StyleProp,
   ViewStyle,
+  DefaultSectionT,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { FirestoreServices } from '../services/firebase';
@@ -21,7 +22,10 @@ import {
 import { GalleryType } from '../interfaces/gallery';
 import { VideoRef } from 'react-native-video';
 import { SelectedViewModal, ThumbnailVideoPlayer } from './components/camera';
-import { LinkList } from './components/linkPreview';
+import {
+  LinkList,
+  LinkListPropsWithoutSection,
+} from './components/linkPreview';
 import { transformLinksDataForSectionList } from '../utilities';
 type MediaItem = {
   item: MediaFile;
@@ -49,6 +53,7 @@ interface GalleryModalProps {
   activeTabTextStyle?: StyleProp<ViewStyle>;
   tabIndicatorStyle?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  linkListProps?: LinkListPropsWithoutSection<any, DefaultSectionT>;
 }
 
 export const GalleryScreen: React.FC<GalleryModalProps> = ({
@@ -65,6 +70,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   activeTabTextStyle,
   tabIndicatorStyle,
   containerStyle,
+  linkListProps,
 }) => {
   const [activeTab, setActiveTab] = useState(GalleryType.MEDIA);
   const [media, setMedia] = useState<MediaFile[]>([]);
@@ -183,7 +189,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
         );
       case GalleryType.LINK:
         if (renderCustomLink) return renderCustomLink();
-        return <LinkList links={links} />;
+        return <LinkList {...linkListProps} links={links || []} />;
       default:
         return null;
     }
@@ -191,6 +197,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
     activeTab,
     customSlider,
     iconCloseModal,
+    linkListProps,
     links,
     media,
     mediaSelected?.path,
