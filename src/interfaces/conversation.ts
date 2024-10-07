@@ -4,6 +4,7 @@
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { BaseEntity } from './base';
 import type { LatestMessageProps, MediaType } from './message';
+import { LinksType } from './link';
 
 interface MemberProps {
   [userId: string]: FirebaseFirestoreTypes.DocumentReference;
@@ -25,6 +26,7 @@ interface ConversationProps extends BaseEntity {
     [userId: string]: boolean;
   };
   unRead?: number;
+  links?: LinksType;
 }
 
 enum MessageTypes {

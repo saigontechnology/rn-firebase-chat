@@ -4,3 +4,4 @@ export * from './color';
 export * from './messageFormatter';
 export * from './blacklist';
 export * from './misc';
+export * from './link';
