@@ -136,6 +136,24 @@ export const ChatScreen: React.FC = () => {
 
 ```
 
+## Features
+
+#### Leave conversation
+
+- Use `useConversation` hook to get `leaveConversation` function.
+
+```typescript
+import {useConversation} from 'rn-firebase-chat';
+
+const {leaveConversation} = useConversation();
+
+const result = await leaveConversation(isSilent);
+```
+
+| Parameter  | Type      | Description                                                               |
+| :--------- | :-------- | :------------------------------------------------------------------------ |
+| `isSilent` | `boolean` | If `true`, send a system message to the conversation to notify your leave |
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
