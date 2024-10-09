@@ -14,6 +14,25 @@ import {
 import { getTextMessage } from './blacklist';
 import { getCurrentTimestamp } from './date';
 
+interface FormatSendMessageParams {
+  userId: string;
+  text: string;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
+  system?: boolean;
+}
+
+interface FormatLatestMessageParams {
+  userId: string;
+  name: string;
+  message: string;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
+  system?: boolean;
+}
+
 const convertTextMessage = async (
   text: string,
   regex?: RegExp,
@@ -64,9 +83,9 @@ const formatMessageData = async (
     _id: message.id,
     createdAt: message.createdAt || getCurrentTimestamp(),
     user: {
-      _id: userInfo.id,
-      name: userInfo.name,
-      avatar: userInfo.avatar,
+      _id: userInfo?.id,
+      name: userInfo?.name,
+      avatar: userInfo?.avatar,
     },
   };
 };
@@ -78,13 +97,14 @@ const formatdecryptedMessageData = async (
   return await decryptedMessageData(text, conversationId);
 };
 
-const formatSendMessage = (
-  userId: string,
-  text: string,
-  type?: MediaType,
-  path?: string,
-  extension?: string
-): SendMessageProps => ({
+const formatSendMessage = ({
+  userId,
+  text,
+  type,
+  path,
+  extension,
+  system,
+}: FormatSendMessageParams): SendMessageProps => ({
   readBy: {
     [userId]: true,
   },
@@ -95,16 +115,18 @@ const formatSendMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  system: system ?? false,
 });
 
-const formatLatestMessage = (
-  userId: string,
-  name: string,
-  message: string,
-  type?: MediaType,
-  path?: string,
-  extension?: string
-): LatestMessageProps => ({
+const formatLatestMessage = ({
+  userId,
+  name,
+  message,
+  type,
+  path,
+  extension,
+  system,
+}: FormatLatestMessageParams): LatestMessageProps => ({
   text: message ?? '',
   senderId: userId,
   name: name,
@@ -114,6 +136,7 @@ const formatLatestMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  system: system ?? false,
 });
 
 export const getMediaTypeFromExtension = (path: string): MediaType => {
