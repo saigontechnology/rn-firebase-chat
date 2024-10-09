@@ -147,12 +147,13 @@ import {useConversation} from 'rn-firebase-chat';
 
 const {leaveConversation} = useConversation();
 
-const result = await leaveConversation(isSilent);
+const result = await leaveConversation(conversationId, isSilent);
 ```
 
-| Parameter  | Type      | Description                                                               |
-| :--------- | :-------- | :------------------------------------------------------------------------ |
-| `isSilent` | `boolean` | If `true`, send a system message to the conversation to notify your leave |
+| Parameter        | Type      | Description                                                               |
+| :--------------- | :-------- | :------------------------------------------------------------------------ |
+| `conversationId` | `string`  | **Required**                                                              |
+| `isSilent`       | `boolean` | If `true`, send a system message to the conversation to notify the action |
 
 ## Contributing
 

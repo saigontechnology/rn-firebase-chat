@@ -700,8 +700,8 @@ export class FirestoreServices {
     return fileURLs;
   };
 
-  private deleteUnreadAndTypingUser = async (userId: string) => {
-    if (!userId || !this.conversationId) {
+  private deleteUnreadAndTypingUser = async (conversationId: string) => {
+    if (!this.userId || !conversationId) {
       console.error('User ID or conversation ID is missing');
       return;
     }
@@ -710,7 +710,7 @@ export class FirestoreServices {
       .collection<ConversationData>(
         this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
       )
-      .doc(this.conversationId);
+      .doc(conversationId);
 
     try {
       const conversationDoc = await conversationRef.get();
@@ -719,14 +719,14 @@ export class FirestoreServices {
         if (
           conversationData &&
           conversationData.unRead &&
-          conversationData.unRead[userId]
+          conversationData.unRead[this.userId]
         ) {
           const updatedUnread = { ...conversationData.unRead };
-          delete updatedUnread[userId];
+          delete updatedUnread[this.userId];
 
           await conversationRef.update({ unRead: updatedUnread });
           const updatedTyping = { ...conversationData.typing };
-          delete updatedTyping[userId];
+          delete updatedTyping[this.userId];
           await conversationRef.update({ typing: updatedTyping });
         } else {
           console.log('User not found in unRead or no unRead field present');
@@ -739,7 +739,7 @@ export class FirestoreServices {
     }
   };
 
-  private updateConversationMembers = async (
+  private removeUserFromOtherMemberConversation = async (
     conversationId: string,
     userId: string
   ): Promise<ConversationProps | null> => {
@@ -786,20 +786,21 @@ export class FirestoreServices {
     }
   };
 
-  leaveConversation = async (isSilent: boolean = false): Promise<boolean> => {
-    if (!this.conversationId) {
-      throw new Error(
-        'Please create a conversation before sending the first message!'
-      );
-    }
-
+  leaveConversation = async (
+    conversationId: string,
+    isSilent: boolean = false
+  ): Promise<boolean> => {
     try {
-      await this.deleteUnreadAndTypingUser(this.userId);
+      if (!conversationId) {
+        console.error('Conversation document does not exist');
+      }
+      await this.deleteUnreadAndTypingUser(conversationId);
 
-      const leftConversationData = await this.updateConversationMembers(
-        this.conversationId,
-        this.userId
-      );
+      const leftConversationData =
+        await this.removeUserFromOtherMemberConversation(
+          conversationId,
+          this.userId
+        );
 
       if (!leftConversationData) return false;
 
@@ -816,7 +817,7 @@ export class FirestoreServices {
             `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
           )
         )
-        .doc(this.conversationId);
+        .doc(conversationId);
 
       await leftConversation.delete();
 
