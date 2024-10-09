@@ -7,6 +7,7 @@ import {
   CustomImageVideoBubbleProps,
 } from './CustomImageVideoBubble';
 import MessageStatus from '../MessageStatus';
+import { CustomBubbleVoice } from './CustomBubbleVoice';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -20,6 +21,8 @@ interface CustomBubbleProps {
   unReadSeenMessage?: string;
   messageStatusEnable: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  onSetCurrentId: (id: string) => void;
+  isCurrentlyPlaying: boolean;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -34,6 +37,8 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   unReadSentMessage,
   messageStatusEnable,
   customMessageStatus,
+  onSetCurrentId,
+  isCurrentlyPlaying,
 }) => {
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
@@ -94,6 +99,25 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
             {ViewMessageStatus}
           </View>
         );
+      case MessageTypes.voice:
+        return (
+          <View>
+            <Bubble
+              {...bubbleMessage}
+              renderCustomView={() =>
+                currentMessage && (
+                  <CustomBubbleVoice
+                    position={position}
+                    currentMessage={currentMessage}
+                    onSetCurrentId={onSetCurrentId}
+                    isCurrentlyPlaying={isCurrentlyPlaying}
+                  />
+                )
+              }
+              wrapperStyle={styleBuble}
+            />
+          </View>
+        );
 
       default: {
         return (
@@ -105,7 +129,6 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       }
     }
   };
-
   return (
     <View style={styles.container}>
       {bubbleMessage.currentMessage &&

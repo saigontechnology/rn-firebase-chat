@@ -27,10 +27,7 @@ import type {
 } from './interface';
 import { initialMediaState } from './constants';
 import { MessageTypes, type MessageProps } from '../../interfaces';
-import {
-  getAbsoluteFilePath,
-  getMediaTypeFromExtension,
-} from '../../utilities';
+import { getAbsoluteFilePath } from '../../utilities';
 import Images from '../../asset';
 import { useChatContext } from '../../hooks';
 
@@ -89,7 +86,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   }, []);
 
   const onSendPressed = useCallback(async () => {
-    const extension = getMediaTypeFromExtension(media.path);
+    const extension = MessageTypes.video;
     const id = uuidv4();
     const message = {
       id: id,
