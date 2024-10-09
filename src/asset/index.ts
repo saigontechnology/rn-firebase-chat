@@ -10,6 +10,8 @@ const Images = {
   placeHolder: require('../images/place_holder.png'),
   playIcon: require('../images/play.png'),
   pauseWhiteIcon: require('../images/pause_white.png'),
+  playGreenIcon: require('../images/play_green.png'),
+  pauseRedIcon: require('../images/pause_red.png'),
 };
 
 export default Images;

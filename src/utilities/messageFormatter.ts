@@ -78,12 +78,27 @@ const formatdecryptedMessageData = async (
   return await decryptedMessageData(text, conversationId);
 };
 
+interface FormatLatestMessageParams {
+  userId: string;
+  name: string;
+  text: string;
+  type?: MediaType;
+  path?: string;
+  extension?: string;
+  fileName?: string;
+  size?: string;
+  duration?: number;
+}
+
 const formatSendMessage = (
   userId: string,
   text: string,
   type?: MediaType,
   path?: string,
-  extension?: string
+  extension?: string,
+  fileName?: string,
+  size?: string,
+  duration?: number
 ): SendMessageProps => ({
   readBy: {
     [userId]: true,
@@ -95,28 +110,37 @@ const formatSendMessage = (
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  fileName: fileName ?? '',
+  size: size ?? '',
+  duration: duration ?? 0,
 });
 
-const formatLatestMessage = (
-  userId: string,
-  name: string,
-  message: string,
-  type?: MediaType,
-  path?: string,
-  extension?: string
-): LatestMessageProps => ({
-  text: message ?? '',
-  senderId: userId,
+const formatLatestMessage = ({
+  userId,
+  name,
+  text,
+  type,
+  path,
+  extension,
+  fileName,
+  size,
+  duration,
+}: FormatLatestMessageParams): LatestMessageProps => ({
+  text: text ?? '',
   name: name,
+  senderId: userId,
   readBy: {
     [userId]: true,
   },
   type: type ?? MessageTypes.text,
   path: path ?? '',
   extension: extension ?? '',
+  fileName: fileName ?? '',
+  size: size ?? '',
+  duration: duration ?? 0,
 });
 
-export const getMediaTypeFromExtension = (path: string): MediaType => {
+export const getVideoOrImageTypeFromExtension = (path: string): MediaType => {
   const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
   const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
   const extension = path.split('.').pop();
@@ -131,6 +155,14 @@ export const getMediaTypeFromExtension = (path: string): MediaType => {
 
 export const getAbsoluteFilePath = (path: string) => {
   return path?.startsWith?.('file:/') ? path : `file://${path}`;
+};
+
+export const convertExtension = (path: string | undefined): string => {
+  if (!path) {
+    return 'jpg';
+  }
+  const extension = path.split('.').pop();
+  return extension ? extension : 'jpg';
 };
 
 export {
