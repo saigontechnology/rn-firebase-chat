@@ -29,7 +29,11 @@ import type {
   IUserInfo,
   MessageProps,
 } from '../interfaces';
-import { formatMessageText, isOtherUserTyping } from '../utilities';
+import {
+  formatMessageText,
+  isMediaMessage,
+  isOtherUserTyping,
+} from '../utilities';
 import SelectedImageModal from './components/SelectedImage';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
@@ -108,6 +112,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [selectedMessage, setSelectedMessage] = useState<MessageProps | null>(
     null
   );
+  const [mediaMessages, setMediaMessages] = useState<MessageProps[]>([]);
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -180,11 +185,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         GiftedChat.append(previousMessages, [convertMessage as MessageProps])
       );
 
-      await firebaseInstance.sendMessage(messages);
+      if (!isMediaMessage(messages.type)) {
+        await firebaseInstance.sendMessage(messages);
 
-      timeoutMessageRef.current = setTimeout(() => {
-        sendMessageNotification?.();
-      }, timeoutSendNotify);
+        timeoutMessageRef.current = setTimeout(() => {
+          sendMessageNotification?.();
+        }, timeoutSendNotify);
+      } else {
+        setMediaMessages((prev) => [...prev, messages]);
+      }
     },
     [
       firebaseInstance,
@@ -325,6 +334,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         isCurrentlyPlaying={
           currentPlayingMessageId === bubble.currentMessage?.id
         }
+        mediaMessageIds={mediaMessages?.map((e) => e._id.toString())}
+        finishUploadCallback={(id) => {
+          setMediaMessages((prev) =>
+            prev.filter((message) => message._id !== id)
+          );
+        }}
+        notifyRef={timeoutMessageRef}
       />
     );
   };
