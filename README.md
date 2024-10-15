@@ -112,13 +112,30 @@ Then using our Addons component in ChatScreen
 ```javascript
 import React from 'react'
 import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
-import {CameraView, useCamera, FileAttachmentRef, FileAttachment} from 'rn-firebase-chat/src/addons/camera'
+import {
+  CameraView,
+  useCamera,
+  FileAttachmentRef,
+  FileAttachment,
+} from 'rn-firebase-chat/src/addons';
 
 ...
 
 export const ChatScreen: React.FC = () => {
   const {onPressCamera, onPressGallery} = useCamera()
-    const fileAttachmentRef = useRef<FileAttachmentRef>(null);
+  const fileAttachmentRef = useRef<FileAttachmentRef>(null);
+  const renderLeftCustomView = useCallback(() => {
+    return (
+      <View>
+        <Button
+          title="file"
+          onPress={() => {
+            fileAttachmentRef.current?.pickDocument();
+          }}
+        />
+      </View>
+    );
+  }, []);
 
   return (
     <BaseChatScreen
@@ -129,6 +146,7 @@ export const ChatScreen: React.FC = () => {
         hasGallery: true,
         onPressCamera,
         onPressGallery,
+        renderLeftCustomView
       }}
     >
     {({onSend}) => (

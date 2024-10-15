@@ -172,7 +172,7 @@ const getAbsoluteFilePathWithName = async (path: string, name: string) => {
       console.error('Error copying file:', error);
     }
   }
-  return path?.startsWith?.('file:/') ? path : `file://${path}`;
+  return getAbsoluteFilePath(path);
 };
 
 export {

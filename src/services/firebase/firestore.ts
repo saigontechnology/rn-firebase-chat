@@ -224,7 +224,10 @@ export class FirestoreServices {
     const { path, extension, type, fileName, size } = message;
 
     if (!path || !extension || this.conversationId === null || !type) {
-      throw new Error('Please provide path and extension');
+      console.error(
+        'Please provide path, extension, conversationId and type before sending message with file'
+      );
+      return;
     }
 
     try {
@@ -272,9 +275,8 @@ export class FirestoreServices {
    */
   sendMessage = async (message: MessageProps) => {
     if (!this.conversationId) {
-      throw new Error(
-        'Please create conversation before send the first message!'
-      );
+      console.log('Please create conversation before send the first message!');
+      return;
     }
     const { text, type, path, extension, fileName, size } = message;
     let messageData;
