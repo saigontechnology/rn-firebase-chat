@@ -823,4 +823,76 @@ export class FirestoreServices {
       return false;
     }
   };
+
+  checkConversationExist = async (id: string) => {
+    const conversation = await firestore()
+      .collection(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+        )
+      )
+      .doc(id)
+      .get();
+
+    return conversation?.exists;
+  };
+
+  /**
+   * delete conversation from list
+   * @param forAllMembers indicates whether to remove conversation for all other members or simply remove from user's list
+   */
+  deleteConversation = async (
+    conversationId: string,
+    forAllMembers?: boolean
+  ): Promise<boolean> => {
+    try {
+      const isConversationExist =
+        !!conversationId && (await this.checkConversationExist(conversationId));
+      if (!isConversationExist) {
+        console.error('Conversation does not exist');
+        return false;
+      }
+
+      /** Get conversation ref from current user's conversations collection */
+      const userConversation = firestore()
+        .collection(
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
+        )
+        .doc(conversationId);
+
+      /** Get ID array of conversation's partners (exclude current user) */
+      const partnerIds = (
+        (await userConversation.get())?.data() as ConversationProps
+      )?.members?.filter((e) => e !== this.userId);
+
+      /** Delete latest message of that conversation for user (exclude from list) */
+      await userConversation.delete();
+      if (!forAllMembers) return true;
+
+      /** Delete latest message of that conversation for all other partners */
+      const partnerBatch = firestore().batch();
+      partnerIds?.forEach(async (id) => {
+        if (id) {
+          const doc = firestore()
+            .collection(
+              this.getUrlWithPrefix(
+                `${FireStoreCollection.users}/${id}/${FireStoreCollection.conversations}`
+              )
+            )
+            .doc(conversationId);
+          partnerBatch.delete(doc);
+        }
+      });
+      await partnerBatch.commit();
+
+      return true;
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message);
+      }
+      return false;
+    }
+  };
 }

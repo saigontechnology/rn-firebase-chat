@@ -155,6 +155,21 @@ const result = await leaveConversation(conversationId, isSilent);
 | `conversationId` | `string`  | **Required**                                                              |
 | `isSilent`       | `boolean` | If `true`, send a system message to the conversation to notify the action |
 
+#### Delete conversation
+- Use `useConversation` hook to get `deleteConversation` function.
+
+```typescript
+import {useConversation} from 'rn-firebase-chat';
+
+const {deleteConversation} = useConversation();
+
+const result = await deleteConversation(conversationId, softDelete);
+```
+| Parameter        | Type      | Description                                                               |
+| :--------------- | :-------- | :------------------------------------------------------------------------ |
+| `conversationId` | `string`  | **Required**                                                              |
+| `softDelete`     | `boolean` | If `true`, just delete the conversation from user's list. Otherwise, completely delete the conversation from lists of other members as well. Message history will not be cleared on both case but cannot be accessed. |
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
