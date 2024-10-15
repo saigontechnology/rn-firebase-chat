@@ -30,7 +30,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
   useEffect(() => {
     let unsubscribeListener = () => {};
-
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
       createUserProfile(userInfo.id, userInfo.name).then(() => {
@@ -48,7 +47,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         );
       });
     }
-
     return () => {
       unsubscribeListener();
     };
