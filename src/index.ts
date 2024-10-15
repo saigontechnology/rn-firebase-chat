@@ -4,4 +4,3 @@ export * from './hooks';
 export * from './reducer/action';
 export * from './interfaces/message';
 export * from './interfaces/conversation';
-export { useConversation } from './hooks';
