@@ -716,11 +716,7 @@ export class FirestoreServices {
       const conversationDoc = await conversationRef.get();
       if (conversationDoc.exists) {
         const conversationData = conversationDoc.data();
-        if (
-          conversationData &&
-          conversationData.unRead &&
-          conversationData.unRead[this.userId]
-        ) {
+        if (conversationData?.unRead?.[this.userId]) {
           const updatedUnread = { ...conversationData.unRead };
           delete updatedUnread[this.userId];
 
