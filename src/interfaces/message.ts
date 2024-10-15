@@ -17,6 +17,8 @@ interface LatestMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  size?: string;
+  fileName?: string;
 }
 
 interface MessageProps extends BaseEntity, IMessage {
@@ -29,6 +31,8 @@ interface MessageProps extends BaseEntity, IMessage {
   type?: MediaType;
   path?: string;
   extension?: string;
+  size?: string;
+  fileName?: string;
 }
 
 interface SendMessageProps {
@@ -42,8 +46,10 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  size?: string;
+  fileName?: string;
 }
 
-type MediaType = 'image' | 'video' | 'text' | undefined;
+type MediaType = 'image' | 'video' | 'text' | 'document' | undefined;
 
 export { MessageProps, LatestMessageProps, SendMessageProps, MediaType };
