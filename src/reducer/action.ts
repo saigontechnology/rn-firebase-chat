@@ -5,10 +5,16 @@ export enum ChatActionKind {
   SET_CONVERSATION = 'SET_CONVERSATION',
   CLEAR_CONVERSATION = 'CLEAR_CONVERSATION',
   UPDATE_CONVERSATION = 'UPDATE_CONVERSATION',
+  UPDATE_LIST_CONVERSATION = 'UPDATE_LIST_CONVERSATION',
 }
 
 export const setListConversation = (payload: ConversationProps[]) => ({
   type: ChatActionKind.SET_LIST_CONVERSATION,
+  payload,
+});
+
+export const updateListConversation = (payload: ConversationProps) => ({
+  type: ChatActionKind.UPDATE_LIST_CONVERSATION,
   payload,
 });
 
