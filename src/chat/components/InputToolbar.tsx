@@ -34,6 +34,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
   iconContainerStyle?: StyleProp<ViewStyle>;
+  disableSendButton?: boolean;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
   alwaysShowSendButton?: boolean;
@@ -53,6 +54,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconSend = ImageURL.send,
   iconStyle,
   iconContainerStyle,
+  disableSendButton = false,
   renderLeftCustomView,
   renderRightCustomView,
   alwaysShowSendButton = false,
@@ -104,7 +106,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       </View>
       {(alwaysShowSendButton || !!text) && (
         <PressableIcon
-          disabled={!text}
+          disabled={!text || disableSendButton}
           iconStyle={flattenedIconStyle}
           onPress={() => !!text?.trim() && onSend?.({ text: text }, true)} // only send when there are text
           icon={iconSend}

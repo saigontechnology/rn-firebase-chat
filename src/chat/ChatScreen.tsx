@@ -66,6 +66,7 @@ interface ChatScreenProps extends GiftedChatProps {
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
+  disableSendWhenOtherTyping?: boolean;
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   children?: (props: ChildrenProps) => ReactNode | ReactNode;
 }
@@ -88,6 +89,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  disableSendWhenOtherTyping = false,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -111,6 +113,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   );
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
+
+  // Update Ref when new conversation is created
+  useEffect(() => {
+    if (!conversationRef?.current && conversationInfo) {
+      conversationRef.current = conversationInfo;
+    }
+  }, [conversationInfo]);
 
   // Fetch latest conversation and messages data
   useEffect(() => {
@@ -290,11 +299,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         <InputToolbar
           onSend={onSend}
           {...composeProps}
-          {...inputToolbarProps}
+          {...{
+            ...(inputToolbarProps || {}),
+            disableSendButton: disableSendWhenOtherTyping ? isTyping : false,
+          }}
         />
       );
     },
-    [renderComposer, onSend, inputToolbarProps]
+    [
+      renderComposer,
+      onSend,
+      inputToolbarProps,
+      disableSendWhenOtherTyping,
+      isTyping,
+    ]
   );
 
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
