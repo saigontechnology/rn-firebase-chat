@@ -1,7 +1,18 @@
 import { Image } from 'react-native';
-import { PreviewData, PreviewDataImage, Size } from './type';
+import { PreviewData, PreviewDataImage, Size } from '../interfaces';
 
-export const getActualImageUrl = (baseUrl: string, imageUrl?: string) => {
+const REGEX_EMAIL = /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
+const REGEX_IMAGE_CONTENT_TYPE = /image\/*/g;
+// Consider empty line after img tag and take only the src field, space before to not match data-src for example
+const REGEX_IMAGE_TAG = /<img[\n\r]*.*? src=["'](.*?)["']/g;
+const REGEX_LINK =
+  /((http|ftp|https):\/\/)?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/i;
+// Some pages write content before the name/property, some use single quotes instead of double
+const REGEX_META =
+  /<meta.*?(property|name)=["'](.*?)["'].*?content=["'](.*?)["'].*?>/g;
+const REGEX_TITLE = /<title.*?>(.*?)<\/title>/g;
+
+const getActualImageUrl = (baseUrl: string, imageUrl?: string) => {
   let actualImageUrl = imageUrl?.trim();
   if (!actualImageUrl || actualImageUrl.startsWith('data')) return;
 
@@ -21,7 +32,7 @@ export const getActualImageUrl = (baseUrl: string, imageUrl?: string) => {
   return actualImageUrl;
 };
 
-export const getHtmlEntitiesDecodedText = (text?: string) => {
+const getHtmlEntitiesDecodedText = (text?: string) => {
   const actualText = text?.trim();
   if (!actualText) return;
 
@@ -42,7 +53,7 @@ export const getHtmlEntitiesDecodedText = (text?: string) => {
   );
 };
 
-export const getContent = (left: string, right: string, type: string) => {
+const getContent = (left: string, right: string, type: string) => {
   const contents = {
     [left.trim()]: right,
     [right.trim()]: left,
@@ -51,7 +62,7 @@ export const getContent = (left: string, right: string, type: string) => {
   return contents[type]?.trim();
 };
 
-export const getImageSize = (url: string) => {
+const getImageSize = (url: string) => {
   return new Promise<Size>((resolve, reject) => {
     Image.getSize(
       url,
@@ -66,7 +77,7 @@ export const getImageSize = (url: string) => {
 
 // Functions below use functions from the same file and mocks are not working
 /* istanbul ignore next */
-export const getPreviewData = async (text: string, requestTimeout = 5000) => {
+const getPreviewData = async (text: string, requestTimeout = 5000) => {
   const previewData: PreviewData = {
     description: undefined,
     image: undefined,
@@ -196,7 +207,7 @@ export const getPreviewData = async (text: string, requestTimeout = 5000) => {
   }
 };
 
-export const getPreviewDataImage = async (
+const getPreviewDataImage = async (
   url?: string
 ): Promise<PreviewDataImage | undefined> => {
   if (!url) return;
@@ -218,14 +229,11 @@ export const getPreviewDataImage = async (
   return undefined;
 };
 
-export const REGEX_EMAIL =
-  /([a-zA-Z0-9+._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
-export const REGEX_IMAGE_CONTENT_TYPE = /image\/*/g;
-// Consider empty line after img tag and take only the src field, space before to not match data-src for example
-export const REGEX_IMAGE_TAG = /<img[\n\r]*.*? src=["'](.*?)["']/g;
-export const REGEX_LINK =
-  /((http|ftp|https):\/\/)?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/i;
-// Some pages write content before the name/property, some use single quotes instead of double
-export const REGEX_META =
-  /<meta.*?(property|name)=["'](.*?)["'].*?content=["'](.*?)["'].*?>/g;
-export const REGEX_TITLE = /<title.*?>(.*?)<\/title>/g;
+export {
+  getPreviewData,
+  getPreviewDataImage,
+  getActualImageUrl,
+  getHtmlEntitiesDecodedText,
+  getContent,
+  getImageSize,
+};

@@ -16,4 +16,13 @@ interface Size {
   width: number;
 }
 
-export { PreviewData, PreviewDataImage, Size };
+type LinksType = {
+  [date: string]: string[];
+};
+
+type SectionData = {
+  title: string;
+  data: readonly string[];
+};
+
+export type { PreviewData, PreviewDataImage, Size, LinksType, SectionData };
