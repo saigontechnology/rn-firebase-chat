@@ -32,6 +32,7 @@ enum MessageTypes {
   image = 'image',
   voice = 'voice',
   video = 'video',
+  document = 'document',
 }
 
 enum MessageStatus {

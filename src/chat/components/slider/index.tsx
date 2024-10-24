@@ -6,6 +6,8 @@ import {
   StyleSheet,
   GestureResponderEvent,
   PanResponderGestureState,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 
 interface CustomSliderProps {
@@ -17,6 +19,9 @@ interface CustomSliderProps {
     e: GestureResponderEvent,
     gestureState: PanResponderGestureState
   ) => void;
+  sliderContainer?: StyleProp<ViewStyle>;
+  sliderTrack?: StyleProp<ViewStyle>;
+  sliderThumb?: StyleProp<ViewStyle>;
 }
 
 const CustomSlider: React.FC<CustomSliderProps> = ({
@@ -25,6 +30,9 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   onSlideRelease,
   onSlideStart,
   onSlideMove,
+  sliderContainer,
+  sliderTrack,
+  sliderThumb,
 }) => {
   const [sliderWidth, setSliderWidth] = useState(0);
 
@@ -52,16 +60,16 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
 
   return (
     <View
-      style={styles.sliderContainer}
+      style={[styles.sliderContainer, sliderContainer]}
       onLayout={(event) => {
         setSliderWidth(event.nativeEvent.layout.width - 20);
       }}
     >
-      <View style={styles.sliderTrack} />
+      <View style={[styles.sliderTrack, sliderTrack]} />
       <Animated.View
         {...panResponder.panHandlers}
         style={[
-          styles.sliderThumb,
+          [styles.sliderThumb, sliderThumb],
           { transform: [{ translateX: getSliderPosition() }] },
         ]}
       />

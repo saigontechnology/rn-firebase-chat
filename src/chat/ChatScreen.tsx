@@ -18,6 +18,7 @@ import {
   GiftedChat,
   type GiftedChatProps,
   Bubble,
+  Message,
 } from 'react-native-gifted-chat';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
@@ -100,6 +101,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [isImgVideoUrl, setImgVideoUrl] = useState('');
   const [userUnreadMessage, setUserUnreadMessage] = useState<boolean>(false);
   const timeoutMessageRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [currentPlayingMessageId, setCurrentPlayingMessageId] = useState<
+    string | null
+  >(null);
+  const [selectedMessage, setSelectedMessage] = useState<MessageProps | null>(
+    null
+  );
 
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
@@ -290,6 +298,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [renderComposer, onSend, inputToolbarProps]
   );
 
+  const handlePlayPause = (messageId: string) => {
+    setCurrentPlayingMessageId(
+      messageId === currentPlayingMessageId ? null : messageId
+    );
+  };
+
   const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
     if (props.renderBubble) return props.renderBubble(bubble);
     return (
@@ -307,6 +321,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         unReadSeenMessage={props.unReadSeenMessage}
         customMessageStatus={props.customMessageStatus}
         messageStatusEnable={messageStatusEnable}
+        onSetCurrentId={handlePlayPause}
+        isCurrentlyPlaying={
+          currentPlayingMessageId === bubble.currentMessage?.id
+        }
       />
     );
   };
@@ -323,6 +341,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     changeUserConversationTyping,
     typingTimeoutSeconds
   );
+  const shouldUpdateMessage = (
+    currentProps: Message<MessageProps>['props'],
+    nextProps: Message<MessageProps>['props']
+  ) => {
+    if (
+      currentProps.currentMessage?.type === 'voice' ||
+      nextProps.currentMessage?.type === 'voice'
+    ) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <View style={[styles.container, style]}>
@@ -343,6 +373,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderBubble={renderBubble}
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
+          shouldUpdateMessage={shouldUpdateMessage}
           {...props}
         />
       </KeyboardAvoidingView>

@@ -112,12 +112,22 @@ Then using our Addons component in ChatScreen
 ```javascript
 import React from 'react'
 import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
-import {CameraView, useCamera} from 'rn-firebase-chat/src/addons/camera'
+import {
+  CameraView,
+  useCamera,
+  VoiceRecorderModalRef,
+  VoiceRecorderModal,
+} from 'rn-firebase-chat/src/addons';
 
 ...
 
 export const ChatScreen: React.FC = () => {
   const {onPressCamera, onPressGallery} = useCamera()
+  const fileAttachmentRef = useRef<VoiceRecorderModalRef>(null);
+
+  const onPressAudio = useCallback(() => {
+    fileAttachmentRef.current?.show();
+  }, []);
   return (
     <BaseChatScreen
       memberIds={[partnerInfo.id]}
@@ -127,9 +137,17 @@ export const ChatScreen: React.FC = () => {
         hasGallery: true,
         onPressCamera,
         onPressGallery,
+        renderLeftCustomView: () => (
+          <Button onPress={onPressAudio} title="Audio" color="#000" />
+        ),
       }}
     >
-    {({onSend}) => (<CameraView onSend={onSend} /> )}
+    {({onSend}) => (
+      <View>
+        <CameraView onSend={onSend} /> )
+        <VoiceRecorderModal ref={fileAttachmentRef} onSend={onSend} />
+      </View>
+    }
     </BaseChatScreen>
   )
 }
