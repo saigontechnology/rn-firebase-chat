@@ -141,7 +141,7 @@ export const VoiceRecorderModal = forwardRef<
 
   const onStartRecord = useCallback(async () => {
     setIsRecord(true);
-    startRecording();
+    await startRecording();
     addRecordBackListener((e) => {
       const { currentMetering } = e || {};
       const volume = getLevel(Math.abs(currentMetering || 0));
@@ -151,9 +151,9 @@ export const VoiceRecorderModal = forwardRef<
   }, [getLevel]);
 
   const onStopRecord = useCallback(async () => {
-    stopRecording();
+    const filePath = await stopRecording();
     const path = stateAudio.recordingUri;
-    setUri(path);
+    setUri(filePath || path);
     setIsRecord(false);
   }, [stateAudio.recordingUri]);
 
@@ -168,22 +168,24 @@ export const VoiceRecorderModal = forwardRef<
   }, [onStopRecord]);
 
   const handleSendReplay = useCallback(async () => {
-    const path = await stopRecording();
-    console.log('path: ', path);
-    setUri(path);
+    let path = uri;
+    if (isRecord) {
+      path = await stopRecording();
+      setUri(path);
+    }
     if (path) {
       onSendMessage(path);
     } else {
       Alert.alert('Failed to send audio');
     }
     setIsVisible(false);
-  }, [onSendMessage]);
+  }, [isRecord, onSendMessage, uri]);
 
   const handleSend = useCallback(async () => {
     if (isRecord) {
-      handleSendReplay();
+      await handleSendReplay();
     } else {
-      onStartRecord();
+      await onStartRecord();
     }
   }, [handleSendReplay, isRecord, onStartRecord]);
 
@@ -222,7 +224,9 @@ export const VoiceRecorderModal = forwardRef<
           marginHorizontal={marginHorizontalStyle}
         />
       )}
-      <Text style={styles.modeText}>Press to record</Text>
+      <Text style={styles.modeText}>
+        Press to {!isRecord ? 'record' : 'send'}
+      </Text>
       <View style={styles.buttonContainer}>
         {isRecord && (
           <TouchableOpacity style={styles.button} onPress={handleDelete}>

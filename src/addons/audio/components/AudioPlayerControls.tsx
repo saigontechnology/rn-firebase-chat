@@ -14,6 +14,7 @@ import CustomSlider from '../../../chat/components/slider';
 
 interface AudioPlayerControlsProps {
   isPlaying: boolean;
+  duration: number;
   playPause: () => void;
   currentPositionSec: number;
   currentDurationSec: number;
@@ -35,6 +36,7 @@ const ImageURL = {
 
 export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
   isPlaying,
+  duration,
   playPause,
   currentPositionSec,
   currentDurationSec,
@@ -82,7 +84,11 @@ export const AudioPlayerControls: React.FC<AudioPlayerControlsProps> = ({
           />
         )}
       </View>
-      <Text style={styles.timer}>{formatTime(currentPositionSec / 1000)}</Text>
+      <Text style={styles.timer}>
+        {isPlaying
+          ? formatTime(currentPositionSec / 1000)
+          : formatTime(duration)}
+      </Text>
     </View>
   );
 };
@@ -96,7 +102,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#e1ffc7',
     borderRadius: 20,
-    overflow: 'hidden',
     borderColor: '#d3d3d3',
   },
   buttonPlaying: {
@@ -112,7 +117,6 @@ const styles = StyleSheet.create({
     height: 40,
   },
   timer: {
-    width: 50,
     textAlign: 'center',
   },
   sliderContainer: {
@@ -121,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sliderTrack: {
-    marginRight: 40,
+    marginRight: 8,
     marginLeft: 20,
   },
   sliderThumb: {

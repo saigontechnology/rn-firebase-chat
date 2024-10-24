@@ -63,6 +63,8 @@ const setPlayingState = (isPlaying: boolean, uri: string | null = null) => {
 };
 
 const startRecording = async (): Promise<void> => {
+  audioRecorderPlayer.removeRecordBackListener();
+  await audioRecorderPlayer.stopRecorder();
   const uri = await audioRecorderPlayer.startRecorder(
     undefined,
     audioSet,
@@ -72,8 +74,14 @@ const startRecording = async (): Promise<void> => {
 };
 
 const stopRecording = async (): Promise<string> => {
-  const filePath = await audioRecorderPlayer.stopRecorder();
+  let filePath = await audioRecorderPlayer.stopRecorder();
+  audioRecorderPlayer.removeRecordBackListener();
   setRecordingState(false);
+  if (Platform.OS === 'android') {
+    filePath = filePath?.startsWith('file:///')
+      ? filePath.replace('file:///', '')
+      : filePath;
+  }
   return filePath;
 };
 
@@ -92,7 +100,6 @@ const addRecordBackListener = (callback: (event: any) => void): void => {
 };
 
 const removeRecordBackListener = (): void => {
-  state.isPlaying && stopPlaying();
   audioRecorderPlayer.removeRecordBackListener();
 };
 
@@ -101,7 +108,6 @@ const addPlayBackListener = (callback: (event: any) => void): void => {
 };
 
 const removePlayBackListener = (): void => {
-  state.isPlaying && stopPlaying();
   audioRecorderPlayer.removePlayBackListener();
 };
 

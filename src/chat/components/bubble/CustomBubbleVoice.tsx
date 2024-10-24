@@ -129,6 +129,7 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
         key={currentMessage.id}
         isPlaying={isPlayingLocal}
         playPause={playPause}
+        duration={currentMessage.duration || 0}
         currentDurationSec={currentDurationSec}
         currentPositionSec={currentPositionSec}
         onSlide={onSlide}
@@ -141,10 +142,8 @@ export const CustomBubbleVoice: React.FC<CustomBubbleVoiceProps> = (props) => {
 
 const styles = StyleSheet.create({
   bubble: {
-    maxWidth: '70%',
     backgroundColor: '#e1ffc7',
     borderRadius: 20,
-    overflow: 'hidden',
     borderColor: '#d3d3d3',
     borderWidth: 1,
   },
