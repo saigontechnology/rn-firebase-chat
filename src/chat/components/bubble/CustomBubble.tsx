@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import {
@@ -8,6 +8,8 @@ import {
 } from './CustomImageVideoBubble';
 import MessageStatus from '../MessageStatus';
 import { CustomBubbleVoice } from './CustomBubbleVoice';
+import { formatSendMessage } from '../../../utilities';
+import { FirestoreServices } from '../../../services/firebase';
 
 interface CustomBubbleProps {
   bubbleMessage: Bubble<MessageProps>['props'];
@@ -23,6 +25,11 @@ interface CustomBubbleProps {
   customMessageStatus?: (hasUnread: boolean) => JSX.Element;
   onSetCurrentId: (id: string) => void;
   isCurrentlyPlaying: boolean;
+  mediaMessageIds: string[];
+  finishUploadCallback: (id: string) => void;
+  sendMessageNotification?: () => void;
+  timeoutSendNotify?: number;
+  notifyRef?: React.MutableRefObject<NodeJS.Timeout | null>;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -39,7 +46,15 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customMessageStatus,
   onSetCurrentId,
   isCurrentlyPlaying,
+  mediaMessageIds,
+  finishUploadCallback,
+  sendMessageNotification,
+  timeoutSendNotify,
+  notifyRef,
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
+
   const styleBuble = {
     left: { backgroundColor: 'transparent' },
     right: { backgroundColor: 'transparent' },
@@ -129,6 +144,57 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       }
     }
   };
+
+  const uploadFileToStorage = useCallback(async () => {
+    if (bubbleMessage.currentMessage) {
+      const { text, type, path, extension, fileName, size, duration } =
+        bubbleMessage.currentMessage || {};
+      const messageData = formatSendMessage(
+        firebaseInstance.userId,
+        text,
+        type,
+        path,
+        extension,
+        fileName,
+        size,
+        duration
+      );
+
+      await firebaseInstance.sendMessageWithFile(messageData);
+      finishUploadCallback(bubbleMessage.currentMessage._id.toString());
+      setIsUploading(false);
+
+      if (notifyRef) {
+        notifyRef.current = setTimeout(() => {
+          sendMessageNotification?.();
+        }, timeoutSendNotify);
+      }
+    }
+  }, [
+    bubbleMessage.currentMessage,
+    finishUploadCallback,
+    firebaseInstance,
+    notifyRef,
+    sendMessageNotification,
+    timeoutSendNotify,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isUploading &&
+      bubbleMessage.currentMessage?._id &&
+      mediaMessageIds.includes(bubbleMessage.currentMessage._id.toString())
+    ) {
+      setIsUploading(true);
+      uploadFileToStorage();
+    }
+  }, [
+    bubbleMessage?.currentMessage?._id,
+    isUploading,
+    mediaMessageIds,
+    uploadFileToStorage,
+  ]);
+
   return (
     <View style={styles.container}>
       {bubbleMessage.currentMessage &&
