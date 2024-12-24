@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: 'white',
     fontWeight: 'bold',
-    maxWidth: '94%',
+    maxWidth: '100%',
   },
   size: {
     fontSize: 13,
