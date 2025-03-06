@@ -64,27 +64,24 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     right: { backgroundColor: 'transparent' },
   };
 
-  const renderTextBubble = () => {
-    if (
-      firebaseInstance.userId === bubbleMessage.currentMessage?.user?._id ||
-      (isSameUser(
-        bubbleMessage.currentMessage as IMessage,
-        bubbleMessage.previousMessage
-      ) &&
-        isSameDay(
-          bubbleMessage.currentMessage as IMessage,
-          bubbleMessage.previousMessage
-        ))
-    ) {
-      return <Bubble {...bubbleMessage} />;
-    }
+  const renderTime = (time: number | Date | undefined) => {
     return (
-      <View>
-        <Text style={styles.messageUsername}>
-          {bubbleMessage?.currentMessage?.user?.name}
-        </Text>
-        <Bubble {...bubbleMessage} />
-      </View>
+      <Text
+        style={[
+          styles.timeText,
+          {
+            alignSelf: position === 'right' ? 'flex-end' : 'flex-start',
+          },
+        ]}
+      >
+        {time
+          ? new Date(time).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })
+          : ''}
+      </Text>
     );
   };
 
@@ -106,6 +103,20 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       <Text style={styles.messageUsername}>
         {bubbleMessage?.currentMessage?.user?.name}
       </Text>
+    );
+  };
+
+  const renderTextBubble = () => {
+    return (
+      <View>
+        {renderUsername()}
+        <Bubble
+          {...bubbleMessage}
+          renderTime={() => null}
+          wrapperStyle={{ right: { padding: 4 }, left: { padding: 4 } }}
+        />
+        {renderTime(bubbleMessage.currentMessage?.createdAt)}
+      </View>
     );
   };
 
@@ -146,6 +157,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         return (
           <Bubble
             {...bubbleMessage}
+            renderTime={() => null}
             renderCustomView={() =>
               currentMessage && (
                 <>
@@ -159,6 +171,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                     position={position}
                   />
                   {renderUploadIndicator()}
+                  {renderTime(bubbleMessage.currentMessage?.createdAt)}
                 </>
               )
             }
@@ -169,6 +182,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         return (
           <Bubble
             {...bubbleMessage}
+            renderTime={() => null}
             renderCustomView={() =>
               currentMessage && (
                 <>
@@ -178,6 +192,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                     position={position}
                   />
                   {renderUploadIndicator()}
+                  {renderTime(bubbleMessage.currentMessage?.createdAt)}
                 </>
               )
             }
@@ -188,6 +203,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         return (
           <Bubble
             {...bubbleMessage}
+            renderTime={() => null}
             renderCustomView={() =>
               currentMessage && (
                 <>
@@ -199,6 +215,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                     isCurrentlyPlaying={isCurrentlyPlaying}
                   />
                   {renderUploadIndicator()}
+                  {renderTime(bubbleMessage.currentMessage?.createdAt)}
                 </>
               )
             }
@@ -250,5 +267,12 @@ const styles = StyleSheet.create({
     height: '100%',
     width: `0%`,
     backgroundColor: '#CCC',
+  },
+  timeText: {
+    color: 'white',
+    fontSize: 10,
+    marginTop: 4,
+    marginRight: 10,
+    marginLeft: 8,
   },
 });

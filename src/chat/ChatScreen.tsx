@@ -163,6 +163,9 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
 
     const onSend = useCallback(
       async (messages: MessageProps) => {
+        if (!messages.text.trim()) {
+          return;
+        }
         /** If the conversation not created yet. it will create at the first message sent */
         isLoadingRef.current = false;
         if (!conversationRef.current?.id) {
