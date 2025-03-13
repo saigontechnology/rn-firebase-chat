@@ -34,13 +34,14 @@ import SelectedBubbleModal from './components/SelectedBubbleModal';
 import FileAttachmentModal, {
   FileAttachmentModalRef,
 } from './components/FileAttachmentModal';
-import type {
-  ConversationProps,
-  CustomConversationInfo,
-  IUserInfo,
-  MessageProps,
-  UploadingFile,
-  ConversationData,
+import {
+  type ConversationProps,
+  type CustomConversationInfo,
+  type IUserInfo,
+  type MessageProps,
+  type UploadingFile,
+  type ConversationData,
+  MessageTypes,
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
@@ -163,7 +164,11 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
 
     const onSend = useCallback(
       async (messages: MessageProps) => {
-        if (!messages.text.trim()) {
+        const isMediaMessage =
+          !!messages.type &&
+          messages.type !== MessageTypes.text &&
+          (messages.type !== 'voiceCall' || 'videoCall');
+        if (!messages.text?.trim() && !isMediaMessage) {
           return;
         }
         /** If the conversation not created yet. it will create at the first message sent */
