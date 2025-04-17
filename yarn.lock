@@ -2137,6 +2137,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.5.2.tgz#c3835788dbc1bd83d3778b83ca15533c805db149"
   integrity sha512-DbFyCyI7rwl0FkBkp0lzEVp+5mNfS5qU/nM2sK2aSguWhj0Odkt1aKHP2iW/ljruOhgS/O4dEixXlne4OdZJDQ==
 
+"@react-native-documents/picker@^10.1.2":
+  version "10.1.2"
+  resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-10.1.2.tgz#2ebbf1eccc7e9efa3690e35ab5f0a811411a57b8"
+  integrity sha512-JzbFmFp0SmG0FEKt4Q62trewHMFpas2zAX0n5EANwrU9kondnzAEF7/xxz2EA2tfZNwnkHelqG8A7iedGleMRw==
+
 "@react-native-firebase/app@^20.1.0":
   version "20.1.0"
   resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-20.1.0.tgz#86b9371290f92d51821b7299eede95336949f214"
@@ -8561,13 +8566,6 @@ react-native-doc-viewer@^2.7.8:
   version "2.7.8"
   resolved "https://registry.yarnpkg.com/react-native-doc-viewer/-/react-native-doc-viewer-2.7.8.tgz#43d065328fb1b7ec90d321e5bd234711e807c8f6"
   integrity sha512-6rAHGfU6CedfGhr8SoqbdtA3MHKRnbKqwjzzCFnTEniynM0PgJxC4vXZF3MxbJdh6nGWPVVuM23zCfWNLvAuRg==
-
-react-native-document-picker@^9.3.0:
-  version "9.3.0"
-  resolved "https://registry.yarnpkg.com/react-native-document-picker/-/react-native-document-picker-9.3.0.tgz#4651d354623367d06397fe6dbf4a496f7d92ca6b"
-  integrity sha512-X/j0xKn8cObckpHTNwE/hW9WzBiP6oKx820FYu1Nat43QnnHmmT6uozFgAUDcJfxmZGcEdLlbv0lNhnyRXJyyA==
-  dependencies:
-    invariant "^2.2.4"
 
 react-native-fast-image@^8.6.3:
   version "8.6.3"

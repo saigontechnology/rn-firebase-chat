@@ -17,9 +17,13 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import DocumentPicker, {
+import {
+  pick,
+  types,
   DocumentPickerResponse,
-} from 'react-native-document-picker';
+  errorCodes,
+  isErrorWithCode,
+} from '@react-native-documents/picker';
 import type { IUserInfo, MessageProps } from '../../interfaces';
 import { convertExtension, getMediaTypeFromExtension } from '../../utilities';
 import uuid from 'react-native-uuid';
@@ -108,16 +112,16 @@ const FileAttachmentModal = forwardRef<
 
   const handleDocumentPick = useCallback(async () => {
     try {
-      const result = await DocumentPicker.pick({
+      const result = await pick({
         type: [
-          DocumentPicker.types.pdf,
-          DocumentPicker.types.zip,
-          DocumentPicker.types.doc,
-          DocumentPicker.types.docx,
-          DocumentPicker.types.pptx,
-          DocumentPicker.types.ppt,
-          DocumentPicker.types.xls,
-          DocumentPicker.types.xlsx,
+          types.pdf,
+          types.zip,
+          types.doc,
+          types.docx,
+          types.pptx,
+          types.ppt,
+          types.xls,
+          types.xlsx,
         ],
       });
       const media = result[0] as DocumentPickerResponse;
@@ -141,12 +145,14 @@ const FileAttachmentModal = forwardRef<
       }
       setModalVisible(false);
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        setModalVisible(false);
-        // Alert.alert('Warning', 'Document Picker was cancelled');
-      } else {
-        throw err;
+      if (isErrorWithCode(err)) {
+        if (err.code === errorCodes.OPERATION_CANCELED) {
+          setModalVisible(false);
+          // Alert.alert('Warning', 'Document Picker was cancelled');
+          return;
+        }
       }
+      throw err;
     }
   }, [onSendMessage]);
 
