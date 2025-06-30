@@ -16,9 +16,10 @@ import {
 import {
   type ComposerProps,
   GiftedChat,
-  type GiftedChatProps,
   Bubble,
 } from 'react-native-gifted-chat';
+import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
+import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
 import { FirestoreServices } from '../services/firebase';
 import type {
@@ -44,7 +45,7 @@ type ChildrenProps = {
   onSend: (messages: MessageProps) => Promise<void>;
 };
 
-interface ChatScreenProps extends GiftedChatProps {
+interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
   partners: IUserInfo[];
@@ -63,7 +64,7 @@ interface ChatScreenProps extends GiftedChatProps {
   enableTyping?: boolean;
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
-  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
   children?: (props: ChildrenProps) => ReactNode | ReactNode;
 }
 
@@ -290,7 +291,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [renderComposer, onSend, inputToolbarProps]
   );
 
-  const renderBubble = (bubble: Bubble<MessageProps>['props']) => {
+  const renderBubble = (bubble: BubbleProps<MessageProps>) => {
     if (props.renderBubble) return props.renderBubble(bubble);
     return (
       <CustomBubble

@@ -14,7 +14,7 @@ const generateKey = (
   salt: string,
   cost: number,
   length: number
-) => Aes.pbkdf2(password, salt, cost, length);
+) => Aes.pbkdf2(password, salt, cost, length, 'sha256');
 
 const encryptData = async (text: string, key: string) => {
   const iv = createIV();

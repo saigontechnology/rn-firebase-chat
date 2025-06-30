@@ -17,7 +17,7 @@ type ListItem = {
 export interface IListConversationProps {
   hasSearchBar?: boolean;
   onPress?: (conversation: ConversationProps) => void;
-  renderCustomItem?: ({ item, index }: ListItem) => JSX.Element | null;
+  renderCustomItem?: ({ item, index }: ListItem) => React.JSX.Element | null;
   conversationItemProps?: Omit<IConversationItemProps, 'data' | 'onPress'>; // remove default prop 'data' and 'onPress'
 }
 

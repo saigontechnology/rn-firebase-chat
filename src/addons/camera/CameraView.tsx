@@ -26,7 +26,7 @@ import type {
   OnOffType,
 } from './interface';
 import { initialMediaState } from './constants';
-import { MessageTypes, type MessageProps } from '../../interfaces';
+import { MessageTypes, type MessageProps, type MediaType } from '../../interfaces';
 import {
   getAbsoluteFilePath,
   getMediaTypeFromExtension,
@@ -91,19 +91,21 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const onSendPressed = useCallback(async () => {
     const extension = getMediaTypeFromExtension(media.path);
     const id = uuidv4();
-    const message = {
+    const message: MessageProps = {
       id: id,
       _id: id,
-      type: media.type,
+      text: '',
+      senderId: userInfo?.id || '',
+      readBy: {},
+      createdAt: new Date(),
+      type: media.type as MediaType,
       path: getAbsoluteFilePath(media.path),
       extension,
-    } as MessageProps;
-
-    const user = {
-      _id: userInfo?.id || '',
-      ...userInfo,
+      user: {
+        _id: userInfo?.id || '',
+        ...userInfo,
+      },
     };
-    message.user = user;
     onSend(message);
     setIsVisible(false);
   }, [media.path, media.type, onSend, userInfo]);

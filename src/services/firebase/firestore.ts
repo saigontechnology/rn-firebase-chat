@@ -69,7 +69,7 @@ export class FirestoreServices {
    * The constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  constructor() {}
+  constructor() { }
 
   get userId(): string {
     if (!this.userInfo?.id) {
@@ -199,11 +199,11 @@ export class FirestoreServices {
              * If this is 1-on-1 chat
              * We map conversation info of other people with this user info
              */
-            {
-              ...conversationData,
-              name: this.userInfo?.name,
-              image: this.userInfo?.avatar,
-            };
+          {
+            ...conversationData,
+            name: this.userInfo?.name,
+            image: this.userInfo?.avatar,
+          };
         return firestore()
           .collection(
             this.getUrlWithPrefix(
@@ -390,7 +390,7 @@ export class FirestoreServices {
         const conversationDoc = await transaction.get(conversationRef);
         let unRead: Record<string, string> = {};
 
-        if (conversationDoc.exists) {
+        if (conversationDoc.exists()) {
           const conversationData = conversationDoc.data();
           if (conversationData && conversationData.unRead) {
             unRead = conversationData.unRead;
@@ -488,7 +488,7 @@ export class FirestoreServices {
 
   receiveMessageListener = (callBack: (message: any) => void) => {
     return firestore()
-      .collection<MessageProps>(
+      .collection(
         this.getUrlWithPrefix(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
@@ -498,7 +498,7 @@ export class FirestoreServices {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
             if (change.type === 'added') {
-              const data = { ...change.doc.data(), id: change.doc.id };
+              const data = { ...change.doc.data(), id: change.doc.id } as MessageProps & { id: string };
               const userInfo =
                 data.senderId === this.userInfo?.id
                   ? this.userInfo
@@ -604,11 +604,11 @@ export class FirestoreServices {
               ...data,
               latestMessage: data.latestMessage
                 ? await formatMessageText(
-                    data?.latestMessage,
-                    this.regexBlacklist,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
+                  data?.latestMessage,
+                  this.regexBlacklist,
+                  this.encryptKey,
+                  this.decryptFunctionProp
+                )
                 : data.latestMessage,
             } as ConversationProps;
             listChannels.push(message);
@@ -639,11 +639,11 @@ export class FirestoreServices {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
-                      data?.latestMessage,
-                      regex,
-                      this.encryptKey,
-                      this.decryptFunctionProp
-                    )
+                    data?.latestMessage,
+                    regex,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
                   : data.latestMessage,
               } as ConversationProps;
               callback?.(message);

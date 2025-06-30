@@ -35,7 +35,7 @@ const useTypingIndicator = (
   ) => void,
   typingTimeoutSeconds?: number
 ) => {
-  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const startTyping = useCallback(() => {
     changeUserConversationTyping(true);

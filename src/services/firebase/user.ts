@@ -32,7 +32,7 @@ const checkUsernameExist = (username?: string) => {
       )
       .doc(username);
     const user = await userRef.get();
-    resolve(user.exists);
+    resolve(user.exists());
   });
 };
 
