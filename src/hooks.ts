@@ -1,10 +1,17 @@
 import { useCallback, useRef } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
+import { FirestoreServices } from './services/firebase';
 import type { ChatState } from './reducer';
 
 const useChat = () => {
-  // const firebaseInstant
+  const context = useChatContext();
+  const firestoreServices = FirestoreServices.getInstance();
+
+  return {
+    ...context,
+    firestoreServices,
+  };
 };
 
 const useChatContext = () => {
@@ -33,22 +40,35 @@ const useTypingIndicator = (
     isTyping: boolean,
     callback?: () => void
   ) => void,
-  typingTimeoutSeconds?: number
+  typingTimeoutSeconds: number = 3000
 ) => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isTypingRef = useRef<boolean>(false);
 
   const startTyping = useCallback(() => {
-    changeUserConversationTyping(true);
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      changeUserConversationTyping(true);
+    }
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    // Set new timeout
     typingTimeoutRef.current = setTimeout(() => {
+      isTypingRef.current = false;
       changeUserConversationTyping(false);
     }, typingTimeoutSeconds);
   }, [changeUserConversationTyping, typingTimeoutSeconds]);
 
   const stopTyping = useCallback(() => {
-    changeUserConversationTyping(false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = undefined;
+    }
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      changeUserConversationTyping(false);
     }
   }, [changeUserConversationTyping]);
 
@@ -57,14 +77,12 @@ const useTypingIndicator = (
       if (!enableTyping) return;
 
       if (newText.trim().length > 0) {
-        clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(stopTyping, typingTimeoutSeconds);
         startTyping();
-        return;
+      } else {
+        stopTyping();
       }
-      stopTyping();
     },
-    [enableTyping, startTyping, stopTyping, typingTimeoutSeconds]
+    [enableTyping, startTyping, stopTyping]
   );
 
   return {
@@ -72,4 +90,4 @@ const useTypingIndicator = (
   };
 };
 
-export { useChatContext, useChatSelector, useTypingIndicator };
+export { useChatContext, useChatSelector, useTypingIndicator, useChat };

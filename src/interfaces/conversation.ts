@@ -53,11 +53,11 @@ interface MediaFile {
 }
 
 export {
-  ConversationProps,
-  MemberProps,
+  type ConversationProps,
+  type MemberProps,
   MessageTypes,
   MessageStatus,
-  CustomConversationInfo,
-  ConversationData,
-  MediaFile,
+  type CustomConversationInfo,
+  type ConversationData,
+  type MediaFile,
 };

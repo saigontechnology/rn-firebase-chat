@@ -5,18 +5,21 @@
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
-  "react-native": "src/index",
-  "source": "src/index",
   "files": [
-    "src",
-    "lib"
+    "lib",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "test": "jest",
     "typecheck": "tsc --noEmit",
+    "typecheck:build": "tsc --project tsconfig.build.json --noEmit",
+    "typecheck:example": "tsc --project example/tsconfig.json --noEmit",
+    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
+    "clean:maps": "find lib -name '*.map' -delete",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "prepack": "bob build",
-    "prepare": "bob build",
+    "prepack": "bob build && yarn clean:maps",
+    "prepare": "bob build && yarn clean:maps",
     "release": "release-it",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install && yarn example pods"
@@ -40,7 +43,7 @@
     "@babel/core": "^7.27.7",
     "@commitlint/config-conventional": "^19.8.1",
     "@evilmartians/lefthook": "^1.11.14",
-    "@react-native-community/eslint-config": "^3.0.2",
+    "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-firebase/app": "22.2.1",
     "@react-native-firebase/firestore": "22.2.1",
     "@react-native-firebase/storage": "22.2.1",
@@ -86,6 +89,12 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
     ]
   },
   "commitlint": {
@@ -148,12 +157,7 @@
     "targets": [
       "commonjs",
       "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json"
-        }
-      ]
+      "typescript"
     ]
   },
   "dependencies": {

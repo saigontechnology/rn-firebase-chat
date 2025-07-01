@@ -252,7 +252,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   // Listener of current conversation list messages
   useEffect(() => {
-    let receiveMessageRef: () => void;
+    let receiveMessageRef: (() => void) | undefined;
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
@@ -261,11 +261,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               GiftedChat.append(previousMessages, [message])
             );
           }
-          // await for unread number status to completely update before change unread data
-          setTimeout(
+          // Use a more reliable timeout for read status update
+          const timeoutId = setTimeout(
             () => firebaseInstance.changeReadMessage(message.id, userInfo?.id),
             500
           );
+
+          // Cleanup timeout on unmount
+          return () => clearTimeout(timeoutId);
         }
       );
     }

@@ -8,3 +8,4 @@ export * from './message';
 export * from './user';
 export * from './chat';
 export * from './AESCrypto';
+export * from './gallery';
