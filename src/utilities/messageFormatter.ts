@@ -73,9 +73,9 @@ const formatMessageData = async (
 
 const formatdecryptedMessageData = async (
   text: string,
-  conversationId: string
-) => {
-  return await decryptedMessageData(text, conversationId);
+  encryptionKey: string
+): Promise<string> => {
+  return await decryptedMessageData(text, encryptionKey);
 };
 
 const formatSendMessage = (

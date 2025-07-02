@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
+import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
@@ -9,7 +10,7 @@ import {
 import MessageStatus from '../MessageStatus';
 
 interface CustomBubbleProps {
-  bubbleMessage: Bubble<MessageProps>['props'];
+  bubbleMessage: BubbleProps<MessageProps>;
   position: 'left' | 'right';
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
@@ -19,7 +20,7 @@ interface CustomBubbleProps {
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
   messageStatusEnable: boolean;
-  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -43,7 +44,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   const renderMessageStatus = (
     isMyLatestMsg: boolean,
     msgStatusEnable: boolean,
-    customMessageStatusUI?: (hasUnread: boolean) => JSX.Element
+    customMessageStatusUI?: (hasUnread: boolean) => React.JSX.Element
   ) => {
     if (!isMyLatestMsg || !msgStatusEnable) return null;
 

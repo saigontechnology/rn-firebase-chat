@@ -14,7 +14,7 @@ interface MessageStatusProps {
   customTextStyle?: StyleProp<TextStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
-  customMessageStatus?: (hasUnread: boolean) => JSX.Element;
+  customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
 }
 
 const MessageStatus: React.FC<MessageStatusProps> = ({

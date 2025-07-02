@@ -13,4 +13,4 @@ type FirestoreReference =
   | FirebaseFirestoreTypes.CollectionReference
   | FirebaseFirestoreTypes.DocumentReference;
 
-export { FireStoreCollection, FirestoreReference };
+export { FireStoreCollection, type FirestoreReference };

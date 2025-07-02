@@ -9,7 +9,7 @@ import { MessageTypes } from '../../interfaces';
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
 
 interface Props extends ViewProps {
-  camera: React.RefObject<Camera>;
+  camera: React.RefObject<Camera | null>;
   onMediaCaptured: (media: PhotoFile | VideoFile, type: MessageTypes) => void;
   flash: OnOffType;
   isPhoto: boolean;

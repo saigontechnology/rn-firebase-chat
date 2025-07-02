@@ -2,7 +2,7 @@
  * Created by NL on 6/27/23.
  */
 
-import type { IMessage } from 'react-native-gifted-chat/lib/Models';
+import type { IMessage } from 'react-native-gifted-chat';
 import type { BaseEntity } from './base';
 import type { MessageStatus } from './conversation';
 
@@ -29,6 +29,7 @@ interface MessageProps extends BaseEntity, IMessage {
   type?: MediaType;
   path?: string;
   extension?: string;
+  createdAt: Date | number;
 }
 
 interface SendMessageProps {
@@ -46,4 +47,4 @@ interface SendMessageProps {
 
 type MediaType = 'image' | 'video' | 'text' | undefined;
 
-export { MessageProps, LatestMessageProps, SendMessageProps, MediaType };
+export { type MessageProps, type LatestMessageProps, type SendMessageProps, type MediaType };

@@ -24,10 +24,10 @@ type MediaItem = {
 const { width } = Dimensions.get('window');
 
 interface GalleryModalProps {
-  renderCustomHeader?: () => JSX.Element;
-  renderCustomMedia?: ({ item, index }: MediaItem) => JSX.Element | null;
-  renderCustomFile?: () => JSX.Element;
-  renderCustomLink?: () => JSX.Element;
+  renderCustomHeader?: () => React.JSX.Element;
+  renderCustomMedia?: ({ item, index }: MediaItem) => React.JSX.Element | null;
+  renderCustomFile?: () => React.JSX.Element;
+  renderCustomLink?: () => React.JSX.Element;
   iconCloseModal?: ImageRequireSource;
   customSlider?: (
     currentTime: number,
@@ -90,7 +90,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
     [renderCustomMedia]
   );
 
-  const renderHeader = useCallback((): JSX.Element => {
+  const renderHeader = useCallback((): React.JSX.Element => {
     if (renderCustomHeader) return renderCustomHeader();
     return (
       <View style={[styles.tabContainer, headerStyle]}>
@@ -105,7 +105,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
                 styles.tabText,
                 tabTextStyle,
                 (activeTab === tab && styles.activeTabText) ||
-                  activeTabTextStyle,
+                activeTabTextStyle,
               ]}
             >
               {tab.toUpperCase()}

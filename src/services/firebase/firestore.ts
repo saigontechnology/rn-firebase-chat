@@ -5,6 +5,7 @@ import storage from '@react-native-firebase/storage';
 
 import {
   encryptData,
+  decryptData,
   formatLatestMessage,
   formatMessageData,
   formatMessageText,
@@ -13,12 +14,19 @@ import {
   generateEncryptionKey,
   getCurrentTimestamp,
   getMediaTypeFromExtension,
+  decryptedMessageData,
+  getTextMessage,
+  validateUserId,
+  validateEncryptionKey,
+  validateMessage,
+  sanitizeUserInput,
 } from '../../utilities';
 import {
   ConversationData,
   ConversationProps,
   EncryptionFunctions,
   EncryptionOptions,
+  EncryptionStatus,
   FireStoreCollection,
   FirestoreReference,
   MediaFile,
@@ -69,7 +77,7 @@ export class FirestoreServices {
    * The constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  constructor() {}
+  constructor() { }
 
   get userId(): string {
     if (!this.userInfo?.id) {
@@ -98,9 +106,18 @@ export class FirestoreServices {
     blackListWords,
     encryptionOptions,
     prefix,
-  }: FirestoreProps) => {
+  }: FirestoreProps): Promise<void> => {
+    // Validate user info
     if (userInfo) {
-      this.userInfo = userInfo;
+      if (!validateUserId(userInfo.id)) {
+        throw new Error('Invalid user ID format');
+      }
+
+      // Sanitize user name and other string fields
+      this.userInfo = {
+        ...userInfo,
+        name: sanitizeUserInput(userInfo.name || ''),
+      };
     }
 
     if (blackListWords) {
@@ -108,10 +125,29 @@ export class FirestoreServices {
     }
 
     if (enableEncrypt && encryptKey) {
-      this.enableEncrypt = enableEncrypt;
-      this.encryptKey = this.generateKeyFunctionProp
-        ? await this.generateKeyFunctionProp(encryptKey)
-        : await generateEncryptionKey(encryptKey, encryptionOptions);
+      try {
+        // Validate encryption key strength
+        const keyValidation = validateEncryptionKey(encryptKey);
+        if (!keyValidation.isValid) {
+          console.warn('Weak encryption key detected:', keyValidation.errors);
+          // Continue but log warnings - don't break existing functionality
+        }
+
+        this.enableEncrypt = enableEncrypt;
+        this.encryptKey = this.generateKeyFunctionProp
+          ? await this.generateKeyFunctionProp(encryptKey)
+          : await generateEncryptionKey(encryptKey, encryptionOptions);
+
+        // Validate the generated key
+        if (!this.encryptKey || this.encryptKey.length === 0) {
+          throw new Error('Failed to generate encryption key');
+        }
+      } catch (error) {
+        console.error('Error configuring encryption:', error);
+        this.enableEncrypt = false;
+        this.encryptKey = '';
+        throw new Error('Failed to configure encryption');
+      }
     }
 
     if (prefix) {
@@ -135,6 +171,60 @@ export class FirestoreServices {
   >(
     key: K
   ) => this[key];
+
+  /**
+   * Validates if encryption is properly configured
+   */
+  isEncryptionReady = (): boolean => {
+    return !!(this.enableEncrypt && this.encryptKey && this.encryptKey.length > 0);
+  };
+
+  /**
+   * Test encryption/decryption flow
+   */
+  testEncryption = async (testText: string = 'test'): Promise<boolean> => {
+    if (!this.isEncryptionReady()) {
+      return false;
+    }
+
+    try {
+      const encrypted = this.encryptFunctionProp
+        ? await this.encryptFunctionProp(testText)
+        : await encryptData(testText, this.encryptKey);
+
+      const decrypted = this.decryptFunctionProp
+        ? await this.decryptFunctionProp(encrypted)
+        : await decryptData(encrypted, this.encryptKey);
+
+      return decrypted === testText;
+    } catch (error) {
+      console.error('Encryption test failed:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Get comprehensive encryption status
+   */
+  getEncryptionStatus = async (): Promise<EncryptionStatus> => {
+    const status: EncryptionStatus = {
+      isEnabled: !!this.enableEncrypt,
+      isReady: this.isEncryptionReady(),
+      keyGenerated: !!(this.encryptKey && this.encryptKey.length > 0),
+    };
+
+    if (status.isReady) {
+      try {
+        status.testPassed = await this.testEncryption();
+        status.lastTestedAt = new Date();
+      } catch (error) {
+        status.testPassed = false;
+        console.error('Encryption status test failed:', error);
+      }
+    }
+
+    return status;
+  };
 
   setConversationInfo = (
     conversationId: string,
@@ -199,11 +289,11 @@ export class FirestoreServices {
              * If this is 1-on-1 chat
              * We map conversation info of other people with this user info
              */
-            {
-              ...conversationData,
-              name: this.userInfo?.name,
-              image: this.userInfo?.avatar,
-            };
+          {
+            ...conversationData,
+            name: this.userInfo?.name,
+            image: this.userInfo?.avatar,
+          };
         return firestore()
           .collection(
             this.getUrlWithPrefix(
@@ -220,7 +310,7 @@ export class FirestoreServices {
     return { ...conversationData, id: conversationRef.id } as ConversationProps;
   };
 
-  sendMessageWithFile = async (message: SendMessageProps) => {
+  sendMessageWithFile = async (message: SendMessageProps): Promise<void> => {
     const { path, extension, type } = message;
 
     if (!path || !extension || this.conversationId === null) {
@@ -238,13 +328,30 @@ export class FirestoreServices {
         .ref(uploadResult.metadata.fullPath)
         .getDownloadURL();
 
+      // Create message copy for storage
+      const messageForStorage = { ...message, path: imgURL };
+
+      // Encrypt file message text if encryption is enabled and text exists
+      if (this.enableEncrypt && this.encryptKey && message.text?.trim()) {
+        try {
+          const encryptedText = this.encryptFunctionProp
+            ? await this.encryptFunctionProp(message.text)
+            : await encryptData(message.text, this.encryptKey);
+
+          messageForStorage.text = encryptedText;
+        } catch (error) {
+          console.error('Failed to encrypt file message text:', error);
+          // Continue with unencrypted text for file messages as the media itself might be more important
+        }
+      }
+
       await firestore()
         .collection<SendMessageProps>(
           this.getUrlWithPrefix(
             `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
           )
         )
-        .add({ ...message, path: imgURL });
+        .add(messageForStorage);
 
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
@@ -252,7 +359,7 @@ export class FirestoreServices {
           formatLatestMessage(
             this.userId,
             this.userInfo?.name || '',
-            '',
+            message.text || '', // Use original text for latest message
             type,
             path,
             extension
@@ -261,6 +368,7 @@ export class FirestoreServices {
       });
     } catch (error) {
       console.error('Error sending message with file:', error);
+      throw error; // Re-throw to allow caller to handle
     }
   };
 
@@ -268,13 +376,33 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps) => {
+  sendMessage = async (message: MessageProps): Promise<void> => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
       );
       return;
     }
+
+    if (!message.text?.trim() && !message.path) {
+      console.error('Message text or path is required');
+      return;
+    }
+
+    // Validate message content if it's a text message
+    if (message.text?.trim()) {
+      const messageValidation = validateMessage(message.text);
+      if (!messageValidation.isValid) {
+        console.error('Invalid message:', messageValidation.errors);
+        return;
+      }
+    }
+
+    // Sanitize message text
+    if (message.text) {
+      message.text = sanitizeUserInput(message.text);
+    }
+
     const { text, type, path, extension } = message;
     let messageData;
 
@@ -283,15 +411,31 @@ export class FirestoreServices {
       message.type === MessageTypes.video
     ) {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
-      this.sendMessageWithFile(messageData);
+      await this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
+
       /** Encrypt the message before store to firestore */
-      if (this.enableEncrypt && this.encryptKey) {
-        messageData.text = this.encryptFunctionProp
-          ? await this.encryptFunctionProp(text)
-          : await encryptData(text, this.encryptKey);
+      if (this.enableEncrypt && this.encryptKey && text?.trim()) {
+        try {
+          const encryptedText = this.encryptFunctionProp
+            ? await this.encryptFunctionProp(text)
+            : await encryptData(text, this.encryptKey);
+
+          if (!encryptedText) {
+            throw new Error('Encryption returned empty result');
+          }
+
+          messageData.text = encryptedText;
+        } catch (error) {
+          console.error('Failed to encrypt message:', error);
+          // Depending on security requirements, you might want to:
+          // 1. Throw error to prevent sending unencrypted message
+          // 2. Send unencrypted message with warning
+          // 3. Retry encryption
+          throw new Error('Message encryption failed - message not sent');
+        }
       }
 
       try {
@@ -304,17 +448,18 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data */
+        /** Format latest message data - use original text for latest message */
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
-          messageData.text
+          text // Use original text, not encrypted for latest message display
         );
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
         });
       } catch (e) {
-        console.log(e);
+        console.error('Error sending message:', e);
+        throw e; // Re-throw to allow caller to handle
       }
     }
   };
@@ -322,7 +467,7 @@ export class FirestoreServices {
   updateUserConversation = (
     userId: string,
     latestMessageData: LatestMessageProps
-  ) => {
+  ): void => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
@@ -348,7 +493,9 @@ export class FirestoreServices {
           },
           { merge: true }
         )
-        .then();
+        .catch((error) => {
+          console.error('Error updating user conversation:', error);
+        });
     } else {
       userConversationRef.get().then((snapshot) => {
         /** Get unRead count for other members */
@@ -363,7 +510,11 @@ export class FirestoreServices {
             },
             { merge: true }
           )
-          .then();
+          .catch((error) => {
+            console.error('Error updating user conversation:', error);
+          });
+      }).catch((error) => {
+        console.error('Error getting user conversation snapshot:', error);
       });
     }
   };
@@ -390,7 +541,7 @@ export class FirestoreServices {
         const conversationDoc = await transaction.get(conversationRef);
         let unRead: Record<string, string> = {};
 
-        if (conversationDoc.exists) {
+        if (conversationDoc.exists()) {
           const conversationData = conversationDoc.data();
           if (conversationData && conversationData.unRead) {
             unRead = conversationData.unRead;
@@ -486,9 +637,9 @@ export class FirestoreServices {
     });
   };
 
-  receiveMessageListener = (callBack: (message: any) => void) => {
+  receiveMessageListener = (callBack: (message: MessageProps) => void): (() => void) => {
     return firestore()
-      .collection<MessageProps>(
+      .collection(
         this.getUrlWithPrefix(
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
@@ -498,7 +649,7 @@ export class FirestoreServices {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
             if (change.type === 'added') {
-              const data = { ...change.doc.data(), id: change.doc.id };
+              const data = { ...change.doc.data(), id: change.doc.id } as MessageProps & { id: string };
               const userInfo =
                 data.senderId === this.userInfo?.id
                   ? this.userInfo
@@ -520,7 +671,7 @@ export class FirestoreServices {
 
   userConversationListener = (
     callBack?: (data: FirebaseFirestoreTypes.DocumentData | undefined) => void
-  ) => {
+  ): (() => void) | undefined => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
@@ -557,7 +708,7 @@ export class FirestoreServices {
     });
   };
 
-  setUserConversationTyping = (isTyping: boolean) => {
+  setUserConversationTyping = (isTyping: boolean): Promise<void> | undefined => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
@@ -604,11 +755,11 @@ export class FirestoreServices {
               ...data,
               latestMessage: data.latestMessage
                 ? await formatMessageText(
-                    data?.latestMessage,
-                    this.regexBlacklist,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
+                  data?.latestMessage,
+                  this.regexBlacklist,
+                  this.encryptKey,
+                  this.decryptFunctionProp
+                )
                 : data.latestMessage,
             } as ConversationProps;
             listChannels.push(message);
@@ -618,7 +769,7 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void) => {
+  listenConversationUpdate = (callback: (_: ConversationProps) => void): (() => void) => {
     const regex = this.regexBlacklist;
 
     return firestore()
@@ -639,11 +790,11 @@ export class FirestoreServices {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
-                      data?.latestMessage,
-                      regex,
-                      this.encryptKey,
-                      this.decryptFunctionProp
-                    )
+                    data?.latestMessage,
+                    regex,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
                   : data.latestMessage,
               } as ConversationProps;
               callback?.(message);

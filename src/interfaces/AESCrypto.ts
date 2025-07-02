@@ -6,6 +6,14 @@ export interface EncryptionOptions {
 
 export interface EncryptionFunctions {
   encryptFunctionProp: (text: string) => Promise<string>;
-  decryptFunctionProp: (key: string) => Promise<string>;
-  generateKeyFunctionProp: () => Promise<string>;
+  decryptFunctionProp: (text: string) => Promise<string>; // Fixed: should be text, not key
+  generateKeyFunctionProp: (key: string) => Promise<string>; // Fixed: should accept key parameter
+}
+
+export interface EncryptionStatus {
+  isEnabled: boolean;
+  isReady: boolean;
+  keyGenerated: boolean;
+  lastTestedAt?: Date;
+  testPassed?: boolean;
 }

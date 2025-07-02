@@ -13,4 +13,4 @@ interface UserProfileProps extends BaseEntity {
   conversations?: string[];
 }
 
-export { UserProfileProps };
+export { type UserProfileProps };
