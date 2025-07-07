@@ -20,7 +20,7 @@ const formatMessageData = (message: MessageProps, userInfo: IUserInfo) => {
     createdAt: message.createdAt || getCurrentTimestamp(),
     user: {
       _id: userInfo?.id || '000',
-      name: userInfo?.name || 'Unknown user',
+      name: userInfo?.name || 'Deleted User',
       avatar: userInfo?.avatar,
     },
   };

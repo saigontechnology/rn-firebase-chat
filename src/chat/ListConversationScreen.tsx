@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useMemo } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import {
   ConversationItem,
   IConversationItemProps,
@@ -17,24 +17,42 @@ type ListItem = {
 
 export interface IListConversationProps {
   hasSearchBar?: boolean;
+  listShownIds?: string[];
   onPress?: (conversation: ConversationProps) => void;
   renderCustomItem?: ({ item, index }: ListItem) => JSX.Element | null;
   conversationItemProps?: Omit<IConversationItemProps, 'data' | 'onPress'>; // remove default prop 'data' and 'onPress'
+  onPullToRefresh?: () => void;
 }
 
 export const ListConversationScreen: React.FC<IListConversationProps> = ({
   // hasSearchBar,
+  listShownIds,
   onPress,
   renderCustomItem,
   conversationItemProps,
+  onPullToRefresh,
 }) => {
   const { chatDispatch, userInfo } = useChatContext();
   const listConversation = useChatSelector(getListConversation);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      onPullToRefresh?.();
+      setRefreshing(false);
+    }, 2000);
+  }, [onPullToRefresh]);
+
   const data = useMemo(() => {
     //TODO: handle search
+    if (Array.isArray(listShownIds)) {
+      return (
+        listConversation?.filter((e) => listShownIds?.includes(e.id)) || []
+      );
+    }
     return listConversation;
-  }, [listConversation]);
+  }, [listConversation, listShownIds]);
 
   const handleConversationPressed = useCallback(
     (item: ConversationProps) => {
@@ -111,6 +129,11 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
         keyExtractor={(item, index) => index.toString()}
         data={data}
         renderItem={renderItem}
+        refreshControl={
+          typeof onPullToRefresh !== 'undefined' ? (
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          ) : undefined
+        }
       />
     </View>
   );

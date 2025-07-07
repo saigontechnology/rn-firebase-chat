@@ -8567,11 +8567,6 @@ react-native-doc-viewer@^2.7.8:
   resolved "https://registry.yarnpkg.com/react-native-doc-viewer/-/react-native-doc-viewer-2.7.8.tgz#43d065328fb1b7ec90d321e5bd234711e807c8f6"
   integrity sha512-6rAHGfU6CedfGhr8SoqbdtA3MHKRnbKqwjzzCFnTEniynM0PgJxC4vXZF3MxbJdh6nGWPVVuM23zCfWNLvAuRg==
 
-react-native-fast-image@^8.6.3:
-  version "8.6.3"
-  resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.6.3.tgz#6edc3f9190092a909d636d93eecbcc54a8822255"
-  integrity sha512-Sdw4ESidXCXOmQ9EcYguNY2swyoWmx53kym2zRsvi+VeFCHEdkO+WG1DK+6W81juot40bbfLNhkc63QnWtesNg==
-
 react-native-fs@^2.13.0, react-native-fs@^2.20.0:
   version "2.20.0"
   resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.20.0.tgz#05a9362b473bfc0910772c0acbb73a78dbc810f6"
@@ -8608,10 +8603,10 @@ react-native-gradle-plugin@^0.71.18:
   resolved "https://registry.npmjs.org/react-native-gradle-plugin/-/react-native-gradle-plugin-0.71.19.tgz"
   integrity sha512-1dVk9NwhoyKHCSxcrM6vY6cxmojeATsBobDicX0ZKr7DgUF2cBQRTKsimQFvzH8XhOVXyH8p4HyDSZNIFI8OlQ==
 
-react-native-image-crop-picker@^0.41.2:
-  version "0.41.2"
-  resolved "https://registry.yarnpkg.com/react-native-image-crop-picker/-/react-native-image-crop-picker-0.41.2.tgz#824fa8fee8391fbb3e0b5ae2973221a2dff0cafb"
-  integrity sha512-GcDu/adXU/1y/MrxsbOfqcGRGWC2pTttt5VGy/jyRJ6GXfoC29fTQf8SG5kGtc5schSR6K+mKYO4uW6eJPljlQ==
+react-native-image-crop-picker@^0.42.0:
+  version "0.42.0"
+  resolved "https://registry.yarnpkg.com/react-native-image-crop-picker/-/react-native-image-crop-picker-0.42.0.tgz#0672c080feb8ffefd65ba00a4e64bc8a1066136e"
+  integrity sha512-EOEkekPJ7g+CNf92HrWAGM4kcDJyVY02gQJUVH7MSNUOK11SHnurXVM0TnwIt410Y4T+lBkq3rfJEA1qDaDDwA==
 
 react-native-image-picker@^7.1.2:
   version "7.1.2"
@@ -8663,10 +8658,10 @@ react-native-video@^6.2.0:
   resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.2.0.tgz#4a22dd836ee3992383992cd9fb561d52fc69d2ec"
   integrity sha512-7TWKGBkKrwR9V+SI6NB9YWWDZbto3fpT/02s8RnrFEac0h5aEJYe6NqTmz3TcFmIRSNepg2UsEvWGKNpWn4sCA==
 
-react-native-vision-camera@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.1.0.tgz#fbc0b3505d16b66b353e71d47ae588e3ab8bfbf7"
-  integrity sha512-ap3dzMh9ixASvr/19kbpCzaCBJp75ebEIAwVXd42sD8UdUNLVkYI2P4eTdU43k9nFhgEE3gDpXE0nFNzvFmcZA==
+react-native-vision-camera@4.7.0:
+  version "4.7.0"
+  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.7.0.tgz#bf2f74c7c23c88ef58725d220728366e2b9d8e09"
+  integrity sha512-aiwmBIhpiQA7fuhqRiBFAgISBI+qAyoZeZakjz/PDwUEuwGKmjYrC2LMOcFAkqSKvDA4vsoOXGxpnk77NoCZBA==
 
 react-native@0.71.8:
   version "0.71.8"
