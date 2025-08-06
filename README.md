@@ -1,38 +1,120 @@
 # rn-firebase-chat
 
-RN Firebase Chat
+A comprehensive React Native chat library built with Firebase, featuring real-time messaging, media sharing, encryption, and customizable UI components.
 
-## Installation
+## ✨ Features
+
+### 🔥 **Core Chat Functionality**
+- **Real-time Messaging** - Instant messaging with Firebase Firestore
+- **Message Status Tracking** - Sent, received, seen, and failed status indicators
+- **Typing Indicators** - Real-time typing status with customizable timeouts
+- **Message Pagination** - Efficient loading of message history with configurable page sizes
+- **Conversation Management** - Automatic conversation creation and management
+
+### 📱 **Media & Content Sharing**
+- **Camera Integration** - Built-in camera with photo and video capture
+  - Front/back camera switching
+  - Flash control
+  - Video recording with timer
+  - Custom camera icons and styling
+- **Gallery Support** - Media gallery with three categories:
+  - **Media Tab** - Images and videos with thumbnail previews
+  - **Files Tab** - Document sharing (customizable)
+  - **Links Tab** - Shared links (customizable)
+- **Video Player** - Full-featured video player with:
+  - Play/pause controls
+  - Seek functionality
+  - Custom slider support
+  - Duration display
+- **Image Viewer** - Full-screen image viewing with zoom capabilities
+
+### 🔒 **Security & Privacy**
+- **Message Encryption** - Optional AES encryption for secure conversations
+- **Custom Encryption Functions** - Support for custom encryption implementations
+- **Content Filtering** - Blacklist words with regex pattern support
+- **Environment Separation** - Prefix support for dev/staging/production environments
+
+### 🎨 **Customization & Theming**
+- **Highly Customizable UI** - Every component can be styled
+- **Custom Message Bubbles** - Support for custom message bubble designs
+- **Input Toolbar Customization** - Fully customizable input area with:
+  - Custom icons and buttons
+  - Left and right custom views
+  - Configurable camera and gallery buttons
+- **Theme Support** - Built for theme providers and dark mode
+- **Responsive Design** - Adaptive layouts for tablets and different screen sizes
+
+### 🛠 **Developer Experience**
+- **TypeScript Support** - Full TypeScript definitions and interfaces
+- **React Hooks** - Custom hooks for chat state management and typing indicators
+- **Flexible Architecture** - Modular components that can be used independently
+- **Extensive Props** - Comprehensive prop interfaces for maximum flexibility
+- **Custom Renderers** - Support for custom item renderers in lists and galleries
+
+### 🔧 **Advanced Features**
+- **Performance Optimization** - Efficient message loading and memory management
+- **Error Handling** - Built-in error handling for network and encryption failures
+- **Firebase Storage Integration** - Automatic media file uploads to Firebase Storage
+- **User Profile Management** - Automatic user profile creation and management
+- **Real-time Updates** - Live conversation and message updates
+- **Search Functionality** - Built-in conversation search capabilities
+
+## 📦 Installation
+
+### Prerequisites
+
+Before installing `rn-firebase-chat`, ensure you have the following dependencies in your React Native project:
+
+#### Core Dependencies
+```sh
+# Using npm
+npm install @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-fast-image react-native-video uuid
+
+# Using Yarn
+yarn add @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-fast-image react-native-video uuid
+```
+
+#### Camera Dependencies (Optional - for camera features)
+```sh
+# Using npm
+npm install react-native-vision-camera
+
+# Using Yarn
+yarn add react-native-vision-camera
+```
+
+> **📋 Note:** Camera functionality requires `react-native-vision-camera`. If you don't need camera features, you can skip this dependency and set `hasCamera={false}` in your ChatScreen props.
+
+### Install the Library
 
 ```sh
+# Using npm
 npm install rn-firebase-chat
+
+# Using Yarn
+yarn add rn-firebase-chat
 ```
 
-## Installation
+## 🚀 Quick Start
 
-- Using [npm](https://www.npmjs.com/#getting-started):
+### 1. Setup Firebase Configuration
 
-```sh
-npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat --save
-```
+Make sure you have Firebase configured in your React Native project. Add your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) files to your project.
+> **ℹ️ Note:** For detailed Firebase setup instructions, refer to the [official React Native Firebase documentation](https://rnfirebase.io/#installation-for-react-native-cli-non-expo-projects).
 
-- Using [Yarn](https://yarnpkg.com/):
 
-```sh
-yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat
-```
-
-## Usage
-
-- Wrap your app with `ChatProvider`
+### 2. Wrap Your App with ChatProvider
 
 ```javascript
+import React from 'react';
 import { ChatProvider } from 'rn-firebase-chat';
 
+// Note: The `userInfo` object should represent the currently logged-in user in your app.
+// Make sure to set these values after user authentication (e.g., after login).
 const userInfo = {
-  id: 'abc123',
-  name: 'John Doe',
-  avatar: 'https://example.com/avatar.jpg',
+  id: 'user123', // The unique ID of the logged-in user
+  name: 'John Doe', // The display name of the logged-in user
+  avatar: 'https://example.com/avatar.jpg' // The avatar URL of the logged-in user
 };
 
 function App() {
@@ -42,223 +124,189 @@ function App() {
     </ChatProvider>
   );
 }
+
+export default App;
 ```
 
-- Setup navigation for `ListConversationScreen` and `ChatScreen`
+### 3. Setup Navigation
+
+Create a navigation structure for your chat screens:
 
 ```javascript
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { ListConversationScreen, ChatScreen } from 'rn-firebase-chat';
+
+const Stack = createStackNavigator();
+
 export const ChatNavigator = () => (
   <Stack.Navigator>
-    <Stack.Screen name={RouteKey.ListChatScreen} component={ListChatScreen} />
-    <Stack.Screen name={RouteKey.ChatScreen} component={ChatScreen} />
+    <Stack.Screen
+      name="Conversations"
+      component={ListChatScreen}
+      options={{ title: 'Messages' }}
+    />
+    <Stack.Screen
+      name="Chat"
+      component={ChatScreen}
+      options={{ title: 'Chat' }}
+    />
   </Stack.Navigator>
 );
 ```
 
+### 4. Create Your Chat Screens
+
+#### List Conversations Screen
+
 ```javascript
 import React, { useCallback } from 'react';
 import { ListConversationScreen } from 'rn-firebase-chat';
-import { navigate } from '../../navigation/NavigationService';
-import RouteKey from '../../navigation/RouteKey';
+import { useNavigation } from '@react-navigation/native';
 
-export const ListChatScreen: React.FC = () => {
-  const handleItemPress = useCallback((data) => {
-    navigate(RouteKey.ChatScreen, data);
-  }, []);
+export const ListChatScreen = () => {
+  const navigation = useNavigation();
 
-  return <ListConversationScreen onPress={handleItemPress} />;
-};
-```
+  const handleConversationPress = useCallback((conversation) => {
+    navigation.navigate('Chat', {
+      memberIds: conversation.memberIds,
+      partners: conversation.partners
+    });
+  }, [navigation]);
 
-```javascript
-import React from 'react';
-import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat';
-
-const partnerInfo = {
-  id: 'ayz123',
-  name: 'Tony',
-  avatar: 'https://example.com/tony.jpg',
-};
-
-export const ChatScreen: React.FC = () => {
   return (
-    <BaseChatScreen memberIds={[partnerInfo.id]} partners={[partnerInfo]} />
+    <ListConversationScreen 
+      onPress={handleConversationPress}
+      hasSearchBar={true}
+    />
   );
 };
 ```
 
-## Addons
-
-Additional features for chat are:
-
-#### Image/Video Picker and Camera
-
-This feature will require additional libraries:
-
-- Using [npm](https://www.npmjs.com/#getting-started):
-
-```sh
-npm install react-native-fast-image react-native-video react-native-vision-camera uuid react-native-image-picker --save
-```
-
-- Using [Yarn](https://yarnpkg.com/):
-
-```sh
-yarn add react-native-fast-image react-native-video react-native-vision-camera uuid react-native-image-picker
-```
-
-Then using our Addons component in ChatScreen
+#### Individual Chat Screen
 
 ```javascript
-import React from 'react'
-import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
-import {CameraView, useCamera} from 'rn-firebase-chat/src/addons/camera'
+import React from 'react';
+import { ChatScreen } from 'rn-firebase-chat';
 
-...
+export const ChatScreen = ({ route }) => {
+  const { memberIds, partners } = route.params;
 
-export const ChatScreen: React.FC = () => {
-  const {onPressCamera, onPressGallery} = useCamera()
   return (
-    <BaseChatScreen
-      memberIds={[partnerInfo.id]}
-      partners={[partnerInfo]}
+    <ChatScreen
+      memberIds={memberIds}
+      partners={partners}
+      // Core Features
+      hasCamera={true}
+      hasGallery={true}
+      enableTyping={true}
+      messageStatusEnable={true}
+      
+      // Performance Configuration
+      maxPageSize={25}
+      typingTimeoutSeconds={3}
+      timeoutSendNotify={2}
+      
+      // Event Handlers
+      onStartLoad={() => console.log('Loading messages...')}
+      onLoadEnd={() => console.log('Messages loaded')}
+      sendMessageNotification={() => console.log('New message notification')}
+      
+      // Custom Styling
+      customContainerStyle={{
+        backgroundColor: '#f8f9fa',
+        borderRadius: 12,
+      }}
+      customTextStyle={{
+        fontSize: 16,
+        color: '#333333',
+      }}
+      
+      // Input Toolbar Customization
       inputToolbarProps={{
         hasCamera: true,
         hasGallery: true,
-        onPressCamera,
-        onPressGallery,
+        containerStyle: {
+          backgroundColor: '#ffffff',
+          borderTopColor: '#e0e0e0',
+        },
+        composerTextInputStyle: {
+          backgroundColor: '#f5f5f5',
+          borderRadius: 20,
+          paddingHorizontal: 15,
+        }
       }}
-    >
-    {({onSend}) => (<CameraView onSend={onSend} /> )}
-    </BaseChatScreen>
-  )
-}
-
+    />
+  );
+};
 ```
 
-# Props
+## 📚 Documentation
 
-## ChatProvider
+For comprehensive documentation, see the full [Documentation](doc/README.md) here:
 
-The `ChatProvider` component is used to manage the chat context and provide configurations for encryption, blacklist words, and other chat-related settings.
+- **[Props Reference](doc/PROPS_REFERENCE.md)** - Complete API documentation with all props and interfaces
+- **[Advanced Configuration](doc/ADVANCED_CONFIGURATION.md)** - Encryption, environment setup, and performance optimization
+- **[Custom Styling](doc/CUSTOM_STYLING.md)** - Theme customization, component styling, and design patterns
 
-## ChatProvider Props
+### 📋 **Component Overview**
 
-### Required Props
+| Component | Description | Key Features |
+|-----------|-------------|--------------|
+| **`ChatProvider`** | Main provider for chat context and configuration | Encryption, blacklist filtering, environment prefixes |
+| **`ChatScreen`** | Complete chat interface with messaging and media | Real-time messaging, camera, gallery, typing indicators, message status |
+| **`ListConversationScreen`** | Conversation list with search functionality | Search bar, custom item renderers, conversation management |
+| **`GalleryScreen`** | Media gallery with tabbed interface | Media/Files/Links tabs, custom renderers, full-screen viewing |
 
-| Prop Name  | Type            | Description                                |
-|------------|-----------------|--------------------------------------------|
-| `userInfo` | IUserInfo       | Current User information object includes id, name, avatar.                   |
-| `children` | React.ReactNode | React children elements.                   |
+### 🔧 **Available Hooks**
 
-### Optional Props
+| Hook | Purpose | Usage |
+|------|---------|-------|
+| **`useChatContext`** | Access chat context and state | Get user info, chat state, dispatch actions |
+| **`useChatSelector`** | Select specific chat state data | Efficiently select and subscribe to state changes |
+| **`useTypingIndicator`** | Manage typing indicator behavior | Handle typing start/stop with customizable timeouts |
 
-| Prop Name            | Type                          | Description                                                           |
-|----------------------|-------------------------------|-----------------------------------------------------------------------|
-| `enableEncrypt`      | boolean                       | Enables encryption if set to true. Default is false.                  |
-| `encryptKey`         | string                        | The key used for encryption. Default is an empty string.              |
-| `blackListWords`     | string[]                      | Array of words to be blacklisted.                                     |
-| `encryptionOptions`  | EncryptionOptions             | Options for configuring encryption.                                   |
-| `encryptionFuncProps`| EncryptionFunctions           | Function properties for custom encryption functions.                  |
-| `prefix`             | string                        | Prefix for chat configurations, useful for different environments like dev, stage, and prod. Default is an empty string.           |
-## ChatScreen Component
+### 📦 **Exported Utilities**
 
-The `ChatScreen` component is used to display chat messages and provides various functionalities such as sending messages, loading conversations, and handling media. This component accepts several props to customize its behavior and appearance.
+| Category | Available Utilities |
+|----------|-------------------|
+| **Date Formatting** | Time formatting, timestamp utilities |
+| **Encryption** | AES encryption, key generation, custom encryption support |
+| **Message Formatting** | Text formatting, blacklist filtering, message sanitization |
+| **Media Handling** | File type detection, media validation, path utilities |
+| **Color Utilities** | Color generation, theme helpers |
 
-### Required Props
+### 📨 **Supported Message Types**
 
-| Prop Name                | Type                              | Description                                     |
-|--------------------------|-----------------------------------|-------------------------------------------------|
-| `memberIds`              | string[]                          | Array of member IDs in the chat.                |
-| `partners`               | IUserInfo[]                       | Array of user information for chat partners.    |
+| Type | Description | Features |
+|------|-------------|----------|
+| **Text Messages** | Standard text messaging | Encryption support, blacklist filtering, typing indicators |
+| **Image Messages** | Photo sharing and viewing | Camera capture, gallery selection, full-screen viewing |
+| **Video Messages** | Video sharing and playback | Video recording, thumbnail previews, custom video player |
+| **Voice Messages** | Audio message support | Ready for voice message integration |
 
-### Optional Props
+### 📱 **Platform Support**
 
-| Prop Name                | Type                              | Description                                     |
-|--------------------------|-----------------------------------|-------------------------------------------------|
-| `style`                  | StyleProp<ViewStyle>              | Custom style for the chat screen container.     |
-| `onStartLoad`            | () => void                        | Callback function when loading starts.                   |
-| `onLoadEnd`              | () => void                        | Callback function when loading ends.                     |
-| `maxPageSize`            | number                            | Maximum number of messages to load per page.    |
-| `inputToolbarProps`      | IInputToolbar                     | Props for customizing the input toolbar.        |
-| `hasCamera`              | boolean                           | Enables camera functionality if true.           |
-| `hasGallery`             | boolean                           | Enables gallery functionality if true.          |
-| `customImageVideoBubbleProps` | CustomImageVideoBubbleProps  | Custom props for image and video bubbles.       |
-| `onPressCamera`          | () => void                        | Callback function for camera button press.               |
-| `customConversationInfo` | CustomConversationInfo            | Custom information for the conversation.        |
-| `customContainerStyle`   | StyleProp<ViewStyle>              | Custom style for the message container.         |
-| `customTextStyle`        | StyleProp<ViewStyle>              | Custom style for text messages.                 |
-| `unReadSentMessage`      | string                            | Custom text unread sent message in Chat.        |
-| `unReadSeenMessage`      | string                            | Custom text unread message message in Chat.     |
-| `sendMessageNotification`| () => void                        | Callback function to send notification                   |
-| `timeoutSendNotify`      | number                            | Timeout for sending notifications (default 3s).  |
-| `enableTyping`           | boolean                           | Enables typing indicator if true.               |
-| `typingTimeoutSeconds`   | number                            | Timeout for typing indicator (default 3s).                   |
-| `messageStatusEnable`    | boolean                           | Enables message status indicators if true.      |
-| `customMessageStatus`    | (hasUnread: boolean) => JSX.Element | Custom component for message status.            |
-| `iconsCamera`            | IconPaths                         | Paths for various camera icons.                 |
-
-### IInputToolbar
-
-`inputToolbarProps` is an object that allows you to customize the input toolbar. Here are its properties:
-
-| Prop Name                | Type                     | Description                                                      |
-|--------------------------|--------------------------|------------------------------------------------------------------|
-| `hasCamera`              | boolean                  | Indicates whether the camera option is enabled.                  |
-| `hasGallery`             | boolean                  | Indicates whether the gallery option is enabled.                 |
-| `onPressCamera`          | (() => void)             | Callback function triggered when the camera icon is pressed.     |
-| `onPressGallery`         | (() => void)             | Callback function triggered when the gallery icon is pressed.    |
-| `containerStyle`         | StyleProp<ViewStyle>     | Custom style for the toolbar container.                          |
-| `composeWrapperStyle`    | StyleProp<ViewStyle>     | Custom style for the compose wrapper.                            |
-| `composerTextInputStyle` | StyleProp<ViewStyle>     | Custom style for the composer text input.                        |
-| `customViewStyle`        | StyleProp<ViewStyle>     | Custom style for the custom view.                                |
-| `cameraIcon`             | string                   | Icon for the camera button.                                      |
-| `galleryIcon`            | string                   | Icon for the gallery button.                                     |
-| `iconSend`               | string                   | Icon for the send button.                                        |
-| `iconStyle`              | StyleProp<ImageStyle>    | Custom style for the icons.                                      |
-| `renderLeftCustomView`   | (() => React.ReactNode)  | Function to render a custom view on the left side of the toolbar.|
-| `renderRightCustomView`  | (() => React.ReactNode)  | Function to render a custom view on the right side of the toolbar.|
-
-### ListConversationScreen
-
-The `ListConversationScreen` component displays a list of conversations, with optional customization for the list items and a search bar.
-
-| Prop Name                | Type                              | Description                                                      |
-|--------------------------|-----------------------------------|------------------------------------------------------------------|
-| `hasSearchBar`           | boolean                           | Indicates whether a search bar should be displayed.              |
-| `onPress`                | (conversation: ConversationProps) => void | Callback function triggered when a conversation item is pressed. |
-| `renderCustomItem`       | ({ item, index }: ListItem) => JSX.Element | Function to render a custom item for the list. Returns a JSX element or null. |
-| `conversationItemProps`  |Omit of IConversationItemProps, excluding data and onPress | Properties for customizing conversation items in ConversationItem component |
-
-### GalleryScreen
-
-the `GalleryScreen` component, which supports displaying various types of content such as media, links, and documents.
-
-| Prop Name                | Type                                                      | Description                                                                                     |
-|--------------------------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| `renderCustomHeader`     | () => JSX.Element                                         | Function to render a custom header for the gallery modal.                                      |
-| `renderCustomMedia`      | ({ item, index }: MediaItem) => JSX.Element | Function to render custom media items, such as images or videos. Returns a JSX element or null. |
-| `renderCustomFile`       | () => JSX.Element                                         | Function to render custom file items, such as documents.                                        |
-| `renderCustomLink`       | () => JSX.Element                                         | Function to render custom link items.                                                           |
-| `iconCloseModal`         | ImageRequireSource                                        | Icon to display for closing the modal.                                                           |
-| `customSlider`           | (currentTime: number, duration: number, paused: boolean, videoRef: VideoRef) => React.ReactNode | Custom slider. |
-| `headerStyle`            | StyleProp<ViewStyle>                                     | Custom style for the header of the modal.                                                        |
-| `tabStyle`               | StyleProp<ViewStyle>                                     | Custom style for the tabs in the modal.                                                         |
-| `activeTabStyle`         | StyleProp<ViewStyle>                                     | Custom style for the active tab in the modal.                                                   |
-| `tabTextStyle`           | StyleProp<ViewStyle>                                     | Custom style for the tab text.                                                                  |
-| `activeTabTextStyle`     | StyleProp<ViewStyle>                                     | Custom style for the text of the active tab.                                                    |
-| `tabIndicatorStyle`      | StyleProp<ViewStyle>                                     | Custom style for the tab indicator.                                                             |
-| `containerStyle`         | StyleProp<ViewStyle>                                     | Custom style for the main container of the modal.                                                |
+- ✅ **iOS** - Full feature support including camera and media
+- ✅ **Android** - Full feature support including camera and media
+- 🔧 **React Native CLI** - Fully supported
+- 🔧 **Expo** - Supported with custom development build (camera features require custom build)
 
 
-## Contributing
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+## 🤝 Contributing
 
-## License
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to:
 
-MIT
+- Report bugs
+- Suggest new features
+- Submit pull requests
+- Set up the development environment
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Built with ❤️ using [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
