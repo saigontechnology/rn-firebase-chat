@@ -9,7 +9,7 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
-    ignores: ['node_modules/', 'lib/', 'example/'],
+    ignores: ['node_modules/', 'lib/', 'example/', 'scripts/'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

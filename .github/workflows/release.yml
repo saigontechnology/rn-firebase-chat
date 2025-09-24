@@ -1,0 +1,46 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'chore: release')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Lint files
+        run: yarn lint
+
+      - name: Typecheck files
+        run: yarn typecheck
+
+      - name: Run unit tests
+        run: yarn test --maxWorkers=2 --coverage
+
+      - name: Build package
+        run: yarn prepack
+
+      - name: Setup Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Setup NPM token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Release
+        run: yarn release --ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

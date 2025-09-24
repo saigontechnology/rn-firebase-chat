@@ -21,13 +21,25 @@
     "prepack": "bob build && yarn clean:maps",
     "prepare": "bob build && yarn clean:maps",
     "release": "release-it",
+    "release:dry": "release-it --dry-run",
+    "release:ci": "release-it --ci",
+    "release:check": "node scripts/check-release.js",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install && yarn example pods"
   },
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "chat",
+    "firebase",
+    "firestore",
+    "messaging",
+    "real-time",
+    "conversation",
+    "ui",
+    "components",
+    "typescript"
   ],
   "repository": "https://github.com/saigontechnology/rn-firebase-chat",
   "author": "BaoNH <bao.nguyenh@saigontechnology.com> (https://github.com/baonguyenhsts)",
@@ -142,7 +154,8 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "example/"
+    "example/",
+    "scripts/"
   ],
   "prettier": {
     "quoteProps": "consistent",
