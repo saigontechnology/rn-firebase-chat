@@ -47,4 +47,9 @@ interface SendMessageProps {
 
 type MediaType = 'image' | 'video' | 'text' | undefined;
 
-export { type MessageProps, type LatestMessageProps, type SendMessageProps, type MediaType };
+export {
+  type MessageProps,
+  type LatestMessageProps,
+  type SendMessageProps,
+  type MediaType,
+};

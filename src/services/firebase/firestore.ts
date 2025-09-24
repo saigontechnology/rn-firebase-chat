@@ -77,7 +77,7 @@ export class FirestoreServices {
    * The constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  constructor() { }
+  constructor() {}
 
   get userId(): string {
     if (!this.userInfo?.id) {
@@ -176,7 +176,11 @@ export class FirestoreServices {
    * Validates if encryption is properly configured
    */
   isEncryptionReady = (): boolean => {
-    return !!(this.enableEncrypt && this.encryptKey && this.encryptKey.length > 0);
+    return !!(
+      this.enableEncrypt &&
+      this.encryptKey &&
+      this.encryptKey.length > 0
+    );
   };
 
   /**
@@ -289,11 +293,11 @@ export class FirestoreServices {
              * If this is 1-on-1 chat
              * We map conversation info of other people with this user info
              */
-          {
-            ...conversationData,
-            name: this.userInfo?.name,
-            image: this.userInfo?.avatar,
-          };
+            {
+              ...conversationData,
+              name: this.userInfo?.name,
+              image: this.userInfo?.avatar,
+            };
         return firestore()
           .collection(
             this.getUrlWithPrefix(
@@ -497,25 +501,28 @@ export class FirestoreServices {
           console.error('Error updating user conversation:', error);
         });
     } else {
-      userConversationRef.get().then((snapshot) => {
-        /** Get unRead count for other members */
-        const unReadCount = snapshot.data()?.unRead;
-        userConversationRef
-          .set(
-            {
-              latestMessage: latestMessageData,
-              updatedAt: getCurrentTimestamp(),
-              /** Increase unRead for other uses */
-              unRead: unReadCount ? unReadCount + 1 : 1,
-            },
-            { merge: true }
-          )
-          .catch((error) => {
-            console.error('Error updating user conversation:', error);
-          });
-      }).catch((error) => {
-        console.error('Error getting user conversation snapshot:', error);
-      });
+      userConversationRef
+        .get()
+        .then((snapshot) => {
+          /** Get unRead count for other members */
+          const unReadCount = snapshot.data()?.unRead;
+          userConversationRef
+            .set(
+              {
+                latestMessage: latestMessageData,
+                updatedAt: getCurrentTimestamp(),
+                /** Increase unRead for other uses */
+                unRead: unReadCount ? unReadCount + 1 : 1,
+              },
+              { merge: true }
+            )
+            .catch((error) => {
+              console.error('Error updating user conversation:', error);
+            });
+        })
+        .catch((error) => {
+          console.error('Error getting user conversation snapshot:', error);
+        });
     }
   };
 
@@ -637,7 +644,9 @@ export class FirestoreServices {
     });
   };
 
-  receiveMessageListener = (callBack: (message: MessageProps) => void): (() => void) => {
+  receiveMessageListener = (
+    callBack: (message: MessageProps) => void
+  ): (() => void) => {
     return firestore()
       .collection(
         this.getUrlWithPrefix(
@@ -649,7 +658,10 @@ export class FirestoreServices {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
             if (change.type === 'added') {
-              const data = { ...change.doc.data(), id: change.doc.id } as MessageProps & { id: string };
+              const data = {
+                ...change.doc.data(),
+                id: change.doc.id,
+              } as MessageProps & { id: string };
               const userInfo =
                 data.senderId === this.userInfo?.id
                   ? this.userInfo
@@ -708,7 +720,9 @@ export class FirestoreServices {
     });
   };
 
-  setUserConversationTyping = (isTyping: boolean): Promise<void> | undefined => {
+  setUserConversationTyping = (
+    isTyping: boolean
+  ): Promise<void> | undefined => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
@@ -755,11 +769,11 @@ export class FirestoreServices {
               ...data,
               latestMessage: data.latestMessage
                 ? await formatMessageText(
-                  data?.latestMessage,
-                  this.regexBlacklist,
-                  this.encryptKey,
-                  this.decryptFunctionProp
-                )
+                    data?.latestMessage,
+                    this.regexBlacklist,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
                 : data.latestMessage,
             } as ConversationProps;
             listChannels.push(message);
@@ -769,7 +783,9 @@ export class FirestoreServices {
     );
   };
 
-  listenConversationUpdate = (callback: (_: ConversationProps) => void): (() => void) => {
+  listenConversationUpdate = (
+    callback: (_: ConversationProps) => void
+  ): (() => void) => {
     const regex = this.regexBlacklist;
 
     return firestore()
@@ -790,11 +806,11 @@ export class FirestoreServices {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
-                    data?.latestMessage,
-                    regex,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
+                      data?.latestMessage,
+                      regex,
+                      this.encryptKey,
+                      this.decryptFunctionProp
+                    )
                   : data.latestMessage,
               } as ConversationProps;
               callback?.(message);
