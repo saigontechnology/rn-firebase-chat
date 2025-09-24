@@ -82,7 +82,7 @@ try {
 // Check 6: NPM login
 console.log('\n👤 Checking npm authentication...');
 try {
-  const npmUser = execSync('npm whoami 2>/dev/null', { encoding: 'utf8' }).trim();
+  const npmUser = execSync('npm whoami --registry https://registry.npmjs.org/', { encoding: 'utf8', stdio: 'pipe' }).trim();
   console.log(`  ✅ Logged in as: ${npmUser}`);
 } catch (error) {
   console.log('  ❌ Not logged into npm');
