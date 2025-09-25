@@ -67,7 +67,6 @@
     "react-native": "0.80.0",
     "react-native-aes-crypto": "^3.2.1",
     "react-native-builder-bob": "^0.40.12",
-    "react-native-fast-image": "^8.6.3",
     "react-native-gifted-chat": "^2.8.1",
     "react-native-image-picker": "^8.2.1",
     "react-native-keyboard-controller": "^1.18.6",

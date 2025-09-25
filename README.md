@@ -98,13 +98,13 @@ This feature will require additional libraries:
 - Using [npm](https://www.npmjs.com/#getting-started):
 
 ```sh
-npm install react-native-fast-image react-native-video react-native-vision-camera react-native-image-picker --save
+npm install react-native-video react-native-vision-camera react-native-image-picker --save
 ```
 
 - Using [Yarn](https://yarnpkg.com/):
 
 ```sh
-yarn add react-native-fast-image react-native-video react-native-vision-camera react-native-image-picker
+yarn add react-native-video react-native-vision-camera react-native-image-picker
 ```
 
 Then using our Addons component in ChatScreen

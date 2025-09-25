@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, StyleSheet, TouchableOpacity } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import { CustomImage } from './CustomImage';
 
 interface SelectedImageModalProps {
   imageUrl: string;
@@ -14,13 +14,12 @@ const SelectedImageModal: React.FC<SelectedImageModalProps> = ({
   return (
     <Modal visible={!!imageUrl} transparent={true} onRequestClose={onClose}>
       <TouchableOpacity style={styles.modalContainer} onPress={onClose}>
-        <FastImage
+        <CustomImage
           style={styles.image}
           source={{
             uri: imageUrl,
-            priority: FastImage.priority.high,
           }}
-          resizeMode={FastImage.resizeMode.contain}
+          resizeMode="contain"
         />
       </TouchableOpacity>
     </Modal>

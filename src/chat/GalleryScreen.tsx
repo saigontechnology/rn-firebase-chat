@@ -10,12 +10,12 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { FirestoreServices } from '../services/firebase';
 import { MessageTypes, type MediaFile } from '../interfaces';
 import { GalleryType } from '../interfaces/gallery';
 import { VideoRef } from 'react-native-video';
 import { SelectedViewModal, ThumbnailVideoPlayer } from './components/camera';
+import { CustomImage } from './components/CustomImage';
 type MediaItem = {
   item: MediaFile;
   index: number;
@@ -82,7 +82,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
           {item.type === MessageTypes.video ? (
             <ThumbnailVideoPlayer videoUrl={item.path} />
           ) : (
-            <FastImage source={{ uri: item.path }} style={styles.image} />
+            <CustomImage source={{ uri: item.path }} style={styles.image} />
           )}
         </TouchableOpacity>
       );
@@ -105,7 +105,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
                 styles.tabText,
                 tabTextStyle,
                 (activeTab === tab && styles.activeTabText) ||
-                activeTabTextStyle,
+                  activeTabTextStyle,
               ]}
             >
               {tab.toUpperCase()}
