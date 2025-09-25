@@ -69,8 +69,7 @@
     "react-native-video": "^6.15.0",
     "react-native-vision-camera": "^4.7.0",
     "release-it": "^19.0.3",
-    "typescript": "^5.8.3",
-    "uuid": "^11.1.0"
+    "typescript": "^5.8.3"
   },
   "resolutions": {
     "@types/react-native": "0.73.0",
@@ -164,7 +163,6 @@
     "@types/uuid": "^10.0.0",
     "randomcolor": "^0.6.2",
     "react-native-aes-crypto": "^3.2.1",
-    "react-native-get-random-values": "^1.11.0",
     "react-native-gifted-chat": "^2.8.1",
     "react-native-image-picker": "^8.2.1",
     "react-native-keyboard-controller": "^1.17.5",
