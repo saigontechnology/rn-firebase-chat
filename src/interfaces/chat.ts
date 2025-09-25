@@ -1,6 +1,7 @@
 import type { ChatAction, ChatState } from '../reducer/chat';
 import type { Dispatch } from 'react';
 import { EncryptionFunctions, EncryptionOptions } from './AESCrypto';
+import { ImageProps } from 'react-native';
 
 export interface IUserInfo {
   id: string;
@@ -18,4 +19,5 @@ export interface IChatContext {
   prefix?: string;
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
+  CustomImageComponent?: React.ComponentType<ImageProps>;
 }

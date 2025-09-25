@@ -24,6 +24,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   encryptionOptions,
   encryptionFuncProps,
   prefix = '',
+  CustomImageComponent,
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
@@ -72,6 +73,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         chatState: state,
         chatDispatch: dispatch,
         blackListWords,
+        CustomImageComponent,
       }}
     >
       {children}

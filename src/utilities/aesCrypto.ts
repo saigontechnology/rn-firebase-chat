@@ -2,7 +2,6 @@
  * Created by NL on 5/31/23.
  */
 import Aes from 'react-native-aes-crypto';
-import 'react-native-get-random-values';
 import {
   DEFAULT_ITERATIONS,
   DEFAULT_KEY_LENGTH,
@@ -63,14 +62,14 @@ const IV_LENGTH = 16;
 const createIV = (length = IV_LENGTH): string => {
   // Use crypto-secure random generation
   const array = new Uint8Array(length);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    // Fallback for environments without crypto
-    for (let i = 0; i < length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
+  // if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+  //   crypto.getRandomValues(array);
+  // } else {
+  // Fallback for environments without crypto
+  for (let i = 0; i < length; i++) {
+    array[i] = Math.floor(Math.random() * 256);
   }
+  // }
 
   // Convert to base64-like string using our character set
   let result = '';
@@ -99,7 +98,10 @@ const generateEncryptionKey = async (
   }
 };
 
-const decryptedMessageData = async (text: string, key: string): Promise<string> => {
+const decryptedMessageData = async (
+  text: string,
+  key: string
+): Promise<string> => {
   if (!text || !key) {
     console.warn('Invalid parameters for decryption, returning original text');
     return text;

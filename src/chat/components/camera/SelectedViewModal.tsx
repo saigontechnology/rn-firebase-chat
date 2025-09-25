@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { MessageTypes } from '../../../interfaces';
 import Images from '../../../asset';
 import { VideoRef } from 'react-native-video';
 import { VideoPlayer } from './VideoPlayer';
+import { CustomImage } from '../CustomImage';
 
 interface SelectedViewModalProps {
   url?: string;
@@ -45,13 +45,12 @@ export const SelectedViewModal: React.FC<SelectedViewModalProps> = ({
 
   const renderImage = useCallback(
     () => (
-      <FastImage
+      <CustomImage
         style={styles.image}
         source={{
           uri: url ?? Images.placeHolder,
-          priority: FastImage.priority.high,
         }}
-        resizeMode={FastImage.resizeMode.contain}
+        resizeMode="contain"
       />
     ),
     [url]

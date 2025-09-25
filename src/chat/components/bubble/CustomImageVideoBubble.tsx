@@ -10,11 +10,9 @@ import {
   ImageStyle,
 } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
-import FastImage, {
-  type ImageStyle as FastImageStyle,
-} from 'react-native-fast-image';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import Images from '../../../asset';
+import { CustomImage } from '../CustomImage';
 
 export interface CustomImageVideoBubbleProps {
   message: MessageProps;
@@ -23,7 +21,7 @@ export interface CustomImageVideoBubbleProps {
   playIcon?: string;
   bubbleContainerStyle?: StyleProp<ViewStyle>;
   bubbleStyle?: StyleProp<ViewStyle>;
-  imageStyle?: StyleProp<FastImageStyle>;
+  imageStyle?: StyleProp<ImageStyle>;
   videoContainerStyle?: StyleProp<ViewStyle>;
   videoStyle?: StyleProp<ViewStyle>;
   playIconStyle?: StyleProp<ImageStyle>;
@@ -62,8 +60,8 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   };
 
   const renderImage = () => (
-    <FastImage
-      source={{ uri: message.path, priority: FastImage.priority.high }}
+    <CustomImage
+      source={{ uri: message.path }}
       style={[styles.image, imageStyle]}
       resizeMode="cover"
     />
