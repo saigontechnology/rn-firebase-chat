@@ -22,6 +22,10 @@ npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/f
 yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller
 ```
 
+If you're using Expo, please follow the dedicated setup guide to configure `plugins` in your `app.config.ts` and add Firebase files for Android and iOS:
+
+- See: [Expo Configuration Guide](./README.expo.md)
+
 ## Usage
 
 - Wrap your app with `ChatProvider`
