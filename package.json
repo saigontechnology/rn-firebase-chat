@@ -41,7 +41,10 @@
     "components",
     "typescript"
   ],
-  "repository": "https://github.com/saigontechnology/rn-firebase-chat",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saigontechnology/rn-firebase-chat.git"
+  },
   "author": "Saigon Technology Solutions",
   "license": "MIT",
   "bugs": {
@@ -93,9 +96,9 @@
     "@types/react": "19.1.8"
   },
   "peerDependencies": {
-    "@react-native-firebase/app":  "*",
-    "@react-native-firebase/firestore":  "*",
-    "@react-native-firebase/storage":  "*",
+    "@react-native-firebase/app": "*",
+    "@react-native-firebase/firestore": "*",
+    "@react-native-firebase/storage": "*",
     "react": "*",
     "react-native": "*",
     "randomcolor": "*",
