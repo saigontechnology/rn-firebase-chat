@@ -64,7 +64,7 @@ export class FirestoreServices {
   private static instance: FirestoreServices;
 
   /** User configuration */
-  userInfo: IUserInfo | undefined;
+  userInfo?: IUserInfo;
   enableEncrypt: boolean = false;
   encryptKey: string = '';
   regexBlacklist: RegExp | undefined;

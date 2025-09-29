@@ -22,7 +22,7 @@ export interface IConversationItemProps {
   unReadStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
   renderMessage?: () => React.ReactNode;
-  userInfo: IUserInfo | null;
+  userInfo?: IUserInfo;
 }
 
 export const ConversationItem: React.FC<IConversationItemProps> = ({
