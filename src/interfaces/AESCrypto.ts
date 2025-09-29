@@ -1,5 +1,5 @@
 export interface EncryptionOptions {
-  salt?: string;
+  salt: string;
   iterations?: number;
   keyLength?: number;
 }
