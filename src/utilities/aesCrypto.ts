@@ -5,7 +5,6 @@ import Aes from 'react-native-aes-crypto';
 import {
   DEFAULT_ITERATIONS,
   DEFAULT_KEY_LENGTH,
-  DEFAULT_SALT,
 } from '../constants';
 import type { EncryptionOptions } from '../interfaces';
 
@@ -82,13 +81,13 @@ const createIV = (length = IV_LENGTH): string => {
 
 const generateEncryptionKey = async (
   encryptKey: string,
-  options?: EncryptionOptions
+  options: EncryptionOptions
 ): Promise<string> => {
   const {
-    salt = DEFAULT_SALT,
+    salt,
     iterations = DEFAULT_ITERATIONS,
     keyLength = DEFAULT_KEY_LENGTH,
-  } = options || {};
+  } = options;
 
   try {
     return await generateKey(encryptKey, salt, iterations, keyLength);

@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useReducer } from 'react';
+import React, { createContext, PropsWithChildren, useEffect, useReducer } from 'react';
 import { FirestoreServices, createUserProfile } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import {
@@ -9,22 +9,17 @@ import {
 
 const firestoreServices = FirestoreServices.getInstance();
 
-interface ChatProviderProps
-  extends Omit<IChatContext, 'chatState' | 'chatDispatch'> {
-  children?: React.ReactNode;
-}
+type ChatProviderProps = IChatContext & PropsWithChildren;
 
 export const ChatContext = createContext<IChatContext>({} as IChatContext);
 export const ChatProvider: React.FC<ChatProviderProps> = ({
   userInfo,
   children,
-  enableEncrypt = false,
-  encryptKey = '',
   blackListWords,
-  encryptionOptions,
   encryptionFuncProps,
   prefix = '',
   CustomImageComponent,
+  ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
@@ -51,12 +46,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     encryptionFuncProps &&
       firestoreServices.createEncryptionsFunction(encryptionFuncProps);
-    firestoreServices.configuration({
-      encryptKey,
-      enableEncrypt,
-      encryptionOptions,
-    });
-  }, [encryptKey, enableEncrypt, encryptionOptions, encryptionFuncProps]);
+    if (props.enableEncrypt && props.encryptKey) {
+      firestoreServices.configurationEncryption({
+        encryptKey: props.encryptKey,
+        enableEncrypt: props.enableEncrypt,
+        encryptionOptions: props.encryptionOptions,
+      });
+    }
+  }, [props, encryptionFuncProps]);
 
   useEffect(() => {
     firestoreServices.configuration({ blackListWords });
@@ -70,10 +67,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     <ChatContext.Provider
       value={{
         userInfo,
-        chatState: state,
-        chatDispatch: dispatch,
         blackListWords,
         CustomImageComponent,
+        ...props,
+        chatState: state,
+        chatDispatch: dispatch,
       }}
     >
       {children}

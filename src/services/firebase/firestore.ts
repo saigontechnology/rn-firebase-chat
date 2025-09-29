@@ -38,23 +38,34 @@ import {
 } from '../../interfaces';
 import { uploadFileToFirebase } from './storage';
 
-interface FirestoreProps {
-  userInfo?: IUserInfo;
-  enableEncrypt?: boolean;
+type PropsWithEncryption = {
+  enableEncrypt: true;
+  encryptionOptions: EncryptionOptions;
   encryptKey?: string;
+}
+
+type PropsWithoutEncryption = {
+  enableEncrypt: false;
+}
+
+type FirestoreEncryptionProps = PropsWithEncryption | PropsWithoutEncryption;
+
+type FirestoreBaseProps = {
+  userInfo?: IUserInfo;
   memberIds?: string[];
   blackListWords?: string[];
-  encryptionOptions?: EncryptionOptions;
   encryptionFuncProps?: EncryptionFunctions;
   prefix?: string;
 }
+
+export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
 
 export class FirestoreServices {
   private static instance: FirestoreServices;
 
   /** User configuration */
   userInfo: IUserInfo | undefined;
-  enableEncrypt: boolean | undefined;
+  enableEncrypt: boolean = false;
   encryptKey: string = '';
   regexBlacklist: RegExp | undefined;
   prefix = '';
@@ -101,12 +112,9 @@ export class FirestoreServices {
 
   configuration = async ({
     userInfo,
-    enableEncrypt,
-    encryptKey,
     blackListWords,
-    encryptionOptions,
     prefix,
-  }: FirestoreProps): Promise<void> => {
+  }: FirestoreBaseProps): Promise<void> => {
     // Validate user info
     if (userInfo) {
       if (!validateUserId(userInfo.id)) {
@@ -124,34 +132,43 @@ export class FirestoreServices {
       this.regexBlacklist = generateBadWordsRegex(blackListWords);
     }
 
-    if (enableEncrypt && encryptKey) {
-      try {
-        // Validate encryption key strength
-        const keyValidation = validateEncryptionKey(encryptKey);
-        if (!keyValidation.isValid) {
-          console.warn('Weak encryption key detected:', keyValidation.errors);
-          // Continue but log warnings - don't break existing functionality
-        }
-
-        this.enableEncrypt = enableEncrypt;
-        this.encryptKey = this.generateKeyFunctionProp
-          ? await this.generateKeyFunctionProp(encryptKey)
-          : await generateEncryptionKey(encryptKey, encryptionOptions);
-
-        // Validate the generated key
-        if (!this.encryptKey || this.encryptKey.length === 0) {
-          throw new Error('Failed to generate encryption key');
-        }
-      } catch (error) {
-        console.error('Error configuring encryption:', error);
-        this.enableEncrypt = false;
-        this.encryptKey = '';
-        throw new Error('Failed to configure encryption');
-      }
-    }
 
     if (prefix) {
       this.prefix = prefix;
+    }
+  };
+
+  configurationEncryption = async ({
+    encryptKey,
+    encryptionOptions,
+  }: PropsWithEncryption) => {
+    if (!encryptKey) {
+      console.error('Encrypt key is required');
+      return;
+    }
+
+    try {
+      // Validate encryption key strength
+      const keyValidation = validateEncryptionKey(encryptKey);
+      if (!keyValidation.isValid) {
+        console.warn('Weak encryption key detected:', keyValidation.errors);
+        // Continue but log warnings - don't break existing functionality
+      }
+
+      this.enableEncrypt = true;
+      this.encryptKey = this.generateKeyFunctionProp
+        ? await this.generateKeyFunctionProp(encryptKey)
+        : await generateEncryptionKey(encryptKey, encryptionOptions);
+
+      // Validate the generated key
+      if (!this.encryptKey || this.encryptKey.length === 0) {
+        throw new Error('Failed to generate encryption key');
+      }
+    } catch (error) {
+      console.error('Error configuring encryption:', error);
+      this.enableEncrypt = false;
+      this.encryptKey = '';
+      throw new Error('Failed to configure encryption');
     }
   };
 

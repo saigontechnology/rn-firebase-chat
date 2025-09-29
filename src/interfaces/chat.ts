@@ -1,6 +1,6 @@
 import type { ChatAction, ChatState } from '../reducer/chat';
 import type { Dispatch } from 'react';
-import { EncryptionFunctions, EncryptionOptions } from './AESCrypto';
+import type { FirestoreProps } from '../services/firebase';
 import { ImageProps } from 'react-native';
 
 export interface IUserInfo {
@@ -8,16 +8,8 @@ export interface IUserInfo {
   name: string;
   avatar: string;
 }
-
-export interface IChatContext {
-  userInfo: IUserInfo | null;
-  enableEncrypt?: boolean;
-  blackListWords?: string[];
-  encryptionOptions?: EncryptionOptions;
-  encryptionFuncProps?: EncryptionFunctions;
-  encryptKey?: string;
-  prefix?: string;
+export type IChatContext = {
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
   CustomImageComponent?: React.ComponentType<ImageProps>;
-}
+} & FirestoreProps
