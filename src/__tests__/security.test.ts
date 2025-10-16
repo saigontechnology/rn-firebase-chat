@@ -65,23 +65,31 @@ describe('Security Utilities', () => {
     it('should reject weak keys', () => {
       const result = validateEncryptionKey('weak');
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Encryption key must be at least 8 characters long');
+      expect(result.errors).toContain(
+        'Encryption key must be at least 8 characters long'
+      );
     });
 
     it('should require numbers and letters', () => {
       const noNumbers = validateEncryptionKey('onlyletters');
       expect(noNumbers.isValid).toBe(false);
-      expect(noNumbers.errors).toContain('Encryption key should contain at least one number');
+      expect(noNumbers.errors).toContain(
+        'Encryption key should contain at least one number'
+      );
 
       const noLetters = validateEncryptionKey('12345678');
       expect(noLetters.isValid).toBe(false);
-      expect(noLetters.errors).toContain('Encryption key should contain at least one letter');
+      expect(noLetters.errors).toContain(
+        'Encryption key should contain at least one letter'
+      );
     });
 
     it('should handle invalid inputs', () => {
       const result = validateEncryptionKey('');
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Encryption key must be a non-empty string');
+      expect(result.errors).toContain(
+        'Encryption key must be a non-empty string'
+      );
     });
   });
 
@@ -102,7 +110,9 @@ describe('Security Utilities', () => {
       const longMessage = 'a'.repeat(10001);
       const result = validateMessage(longMessage);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Message is too long (max 10000 characters)');
+      expect(result.errors).toContain(
+        'Message is too long (max 10000 characters)'
+      );
     });
 
     it('should handle non-string inputs', () => {

@@ -1,5 +1,13 @@
-import { generateBadWordsRegex, filterBadWords, getTextMessage } from '../utilities/blacklist';
-import { formatDate, timeFromNow, getCurrentTimestamp } from '../utilities/date';
+import {
+  generateBadWordsRegex,
+  filterBadWords,
+  getTextMessage,
+} from '../utilities/blacklist';
+import {
+  formatDate,
+  timeFromNow,
+  getCurrentTimestamp,
+} from '../utilities/date';
 
 // Mock required modules
 jest.mock('@react-native-firebase/firestore', () => ({
@@ -19,11 +27,17 @@ jest.mock('dayjs', () => {
 // Mock AES crypto since it requires React Native
 jest.mock('../utilities/aesCrypto', () => ({
   encryptData: jest.fn(async (text: string) => `encrypted_${text}`),
-  decryptData: jest.fn(async (encrypted: string) => encrypted.replace('encrypted_', '')),
+  decryptData: jest.fn(async (encrypted: string) =>
+    encrypted.replace('encrypted_', '')
+  ),
   generateEncryptionKey: jest.fn(async (password: string) => `key_${password}`),
 }));
 
-const { encryptData, decryptData, generateEncryptionKey } = require('../utilities/aesCrypto');
+const {
+  encryptData,
+  decryptData,
+  generateEncryptionKey,
+} = require('../utilities/aesCrypto');
 
 describe('Utility Functions', () => {
   describe('AES Crypto (Mocked)', () => {

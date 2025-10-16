@@ -13,11 +13,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import {
-  type ComposerProps,
-  GiftedChat,
-  Bubble,
-} from 'react-native-gifted-chat';
+import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
 import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
@@ -150,7 +146,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           ...(customConversationInfo || {}),
         };
         // We identify a group chat if the conversation have custom-info
-        let isGroup = !!customConversationInfo;
+        const isGroup = !!customConversationInfo;
         conversationRef.current = await firebaseInstance.createConversation(
           newConversationInfo.id,
           memberIds,
@@ -223,7 +219,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             const unReads = data?.unRead ?? {};
             const latestMessageID = unReads[userInfo.id];
             const hasUnreadMessages = Object.entries(unReads).some(
-              ([_, value]) => value !== latestMessageID
+              ([, value]) => value !== latestMessageID
             );
             setUserUnreadMessage(hasUnreadMessages);
             // Clear timeout message when push notification
@@ -316,8 +312,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   };
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
-      conversationRef.current?.id &&
+      if (conversationRef.current?.id) {
         firebaseInstance?.setUserConversationTyping(value)?.then(callback);
+      }
     },
     [firebaseInstance]
   );

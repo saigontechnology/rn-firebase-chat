@@ -75,7 +75,11 @@ const CaptureButton: React.FC<Props> = ({
     if (isPhoto) {
       takePhoto();
     } else {
-      isRecording.current ? stopRecording() : startRecording();
+      if (isRecording.current) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
     }
   }, [isPhoto, startRecording, stopRecording, takePhoto]);
 

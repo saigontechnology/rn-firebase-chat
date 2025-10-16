@@ -39,4 +39,4 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
-jest.mock('react-native-get-random-values', () => { });
+jest.mock('react-native-get-random-values', () => { }, { virtual: true });

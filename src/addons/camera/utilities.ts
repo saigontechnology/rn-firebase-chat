@@ -46,9 +46,15 @@ export const formatDuration = (seconds: number): string => {
 };
 
 // Media compression utilities
-export const shouldCompressImage = (width?: number, height?: number): boolean => {
+export const shouldCompressImage = (
+  width?: number,
+  height?: number
+): boolean => {
   if (!width || !height) return false;
-  return width > CAMERA_CONFIG.MAX_PHOTO_WIDTH || height > CAMERA_CONFIG.MAX_PHOTO_HEIGHT;
+  return (
+    width > CAMERA_CONFIG.MAX_PHOTO_WIDTH ||
+    height > CAMERA_CONFIG.MAX_PHOTO_HEIGHT
+  );
 };
 
 export const calculateCompressedDimensions = (
@@ -84,7 +90,9 @@ export const getCameraPermissionMessage = (): string => {
   return CAMERA_MESSAGES.PERMISSION_DENIED;
 };
 
-export const getErrorMessage = (errorType: keyof typeof CAMERA_MESSAGES): string => {
+export const getErrorMessage = (
+  errorType: keyof typeof CAMERA_MESSAGES
+): string => {
   return CAMERA_MESSAGES[errorType];
 };
 

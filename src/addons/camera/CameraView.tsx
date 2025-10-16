@@ -264,8 +264,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 style={styles.icon}
                 source={
                   flash === 'on'
-                    ? iconProps?.flashOn ?? Images.flashOn
-                    : iconProps?.flashOff ?? Images.flashOff
+                    ? (iconProps?.flashOn ?? Images.flashOn)
+                    : (iconProps?.flashOff ?? Images.flashOff)
                 }
               />
             </TouchableOpacity>

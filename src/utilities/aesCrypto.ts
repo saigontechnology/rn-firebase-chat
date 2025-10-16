@@ -2,10 +2,7 @@
  * Created by NL on 5/31/23.
  */
 import Aes from 'react-native-aes-crypto';
-import {
-  DEFAULT_ITERATIONS,
-  DEFAULT_KEY_LENGTH,
-} from '../constants';
+import { DEFAULT_ITERATIONS, DEFAULT_KEY_LENGTH } from '../constants';
 import type { EncryptionOptions } from '../interfaces';
 
 const generateKey = (

@@ -1,4 +1,9 @@
-import React, { createContext, PropsWithChildren, useEffect, useReducer } from 'react';
+import React, {
+  createContext,
+  PropsWithChildren,
+  useEffect,
+  useReducer,
+} from 'react';
 import { FirestoreServices, createUserProfile } from '../services/firebase';
 import type { IChatContext } from '../interfaces';
 import {
@@ -44,8 +49,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   }, [userInfo]);
 
   useEffect(() => {
-    encryptionFuncProps &&
+    if (encryptionFuncProps) {
       firestoreServices.createEncryptionsFunction(encryptionFuncProps);
+    }
     if (props.enableEncrypt && props.encryptKey) {
       firestoreServices.configurationEncryption({
         encryptKey: props.encryptKey,

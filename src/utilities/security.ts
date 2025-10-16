@@ -39,13 +39,15 @@ export const validateFilePath = (filePath: string): boolean => {
   ];
 
   const normalizedPath = filePath.toLowerCase();
-  return !dangerousPatterns.some(pattern => normalizedPath.includes(pattern));
+  return !dangerousPatterns.some((pattern) => normalizedPath.includes(pattern));
 };
 
 /**
  * Validates encryption key strength
  */
-export const validateEncryptionKey = (key: string): {
+export const validateEncryptionKey = (
+  key: string
+): {
   isValid: boolean;
   errors: string[];
 } => {
@@ -81,7 +83,9 @@ export const validateEncryptionKey = (key: string): {
 /**
  * Validates message content
  */
-export const validateMessage = (message: string): {
+export const validateMessage = (
+  message: string
+): {
   isValid: boolean;
   errors: string[];
 } => {
@@ -136,7 +140,7 @@ export class RateLimiter {
     const attempts = this.attempts.get(identifier) || [];
 
     // Remove old attempts outside the window
-    const validAttempts = attempts.filter(time => now - time < this.windowMs);
+    const validAttempts = attempts.filter((time) => now - time < this.windowMs);
 
     if (validAttempts.length >= this.maxAttempts) {
       return false;

@@ -31,7 +31,7 @@ export const chatReducer = (
         ...state,
         conversation: undefined,
       };
-    case ChatActionKind.UPDATE_CONVERSATION:
+    case ChatActionKind.UPDATE_CONVERSATION: {
       const message = action.payload as ConversationProps;
       const isExistID = state.listConversation?.some(
         (item) => item.id === message.id
@@ -52,5 +52,6 @@ export const chatReducer = (
         ...state,
         listConversation: newListConversation,
       };
+    }
   }
 };

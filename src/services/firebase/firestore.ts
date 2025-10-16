@@ -14,8 +14,6 @@ import {
   generateEncryptionKey,
   getCurrentTimestamp,
   getMediaTypeFromExtension,
-  decryptedMessageData,
-  getTextMessage,
   validateUserId,
   validateEncryptionKey,
   validateMessage,
@@ -42,11 +40,11 @@ type PropsWithEncryption = {
   enableEncrypt: true;
   encryptionOptions: EncryptionOptions;
   encryptKey?: string;
-}
+};
 
 type PropsWithoutEncryption = {
   enableEncrypt: false;
-}
+};
 
 type FirestoreEncryptionProps = PropsWithEncryption | PropsWithoutEncryption;
 
@@ -56,7 +54,7 @@ type FirestoreBaseProps = {
   blackListWords?: string[];
   encryptionFuncProps?: EncryptionFunctions;
   prefix?: string;
-}
+};
 
 export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
 
@@ -132,7 +130,6 @@ export class FirestoreServices {
       this.regexBlacklist = generateBadWordsRegex(blackListWords);
     }
 
-
     if (prefix) {
       this.prefix = prefix;
     }
@@ -184,7 +181,7 @@ export class FirestoreServices {
       FirestoreProps,
       // We remove these the props because they are converted to different props name
       'blackListWords' | 'encryptionOptions' | 'encryptionFuncProps'
-    >
+    >,
   >(
     key: K
   ) => this[key];
@@ -277,7 +274,7 @@ export class FirestoreServices {
     image?: string,
     isGroup?: boolean
   ): Promise<ConversationProps> => {
-    let conversationData: Partial<ConversationProps> = {
+    const conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
       updatedAt: getCurrentTimestamp(),
@@ -581,84 +578,87 @@ export class FirestoreServices {
     }
   };
 
-  getMessageHistory = (maxPageSize: number) => {
-    let listMessage: Awaited<MessageProps>[] = [];
-    return new Promise<Array<MessageProps>>(async (resolve) => {
-      if (!this.userInfo) {
-        resolve(listMessage);
-        return;
-      }
-      const querySnapshot = await firestore()
-        .collection<MessageProps>(
-          this.getUrlWithPrefix(
-            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-          )
+  getMessageHistory = async (maxPageSize: number) => {
+    const listMessage: Awaited<MessageProps>[] = [];
+
+    if (!this.userInfo) {
+      return listMessage;
+    }
+
+    const querySnapshot = await firestore()
+      .collection<MessageProps>(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
-        .orderBy('createdAt', 'desc')
-        .limit(maxPageSize)
-        .get();
-      for (const doc of querySnapshot.docs) {
-        const data = { ...doc.data(), id: doc.id };
-        const userInfo =
-          data.senderId === this.userInfo?.id
-            ? this.userInfo
-            : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(
-          await formatMessageData(
-            data,
-            userInfo,
-            this.regexBlacklist,
-            this.encryptKey,
-            this.decryptFunctionProp
-          )
-        );
-      }
-      if (listMessage.length > 0) {
-        this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
-      }
-      resolve(listMessage);
-    });
+      )
+      .orderBy('createdAt', 'desc')
+      .limit(maxPageSize)
+      .get();
+
+    for (const doc of querySnapshot.docs) {
+      const data = { ...doc.data(), id: doc.id };
+      const userInfo =
+        data.senderId === this.userInfo?.id
+          ? this.userInfo
+          : (this.partners?.[doc.data().senderId] as IUserInfo);
+      listMessage.push(
+        await formatMessageData(
+          data,
+          userInfo,
+          this.regexBlacklist,
+          this.encryptKey,
+          this.decryptFunctionProp
+        )
+      );
+    }
+
+    if (listMessage.length > 0) {
+      this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
+    }
+
+    return listMessage;
   };
 
-  getMoreMessage = (maxPageSize: number) => {
-    let listMessage: Awaited<MessageProps>[] = [];
-    return new Promise<Array<MessageProps>>(async (resolve) => {
-      if (!this.userInfo || !this.messageCursor) {
-        resolve(listMessage);
-        return;
-      }
-      const querySnapshot = await firestore()
-        .collection<MessageProps>(
-          this.getUrlWithPrefix(
-            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-          )
-        )
-        .orderBy('createdAt', 'desc')
-        .limit(maxPageSize)
-        .startAfter(this.messageCursor)
-        .get();
+  getMoreMessage = async (maxPageSize: number) => {
+    const listMessage: Awaited<MessageProps>[] = [];
 
-      for (const doc of querySnapshot.docs) {
-        const data = { ...doc.data(), id: doc.id };
-        const userInfo =
-          data.senderId === this.userInfo?.id
-            ? this.userInfo
-            : (this.partners?.[doc.data().senderId] as IUserInfo);
-        listMessage.push(
-          await formatMessageData(
-            data,
-            userInfo,
-            this.regexBlacklist,
-            this.encryptKey,
-            this.decryptFunctionProp
-          )
-        );
-      }
-      if (listMessage.length > 0) {
-        this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
-      }
-      resolve(listMessage);
-    });
+    if (!this.userInfo || !this.messageCursor) {
+      return listMessage;
+    }
+
+    const querySnapshot = await firestore()
+      .collection<MessageProps>(
+        this.getUrlWithPrefix(
+          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+        )
+      )
+      .orderBy('createdAt', 'desc')
+      .limit(maxPageSize)
+      .startAfter(this.messageCursor)
+      .get();
+
+    for (const doc of querySnapshot.docs) {
+      const data = { ...doc.data(), id: doc.id };
+      const userInfo =
+        data.senderId === this.userInfo?.id
+          ? this.userInfo
+          : (this.partners?.[doc.data().senderId] as IUserInfo);
+      listMessage.push(
+        await formatMessageData(
+          data,
+          userInfo,
+          this.regexBlacklist,
+          this.encryptKey,
+          this.decryptFunctionProp
+        )
+      );
+    }
+
+    if (listMessage.length > 0) {
+      this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
+    }
+
+    return listMessage;
   };
 
   receiveMessageListener = (

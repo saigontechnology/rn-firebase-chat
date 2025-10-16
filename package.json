@@ -2,6 +2,7 @@
   "name": "rn-firebase-chat",
   "version": "0.6.3",
   "description": "React Native Firebase Chat",
+  "type": "module",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
@@ -23,7 +24,7 @@
     "release": "release-it",
     "release:dry": "release-it --dry-run",
     "release:ci": "release-it --ci",
-    "release:check": "node scripts/check-release.js",
+    "release:check": "node scripts/check-release.cjs",
     "example": "yarn --cwd example",
     "bootstrap": "yarn example && yarn install && yarn example pods"
   },
@@ -73,6 +74,8 @@
     "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "jest": "^30.0.3",
     "metro-react-native-babel-preset": "^0.77.0",
     "pod-install": "^0.3.9",
@@ -89,7 +92,8 @@
     "react-native-video": "^6.15.0",
     "react-native-vision-camera": "^4.7.0",
     "release-it": "^19.0.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.0.0"
   },
   "resolutions": {
     "@types/react-native": "0.73.0",
@@ -99,9 +103,9 @@
     "@react-native-firebase/app": "*",
     "@react-native-firebase/firestore": "*",
     "@react-native-firebase/storage": "*",
+    "randomcolor": "*",
     "react": "*",
     "react-native": "*",
-    "randomcolor": "*",
     "react-native-aes-crypto": "*",
     "react-native-gifted-chat": "*",
     "react-native-image-picker": "*",
@@ -122,7 +126,7 @@
       "node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js"
+      "<rootDir>/jest.setup.cjs"
     ]
   },
   "commitlint": {

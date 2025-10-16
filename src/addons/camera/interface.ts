@@ -101,7 +101,12 @@ export interface MediaProcessingOptions {
   watermark?: {
     text?: string;
     image?: ImageSourcePropType;
-    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+    position?:
+      | 'top-left'
+      | 'top-right'
+      | 'bottom-left'
+      | 'bottom-right'
+      | 'center';
   };
   filters?: string[]; // Array of filter names
 }
@@ -119,5 +124,8 @@ export type CameraAnalyticsEvent =
   | 'error_occurred';
 
 export interface CameraAnalytics {
-  trackEvent: (event: CameraAnalyticsEvent, properties?: Record<string, any>) => void;
+  trackEvent: (
+    event: CameraAnalyticsEvent,
+    properties?: Record<string, unknown>
+  ) => void;
 }
