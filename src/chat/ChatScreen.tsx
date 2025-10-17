@@ -6,13 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  KeyboardAvoidingView,
-  type StyleProp,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
 import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
@@ -327,26 +321,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <KeyboardAvoidingView style={styles.container}>
-        <GiftedChat
-          messages={messagesList}
-          onSend={(messages) => onSend(messages[0] as MessageProps)}
-          user={{
-            _id: userInfo?.id || '',
-            ...userInfo,
-          }}
-          keyboardShouldPersistTaps={'never'}
-          infiniteScroll
-          loadEarlier={hasMoreMessages}
-          renderChatFooter={() => <TypingIndicator />}
-          onLoadEarlier={onLoadEarlier}
-          renderComposer={inputToolbar}
-          renderBubble={renderBubble}
-          onInputTextChanged={handleTextChange}
-          isTyping={isTyping}
-          {...props}
-        />
-      </KeyboardAvoidingView>
+      <GiftedChat
+        messages={messagesList}
+        onSend={(messages) => onSend(messages[0] as MessageProps)}
+        user={{
+          _id: userInfo?.id || '',
+          ...userInfo,
+        }}
+        keyboardShouldPersistTaps={'never'}
+        infiniteScroll
+        loadEarlier={hasMoreMessages}
+        renderChatFooter={() => <TypingIndicator />}
+        onLoadEarlier={onLoadEarlier}
+        renderComposer={inputToolbar}
+        renderBubble={renderBubble}
+        onInputTextChanged={handleTextChange}
+        isTyping={isTyping}
+        {...props}
+      />
       <SelectedImageModal
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}

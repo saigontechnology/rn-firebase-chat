@@ -2,10 +2,10 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  ScrollView,
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TextInputProps,
 } from 'react-native';
 import {
   Composer,
@@ -36,6 +36,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   iconStyle?: StyleProp<ImageStyle>;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  composerTextInputProps?: Partial<TextInputProps>;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -52,6 +53,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   iconStyle,
   renderLeftCustomView,
   renderRightCustomView,
+  composerTextInputProps,
   ...props
 }) => {
   const { onSend, text } = props;
@@ -85,12 +87,15 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         />
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
-        <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={[styles.textInput, composerTextInputStyle]}
-          />
-        </ScrollView>
+        <Composer
+          {...props}
+          multiline={true}
+          textInputProps={{
+            style: styles.textInputContainer,
+            ...composerTextInputProps,
+          }}
+          textInputStyle={[styles.textInput, composerTextInputStyle]}
+        />
       </View>
       {!!text && (
         <PressableIcon
@@ -106,31 +111,45 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
 const styles = StyleSheet.create({
   container: {
+    gap: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 3,
   },
   composeWrapper: {
     flex: 1,
     borderRadius: 22,
-    backgroundColor: 'lightgray',
-    paddingLeft: 10,
-    paddingRight: 20,
+    backgroundColor: '#F0F2F5',
+    paddingHorizontal: 16,
+
     flexDirection: 'row',
-    marginRight: 10,
+    minHeight: 44,
+    alignItems: 'center',
+  },
+  textInputContainer: {
+    maxHeight: 80,
+    marginVertical: 4,
   },
   textInput: {
-    marginHorizontal: 20,
     lineHeight: 20,
+    fontSize: 16,
   },
   marginWrapperView: {
     marginRight: 10,
   },
   iconStyleDefault: {
-    width: 28,
-    height: 28,
-    marginHorizontal: 12,
+    width: 24,
+    height: 24,
+    tintColor: '#7cb518',
   },
 });
 

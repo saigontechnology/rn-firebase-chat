@@ -86,10 +86,85 @@ const partnerInfo = {
 
 export const ChatScreen: React.FC = () => {
   return (
-    <BaseChatScreen memberIds={[partnerInfo.id]} partners={[partnerInfo]} />
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+      messageStatusEnable={true}
+      enableTyping={true}
+    />
   );
 };
 ```
+
+## Customization
+
+The ChatScreen component provides extensive customization options for styling and behavior:
+
+### Input Toolbar Customization
+
+```javascript
+export const ChatScreen: React.FC = () => {
+  return (
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+    />
+  );
+};
+```
+
+### Message Status Customization
+
+```javascript
+export const ChatScreen: React.FC = () => {
+  const customMessageStatus = (hasUnread: boolean) => (
+    <View style={{ backgroundColor: hasUnread ? '#ff6b6b' : '#51cf66', borderRadius: 8, padding: 4 }}>
+      <Text style={{ color: 'white', fontSize: 10 }}>
+        {hasUnread ? '✓' : '✓✓'}
+      </Text>
+    </View>
+  );
+
+  return (
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+      messageStatusEnable={true}
+      unReadSentMessage="Delivered"
+      unReadSeenMessage="Read"
+      customMessageStatus={customMessageStatus}
+    />
+  );
+};
+```
+
+### Bubble Customization
+
+````javascript
+export const ChatScreen: React.FC = () => {
+  return (
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}4
+    />
+  );
+};
+`
+
+### Typing Indicator
+
+```javascript
+export const ChatScreen: React.FC = () => {
+  return (
+    <BaseChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+      enableTyping={true}
+      typingTimeoutSeconds={3}
+    />
+  );
+};
+````
 
 ## Addons
 
@@ -139,6 +214,80 @@ export const ChatScreen: React.FC = () => {
 }
 
 ```
+
+## API Reference
+
+### ChatScreen Props
+
+| Prop                          | Type                                        | Default      | Description                                         |
+| ----------------------------- | ------------------------------------------- | ------------ | --------------------------------------------------- |
+| `memberIds`                   | `string[]`                                  | **Required** | Array of user IDs participating in the conversation |
+| `partners`                    | `IUserInfo[]`                               | **Required** | Array of partner user information                   |
+| `style`                       | `StyleProp<ViewStyle>`                      | `undefined`  | Custom style for the main container                 |
+| `onStartLoad`                 | `() => void`                                | `undefined`  | Callback when loading starts                        |
+| `onLoadEnd`                   | `() => void`                                | `undefined`  | Callback when loading ends                          |
+| `maxPageSize`                 | `number`                                    | `20`         | Maximum number of messages to load per page         |
+| `inputToolbarProps`           | `IInputToolbar`                             | `undefined`  | Props for customizing the input toolbar             |
+| `customConversationInfo`      | `CustomConversationInfo`                    | `undefined`  | Custom conversation information                     |
+| `customImageVideoBubbleProps` | `CustomImageVideoBubbleProps`               | `undefined`  | Props for customizing image/video bubbles           |
+| `customContainerStyle`        | `StyleProp<ViewStyle>`                      | `undefined`  | Custom style for message containers                 |
+| `customTextStyle`             | `StyleProp<ViewStyle>`                      | `undefined`  | Custom style for message text                       |
+| `unReadSentMessage`           | `string`                                    | `"Sent"`     | Text to display for unread sent messages            |
+| `unReadSeenMessage`           | `string`                                    | `"Seen"`     | Text to display for read messages                   |
+| `sendMessageNotification`     | `() => void`                                | `undefined`  | Callback for sending push notifications             |
+| `timeoutSendNotify`           | `number`                                    | `5000`       | Timeout before sending notification (ms)            |
+| `enableTyping`                | `boolean`                                   | `true`       | Enable typing indicator functionality               |
+| `typingTimeoutSeconds`        | `number`                                    | `3`          | Timeout for typing indicator (seconds)              |
+| `messageStatusEnable`         | `boolean`                                   | `true`       | Enable message status indicators                    |
+| `customMessageStatus`         | `(hasUnread: boolean) => React.JSX.Element` | `undefined`  | Custom message status component                     |
+
+### InputToolbar Props
+
+| Prop                     | Type                                      | Default       | Description                      |
+| ------------------------ | ----------------------------------------- | ------------- | -------------------------------- |
+| `hasCamera`              | `boolean`                                 | `false`       | Show camera button               |
+| `hasGallery`             | `boolean`                                 | `false`       | Show gallery button              |
+| `onPressCamera`          | `() => void`                              | `undefined`   | Camera button press handler      |
+| `onPressGallery`         | `() => Promise<ImagePickerValue \| void>` | `undefined`   | Gallery button press handler     |
+| `containerStyle`         | `StyleProp<ViewStyle>`                    | `undefined`   | Style for the main container     |
+| `composeWrapperStyle`    | `StyleProp<ViewStyle>`                    | `undefined`   | Style for the text input wrapper |
+| `composerTextInputStyle` | `StyleProp<ViewStyle>`                    | `undefined`   | Style for the text input         |
+| `customViewStyle`        | `StyleProp<ViewStyle>`                    | `undefined`   | Style for custom views           |
+| `cameraIcon`             | `string`                                  | Built-in icon | Custom camera icon               |
+| `galleryIcon`            | `string`                                  | Built-in icon | Custom gallery icon              |
+| `iconSend`               | `string`                                  | Built-in icon | Custom send icon                 |
+| `iconStyle`              | `StyleProp<ImageStyle>`                   | `undefined`   | Style for all icons              |
+| `renderLeftCustomView`   | `() => React.ReactNode`                   | `undefined`   | Custom component on the left     |
+| `renderRightCustomView`  | `() => React.ReactNode`                   | `undefined`   | Custom component on the right    |
+| `composerTextInputProps` | `Partial<TextInputProps>`                 | `undefined`   | Additional TextInput props       |
+
+### MessageStatus Props
+
+| Prop                   | Type                                        | Default      | Description                   |
+| ---------------------- | ------------------------------------------- | ------------ | ----------------------------- |
+| `userUnreadMessage`    | `boolean`                                   | **Required** | Whether the message is unread |
+| `customContainerStyle` | `StyleProp<ViewStyle>`                      | `undefined`  | Custom container style        |
+| `customTextStyle`      | `StyleProp<TextStyle>`                      | `undefined`  | Custom text style             |
+| `unReadSentMessage`    | `string`                                    | `"Sent"`     | Text for unread messages      |
+| `unReadSeenMessage`    | `string`                                    | `"Seen"`     | Text for read messages        |
+| `customMessageStatus`  | `(hasUnread: boolean) => React.JSX.Element` | `undefined`  | Custom status component       |
+
+### CustomBubble Props
+
+| Prop                          | Type                                        | Default      | Description                      |
+| ----------------------------- | ------------------------------------------- | ------------ | -------------------------------- |
+| `bubbleMessage`               | `BubbleProps<MessageProps>`                 | **Required** | Bubble message props             |
+| `position`                    | `'left' \| 'right'`                         | **Required** | Bubble position                  |
+| `customImageVideoBubbleProps` | `CustomImageVideoBubbleProps`               | `undefined`  | Image/video bubble customization |
+| `onSelectedMessage`           | `(message: MessageProps) => void`           | **Required** | Message selection handler        |
+| `userUnreadMessage`           | `boolean`                                   | **Required** | Whether message is unread        |
+| `customContainerStyle`        | `StyleProp<ViewStyle>`                      | `undefined`  | Custom container style           |
+| `customTextStyle`             | `StyleProp<ViewStyle>`                      | `undefined`  | Custom text style                |
+| `unReadSentMessage`           | `string`                                    | `undefined`  | Unread message text              |
+| `unReadSeenMessage`           | `string`                                    | `undefined`  | Read message text                |
+| `messageStatusEnable`         | `boolean`                                   | **Required** | Enable message status            |
+| `customMessageStatus`         | `(hasUnread: boolean) => React.JSX.Element` | `undefined`  | Custom status component          |
+| `customBubbleWrapperStyle`    | `StyleProp<ViewStyle>`                      | `undefined`  | Custom bubble wrapper style      |
 
 ## Contributing
 
