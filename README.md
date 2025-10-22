@@ -13,13 +13,13 @@ npm install rn-firebase-chat
 - Using [npm](https://www.npmjs.com/#getting-started):
 
 ```sh
-npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller --save
+npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-gesture-handler react-native-keyboard-controller --save
 ```
 
 - Using [Yarn](https://yarnpkg.com/):
 
 ```sh
-yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller
+yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-gesture-handler react-native-keyboard-controller
 ```
 
 If you're using Expo, please follow the dedicated setup guide to configure `plugins` in your `app.config.ts` and add Firebase files for Android and iOS:
