@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Text,
   LayoutAnimation,
+  TextInput,
+  Pressable,
   TextInputProps,
 } from 'react-native';
 import {
@@ -65,6 +67,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 }) => {
   const { onSend, text } = props;
   const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const textInputRef = useRef<TextInput>(null);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
@@ -83,6 +86,10 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   const handleChevronPress = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShowMediaOptions((prev) => !prev);
+  };
+
+  const handleWrapperPress = () => {
+    textInputRef.current?.focus();
   };
 
   return (
@@ -127,17 +134,22 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           )}
         </>
       )}
-      <View style={[styles.composeWrapper, composeWrapperStyle]}>
+      <Pressable
+        style={[styles.composeWrapper, composeWrapperStyle]}
+        onPress={handleWrapperPress}
+      >
         <Composer
           {...props}
           multiline={true}
           textInputProps={{
             style: styles.textInputContainer,
             ...composerTextInputProps,
+            // @ts-expect-error - ref is supported but not in type definition
+            ref: textInputRef,
           }}
           textInputStyle={[styles.textInput, composerTextInputStyle]}
         />
-      </View>
+      </Pressable>
       {!!text && (
         <PressableIcon
           iconStyle={flattenedIconStyle}
