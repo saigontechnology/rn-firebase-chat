@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TouchableOpacity,
+  Text,
+  LayoutAnimation,
   TextInputProps,
 } from 'react-native';
 import {
@@ -34,6 +37,8 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  chevronIcon?: string;
+  chevronIconStyle?: StyleProp<ImageStyle>;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
   composerTextInputProps?: Partial<TextInputProps>;
@@ -51,40 +56,76 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  chevronIcon,
+  chevronIconStyle,
   renderLeftCustomView,
   renderRightCustomView,
   composerTextInputProps,
   ...props
 }) => {
   const { onSend, text } = props;
+  const [showMediaOptions, setShowMediaOptions] = useState(false);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
     iconStyle,
   ]);
 
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (text) {
+      setShowMediaOptions(true);
+    } else {
+      setShowMediaOptions(false);
+    }
+  }, [text]);
+
+  const handleChevronPress = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowMediaOptions((prev) => !prev);
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
-      {hasCamera && (
-        <PressableIcon
-          icon={cameraIcon}
-          iconStyle={flattenedIconStyle}
-          onPress={onPressCamera}
-        />
-      )}
-      {hasGallery && (
-        <PressableIcon
-          onPress={() =>
-            onPressGallery?.().then((res) => {
-              if (res) {
-                onSend?.(res, true);
+      {showMediaOptions && (hasCamera || hasGallery) ? (
+        <TouchableOpacity
+          onPress={handleChevronPress}
+          style={styles.chevronButton}
+        >
+          {chevronIcon ? (
+            <PressableIcon
+              icon={chevronIcon}
+              iconStyle={chevronIconStyle}
+              onPress={handleChevronPress}
+            />
+          ) : (
+            <Text style={styles.chevronText}>›</Text>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <>
+          {hasCamera && (
+            <PressableIcon
+              icon={cameraIcon}
+              iconStyle={flattenedIconStyle}
+              onPress={onPressCamera}
+            />
+          )}
+          {hasGallery && (
+            <PressableIcon
+              onPress={() =>
+                onPressGallery?.().then((res) => {
+                  if (res) {
+                    onSend?.(res, true);
+                  }
+                })
               }
-            })
-          }
-          icon={galleryIcon}
-          iconStyle={flattenedIconStyle}
-        />
+              icon={galleryIcon}
+              iconStyle={flattenedIconStyle}
+            />
+          )}
+        </>
       )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <Composer
@@ -150,6 +191,18 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: '#7cb518',
+  },
+  chevronButton: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chevronText: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#7cb518',
+    lineHeight: 28,
   },
 });
 
