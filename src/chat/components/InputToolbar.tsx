@@ -39,8 +39,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
-  chevronIcon?: string;
-  chevronIconStyle?: StyleProp<ImageStyle>;
+  expandIcon?: () => React.ReactNode;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
   composerTextInputProps?: Partial<TextInputProps>;
@@ -58,15 +57,14 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
-  chevronIcon,
-  chevronIconStyle,
+  expandIcon,
   renderLeftCustomView,
   renderRightCustomView,
   composerTextInputProps,
   ...props
 }) => {
   const { onSend, text } = props;
-  const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const textInputRef = useRef<TextInput>(null);
 
   const flattenedIconStyle = StyleSheet.flatten([
@@ -76,16 +74,12 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    if (text) {
-      setShowMediaOptions(true);
-    } else {
-      setShowMediaOptions(false);
-    }
+    setShowOptions(!!text);
   }, [text]);
 
   const handleChevronPress = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setShowMediaOptions((prev) => !prev);
+    setShowOptions((prev) => !prev);
   };
 
   const handleWrapperPress = () => {
@@ -95,17 +89,13 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
-      {showMediaOptions && (hasCamera || hasGallery) ? (
+      {showOptions && (hasCamera || hasGallery) ? (
         <TouchableOpacity
           onPress={handleChevronPress}
           style={styles.chevronButton}
         >
-          {chevronIcon ? (
-            <PressableIcon
-              icon={chevronIcon}
-              iconStyle={chevronIconStyle}
-              onPress={handleChevronPress}
-            />
+          {expandIcon ? (
+            expandIcon()
           ) : (
             <Text style={styles.chevronText}>›</Text>
           )}
