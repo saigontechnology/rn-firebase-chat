@@ -74,6 +74,7 @@ Notes:
 - `expo-build-properties` is required for `ios.useFrameworks = "static"` to support some native modules.
 - `@react-native-firebase/app` config enables Firebase auto-configuration.
 - `react-native-video` and `react-native-vision-camera` require native configuration when prebuilding.
+- `buildReactNativeFromSource: true` is required to fix Firebase build issues with non-modular headers.
 
 ### 3) Add Firebase configuration files
 
@@ -94,7 +95,38 @@ android: {
 },
 ```
 
-### 4) Prebuild and run
+### 4) Troubleshooting
+
+#### Firebase Build Error: "include of non-modular header inside framework module"
+
+If you encounter this error during iOS build:
+
+```
+❌  (/path/to/node_modules/@react-native-firebase/app/ios/RNFBApp/RCTConvert+FIRApp.h:19:9)
+
+  17 | 
+  18 | #import <FirebaseCore/FirebaseCore.h>
+> 19 | #import <React/RCTConvert.h>
+     |         ^ include of non-modular header inside framework module 'RNFBApp.RCTConvert_FIRApp': '/path/to/ios/Pods/Headers/Public/React-Core/React/RCTConvert.h' [-Werror,-Wnon-modular-include-in-framework-module]
+```
+
+**Solution:** Add `buildReactNativeFromSource: true` to your `expo-build-properties` configuration:
+
+```ts
+[
+  'expo-build-properties',
+  {
+    ios: {
+      useFrameworks: 'static',
+      buildReactNativeFromSource: true, // Add this line
+    },
+  },
+],
+```
+
+This forces React Native to build from source, resolving the modular header conflict with Firebase.
+
+### 5) Prebuild and run
 
 If you are using the managed workflow, run prebuild to generate native projects with the configured plugins:
 
