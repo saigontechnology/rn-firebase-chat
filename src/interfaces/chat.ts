@@ -12,4 +12,4 @@ export type IChatContext = {
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;
   CustomImageComponent?: React.ComponentType<ImageProps>;
-} & FirestoreProps
+} & FirestoreProps;

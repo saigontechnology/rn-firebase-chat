@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import { Bubble } from 'react-native-gifted-chat';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
@@ -27,7 +27,6 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   bubbleMessage,
   position,
   customImageVideoBubbleProps,
-  onSelectedMessage,
   userUnreadMessage,
   customContainerStyle,
   customTextStyle,

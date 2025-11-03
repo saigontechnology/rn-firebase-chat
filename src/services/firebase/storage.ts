@@ -6,7 +6,7 @@ const uploadFileToFirebase = (
   extension: string
 ) => {
   const fileName = `${conversation}/${new Date().getTime()}.${extension}`;
-  let storageRef = storage().ref(fileName);
+  const storageRef = storage().ref(fileName);
   return storageRef.putFile(path);
 };
 

@@ -17,6 +17,7 @@ const defaultHitSlop = {
 };
 
 export const PressableIcon: React.FC<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any;
   style?: StyleProp<ViewStyle>;
   iconStyle?: StyleProp<ImageStyle>;

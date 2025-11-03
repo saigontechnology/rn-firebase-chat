@@ -1,17 +1,25 @@
 import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
+import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
+  {
+    ignores: [
+      'node_modules/**',
+      'lib/**',
+      'example/**',
+      'scripts/**',
+      'coverage/**',
+    ],
+  },
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
-    ignores: ['node_modules/', 'lib/', 'example/', 'scripts/'],
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -21,13 +29,11 @@ export default [
       },
     },
     plugins: {
-      '@typescript-eslint': tsPlugin,
-      react: reactPlugin,
+      'react': reactPlugin,
       'react-hooks': reactHooksPlugin,
-      prettier: prettierPlugin,
+      'prettier': prettierPlugin,
     },
     rules: {
-      ...tsPlugin.configs.recommended.rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       'prettier/prettier': [
@@ -41,20 +47,27 @@ export default [
         },
       ],
       '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-shadow': ['error'],
       '@typescript-eslint/no-empty-interface': 'warn',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
       'react-hooks/exhaustive-deps': 'warn',
       'react/prop-types': 'off',
       'react/display-name': 'off',
       'no-shadow': 'off',
       'no-undef': 'off',
-      semi: 'off',
+      'semi': 'off',
       'comma-dangle': 'off',
     },
     settings: {
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ];

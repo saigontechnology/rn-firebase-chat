@@ -20,6 +20,7 @@ const ImageURL = {
   gallery: require('../../images/gallery.png'),
   send: require('../../images/send.png'),
 };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
   hasGallery?: boolean;
