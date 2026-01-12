@@ -3,3 +3,4 @@ export * from './ChatScreen';
 export * from './ListConversationScreen';
 export * from './GalleryScreen';
 export * from './ErrorBoundary';
+export * from './components/SearchBar';
