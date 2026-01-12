@@ -26,12 +26,8 @@ export interface ISearchBarProps extends Omit<TextInputProps, 'style'> {
   containerStyle?: StyleProp<ViewStyle>;
   /** Style for the text input */
   inputStyle?: StyleProp<TextStyle>;
-  /** Left icon source (e.g., search icon) */
-  leftIcon?: string;
-  /** Style for the left icon */
-  leftIconStyle?: StyleProp<ImageStyle>;
-  /** Callback when left icon is pressed */
-  onLeftIconPress?: () => void;
+  /** Custom left search icon component */
+  renderLeftSearchIcon?: () => React.ReactNode;
   /** Style for the clear icon */
   clearIconStyle?: StyleProp<ImageStyle>;
   /** Custom clear icon source */
@@ -48,9 +44,7 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
   placeholder = 'Search...',
   containerStyle,
   inputStyle,
-  leftIcon,
-  leftIconStyle,
-  onLeftIconPress,
+  renderLeftSearchIcon,
   clearIconStyle,
   clearIcon = ImageURL.close,
   showClearButton = true,
@@ -64,16 +58,13 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {leftIcon && (
-        <PressableIcon
-          icon={leftIcon}
-          iconStyle={[styles.leftIcon, leftIconStyle]}
-          onPress={onLeftIconPress}
-          disabled={!onLeftIconPress}
-        />
-      )}
+      {renderLeftSearchIcon?.()}
       <TextInput
-        style={[styles.input, leftIcon && styles.inputWithLeftIcon, inputStyle]}
+        style={[
+          styles.input,
+          renderLeftSearchIcon && styles.inputWithLeftIcon,
+          inputStyle,
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -113,11 +104,6 @@ const styles = StyleSheet.create({
   },
   inputWithLeftIcon: {
     marginLeft: 8,
-  },
-  leftIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#999',
   },
   clearIcon: {
     width: 18,
