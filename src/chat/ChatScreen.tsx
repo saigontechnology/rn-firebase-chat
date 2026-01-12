@@ -62,6 +62,8 @@ interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
   children?: (props: ChildrenProps) => ReactNode | ReactNode;
+  /** Whether this is a group conversation. When true, all members see the same conversation name/image. */
+  isGroup?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -80,6 +82,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  isGroup = false,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -145,8 +148,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           image: partners[0]?.avatar,
           ...(customConversationInfo || {}),
         };
-        // We identify a group chat if the conversation have custom-info
-        const isGroup = !!customConversationInfo;
         conversationRef.current = await firebaseInstance.createConversation(
           newConversationInfo.id,
           memberIds,
@@ -182,6 +183,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       memberIds,
       partners,
       sendMessageNotification,
+      isGroup,
     ]
   );
 
