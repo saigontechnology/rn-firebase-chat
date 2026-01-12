@@ -830,58 +830,28 @@ export class FirestoreServices {
   };
 
   /**
-   * Search conversations by name using Firebase query.
-   * Uses prefix matching for the conversation name field.
-   * @param searchText The text to search for in conversation names
+   * Search conversations by name or latest message text.
+   * Fetches all conversations for the current user and filters client-side.
+   * This approach is used because Firebase doesn't support case-insensitive
+   * or full-text search natively.
+   *
+   * @param searchText The text to search for in conversation names or messages
    * @returns Promise resolving to filtered conversations
    */
   searchConversations = async (
     searchText: string
   ): Promise<ConversationProps[]> => {
-    const listChannels: ConversationProps[] = [];
-
     if (!searchText.trim()) {
       return this.getListConversation();
     }
 
     const normalizedSearch = searchText.toLowerCase().trim();
-    // Firebase prefix search: name >= searchText AND name <= searchText + '\uf8ff'
-    // '\uf8ff' is a high Unicode character that comes after most regular characters
-    const endSearch = normalizedSearch + '\uf8ff';
 
     try {
-      const querySnapshot = await firestore()
-        .collection<Partial<ConversationProps>>(
-          this.getUrlWithPrefix(
-            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-          )
-        )
-        .orderBy('name')
-        .where('name', '>=', normalizedSearch)
-        .where('name', '<=', endSearch)
-        .get();
-
-      for (const doc of querySnapshot.docs) {
-        const data = { ...doc.data(), id: doc.id };
-        const message = {
-          ...data,
-          latestMessage: data.latestMessage
-            ? await formatMessageText(
-                data?.latestMessage,
-                this.regexBlacklist,
-                this.encryptKey,
-                this.decryptFunctionProp
-              )
-            : data.latestMessage,
-        } as ConversationProps;
-        listChannels.push(message);
-      }
-
-      return listChannels;
-    } catch (error) {
-      console.error('Error searching conversations:', error);
-      // Fallback to client-side filtering if Firebase query fails
+      // Fetch all conversations for the current user
       const allConversations = await this.getListConversation();
+
+      // Filter conversations by name or latest message text (case-insensitive)
       return allConversations.filter(
         (conversation) =>
           conversation.name?.toLowerCase().includes(normalizedSearch) ||
@@ -889,6 +859,9 @@ export class FirestoreServices {
             ?.toLowerCase()
             .includes(normalizedSearch)
       );
+    } catch (error) {
+      console.error('Error searching conversations:', error);
+      return [];
     }
   };
 

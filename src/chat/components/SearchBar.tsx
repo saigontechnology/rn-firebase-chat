@@ -26,6 +26,12 @@ export interface ISearchBarProps extends Omit<TextInputProps, 'style'> {
   containerStyle?: StyleProp<ViewStyle>;
   /** Style for the text input */
   inputStyle?: StyleProp<TextStyle>;
+  /** Left icon source (e.g., search icon) */
+  leftIcon?: string;
+  /** Style for the left icon */
+  leftIconStyle?: StyleProp<ImageStyle>;
+  /** Callback when left icon is pressed */
+  onLeftIconPress?: () => void;
   /** Style for the clear icon */
   clearIconStyle?: StyleProp<ImageStyle>;
   /** Custom clear icon source */
@@ -42,6 +48,9 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
   placeholder = 'Search...',
   containerStyle,
   inputStyle,
+  leftIcon,
+  leftIconStyle,
+  onLeftIconPress,
   clearIconStyle,
   clearIcon = ImageURL.close,
   showClearButton = true,
@@ -55,8 +64,16 @@ export const SearchBar: React.FC<ISearchBarProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
+      {leftIcon && (
+        <PressableIcon
+          icon={leftIcon}
+          iconStyle={[styles.leftIcon, leftIconStyle]}
+          onPress={onLeftIconPress}
+          disabled={!onLeftIconPress}
+        />
+      )}
       <TextInput
-        style={[styles.input, inputStyle]}
+        style={[styles.input, leftIcon && styles.inputWithLeftIcon, inputStyle]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -93,6 +110,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     paddingVertical: 8,
+  },
+  inputWithLeftIcon: {
+    marginLeft: 8,
+  },
+  leftIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#999',
   },
   clearIcon: {
     width: 18,
