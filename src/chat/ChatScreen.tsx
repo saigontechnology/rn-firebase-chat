@@ -37,9 +37,11 @@ import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
-type ChildrenProps = {
+export type ChatScreenChildrenProps = {
   onSend: (messages: MessageProps) => Promise<void>;
 };
+
+type RenderChildren = (props: ChatScreenChildrenProps) => React.ReactNode;
 
 interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   style?: StyleProp<ViewStyle>;
@@ -61,7 +63,8 @@ interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
-  children?: (props: ChildrenProps) => ReactNode | ReactNode;
+  /** Render prop children to access onSend function */
+  children?: RenderChildren;
   /** Whether this is a group conversation. When true, all members see the same conversation name/image. */
   isGroup?: boolean;
 }
@@ -83,6 +86,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
   isGroup = false,
+  children,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -353,9 +357,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
       />
-      {typeof props.children === 'function'
-        ? props.children({ onSend })
-        : props.children}
+      {children?.({ onSend })}
     </View>
   );
 };
