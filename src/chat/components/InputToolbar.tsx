@@ -65,9 +65,11 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     if (!result) return;
 
     if (enableMultiImageSelection && Array.isArray(result)) {
-      // Send multiple images sequentially to avoid Firebase Storage rate limits
-      for (const image of result) {
-        await onSend?.(image, true);
+      // Send multiple images in batches of 2 to avoid Firebase Storage rate limits
+      const batchSize = 2;
+      for (let i = 0; i < result.length; i += batchSize) {
+        const batch = result.slice(i, i + batchSize);
+        await Promise.all(batch.map((image) => onSend?.(image, true)));
       }
     } else if (!Array.isArray(result)) {
       // Single image
