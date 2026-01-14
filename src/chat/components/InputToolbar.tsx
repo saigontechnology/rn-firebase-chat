@@ -65,10 +65,8 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     if (!result) return;
 
     if (enableMultiImageSelection && Array.isArray(result)) {
-      // Send multiple images as separate messages
-      result.forEach((image) => {
-        onSend?.(image, true);
-      });
+      // Send multiple images in parallel
+      await Promise.all(result.map((image) => onSend?.(image, true)));
     } else if (!Array.isArray(result)) {
       // Single image
       onSend?.(result, true);
