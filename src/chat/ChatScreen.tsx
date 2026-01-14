@@ -176,6 +176,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages);
 
+      // Clear any existing notification timeout to prevent multiple notifications
+      // when sending multiple messages (e.g., multi-image selection)
+      if (timeoutMessageRef.current) {
+        clearTimeout(timeoutMessageRef.current);
+      }
       timeoutMessageRef.current = setTimeout(() => {
         sendMessageNotification?.();
       }, timeoutSendNotify);

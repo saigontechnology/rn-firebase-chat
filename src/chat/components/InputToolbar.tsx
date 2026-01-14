@@ -25,7 +25,10 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
-  onPressGallery?: () => Promise<ImagePickerValue | void>;
+  /** Callback when gallery is pressed. Returns single image or array of images based on enableMultiImageSelection */
+  onPressGallery?: () => Promise<ImagePickerValue | ImagePickerValue[] | void>;
+  /** Enable selecting multiple images from gallery. Default: false */
+  enableMultiImageSelection?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   composeWrapperStyle?: StyleProp<ViewStyle>;
   composerTextInputStyle?: StyleProp<ViewStyle>;
@@ -43,6 +46,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   hasGallery,
   onPressCamera,
   onPressGallery,
+  enableMultiImageSelection = false,
   containerStyle,
   composeWrapperStyle,
   composerTextInputStyle,
@@ -55,6 +59,21 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   ...props
 }) => {
   const { onSend, text } = props;
+
+  const handleGalleryPress = async () => {
+    const result = await onPressGallery?.();
+    if (!result) return;
+
+    if (enableMultiImageSelection && Array.isArray(result)) {
+      // Send multiple images as separate messages
+      result.forEach((image) => {
+        onSend?.(image, true);
+      });
+    } else if (!Array.isArray(result)) {
+      // Single image
+      onSend?.(result, true);
+    }
+  };
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
@@ -73,13 +92,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       )}
       {hasGallery && (
         <PressableIcon
-          onPress={() =>
-            onPressGallery?.().then((res) => {
-              if (res) {
-                onSend?.(res, true);
-              }
-            })
-          }
+          onPress={handleGalleryPress}
           icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />
