@@ -65,11 +65,10 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     if (!result) return;
 
     if (enableMultiImageSelection && Array.isArray(result)) {
-      // Send multiple images in parallel
-      // await Promise.all(result.map((image) => onSend?.(image, true)));
-      result.forEach(async (image) => {
+      // Send multiple images sequentially to avoid Firebase Storage rate limits
+      for (const image of result) {
         await onSend?.(image, true);
-      });
+      }
     } else if (!Array.isArray(result)) {
       // Single image
       onSend?.(result, true);
