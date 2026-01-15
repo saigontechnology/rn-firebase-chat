@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TouchableOpacity,
+  Text,
+  LayoutAnimation,
+  TextInput,
+  Pressable,
   TextInputProps,
 } from 'react-native';
 import {
@@ -34,6 +39,7 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  expandIcon?: () => React.ReactNode;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
   composerTextInputProps?: Partial<TextInputProps>;
@@ -51,52 +57,89 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  expandIcon,
   renderLeftCustomView,
   renderRightCustomView,
   composerTextInputProps,
   ...props
 }) => {
   const { onSend, text } = props;
+  const [showOptions, setShowOptions] = useState(false);
+  const textInputRef = useRef<TextInput>(null);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
     iconStyle,
   ]);
 
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowOptions(!!text);
+  }, [text]);
+
+  const handleChevronPress = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowOptions((prev) => !prev);
+  };
+
+  const handleWrapperPress = () => {
+    textInputRef.current?.focus();
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
-      {hasCamera && (
-        <PressableIcon
-          icon={cameraIcon}
-          iconStyle={flattenedIconStyle}
-          onPress={onPressCamera}
-        />
-      )}
-      {hasGallery && (
-        <PressableIcon
-          onPress={() =>
-            onPressGallery?.().then((res) => {
-              if (res) {
-                onSend?.(res, true);
+      {showOptions && (hasCamera || hasGallery) ? (
+        <TouchableOpacity
+          onPress={handleChevronPress}
+          style={styles.chevronButton}
+        >
+          {expandIcon ? (
+            expandIcon()
+          ) : (
+            <Text style={styles.chevronText}>›</Text>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <>
+          {hasCamera && (
+            <PressableIcon
+              icon={cameraIcon}
+              iconStyle={flattenedIconStyle}
+              onPress={onPressCamera}
+            />
+          )}
+          {hasGallery && (
+            <PressableIcon
+              onPress={() =>
+                onPressGallery?.().then((res) => {
+                  if (res) {
+                    onSend?.(res, true);
+                  }
+                })
               }
-            })
-          }
-          icon={galleryIcon}
-          iconStyle={flattenedIconStyle}
-        />
+              icon={galleryIcon}
+              iconStyle={flattenedIconStyle}
+            />
+          )}
+        </>
       )}
-      <View style={[styles.composeWrapper, composeWrapperStyle]}>
+      <Pressable
+        style={[styles.composeWrapper, composeWrapperStyle]}
+        onPress={handleWrapperPress}
+      >
         <Composer
           {...props}
           multiline={true}
           textInputProps={{
             style: styles.textInputContainer,
             ...composerTextInputProps,
+            // @ts-expect-error - ref is supported but not in type definition
+            ref: textInputRef,
           }}
           textInputStyle={[styles.textInput, composerTextInputStyle]}
         />
-      </View>
+      </Pressable>
       {!!text && (
         <PressableIcon
           iconStyle={flattenedIconStyle}
@@ -150,6 +193,18 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: '#7cb518',
+  },
+  chevronButton: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chevronText: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#7cb518',
+    lineHeight: 28,
   },
 });
 
