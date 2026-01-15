@@ -41,14 +41,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#a9a9a9',
     borderRadius: 10,
     paddingVertical: 2,
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
     alignSelf: 'flex-end',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 10,
     color: 'white',
   },
 });

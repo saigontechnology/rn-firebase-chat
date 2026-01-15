@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
-  ScrollView,
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TouchableOpacity,
+  Text,
+  LayoutAnimation,
+  TextInput,
+  Pressable,
+  TextInputProps,
 } from 'react-native';
 import {
   Composer,
@@ -34,8 +39,10 @@ export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
   galleryIcon?: string;
   iconSend?: string;
   iconStyle?: StyleProp<ImageStyle>;
+  expandIcon?: () => React.ReactNode;
   renderLeftCustomView?: () => React.ReactNode;
   renderRightCustomView?: () => React.ReactNode;
+  composerTextInputProps?: Partial<TextInputProps>;
 }
 
 const InputToolbar: React.FC<IInputToolbar> = ({
@@ -50,48 +57,89 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   galleryIcon = ImageURL.gallery,
   iconSend = ImageURL.send,
   iconStyle,
+  expandIcon,
   renderLeftCustomView,
   renderRightCustomView,
+  composerTextInputProps,
   ...props
 }) => {
   const { onSend, text } = props;
+  const [showOptions, setShowOptions] = useState(false);
+  const textInputRef = useRef<TextInput>(null);
 
   const flattenedIconStyle = StyleSheet.flatten([
     styles.iconStyleDefault,
     iconStyle,
   ]);
 
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowOptions(!!text);
+  }, [text]);
+
+  const handleChevronPress = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowOptions((prev) => !prev);
+  };
+
+  const handleWrapperPress = () => {
+    textInputRef.current?.focus();
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {renderLeftCustomView && renderLeftCustomView()}
-      {hasCamera && (
-        <PressableIcon
-          icon={cameraIcon}
-          iconStyle={flattenedIconStyle}
-          onPress={onPressCamera}
-        />
-      )}
-      {hasGallery && (
-        <PressableIcon
-          onPress={() =>
-            onPressGallery?.().then((res) => {
-              if (res) {
-                onSend?.(res, true);
+      {showOptions && (hasCamera || hasGallery) ? (
+        <TouchableOpacity
+          onPress={handleChevronPress}
+          style={styles.chevronButton}
+        >
+          {expandIcon ? (
+            expandIcon()
+          ) : (
+            <Text style={styles.chevronText}>›</Text>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <>
+          {hasCamera && (
+            <PressableIcon
+              icon={cameraIcon}
+              iconStyle={flattenedIconStyle}
+              onPress={onPressCamera}
+            />
+          )}
+          {hasGallery && (
+            <PressableIcon
+              onPress={() =>
+                onPressGallery?.().then((res) => {
+                  if (res) {
+                    onSend?.(res, true);
+                  }
+                })
               }
-            })
-          }
-          icon={galleryIcon}
-          iconStyle={flattenedIconStyle}
-        />
+              icon={galleryIcon}
+              iconStyle={flattenedIconStyle}
+            />
+          )}
+        </>
       )}
-      <View style={[styles.composeWrapper, composeWrapperStyle]}>
-        <ScrollView scrollEnabled={false}>
-          <Composer
-            {...props}
-            textInputStyle={[styles.textInput, composerTextInputStyle]}
-          />
-        </ScrollView>
-      </View>
+      <Pressable
+        style={[styles.composeWrapper, composeWrapperStyle]}
+        onPress={handleWrapperPress}
+      >
+        <Composer
+          {...props}
+          multiline={true}
+          textInputProps={{
+            style: styles.textInputContainer,
+            ...composerTextInputProps,
+            // @ts-expect-error - ref is supported but not in type definition
+            ref: textInputRef,
+          }}
+          textInputStyle={[styles.textInput, composerTextInputStyle]}
+        />
+      </Pressable>
       {!!text && (
         <PressableIcon
           iconStyle={flattenedIconStyle}
@@ -106,31 +154,57 @@ const InputToolbar: React.FC<IInputToolbar> = ({
 
 const styles = StyleSheet.create({
   container: {
+    gap: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 3,
   },
   composeWrapper: {
     flex: 1,
     borderRadius: 22,
-    backgroundColor: 'lightgray',
-    paddingLeft: 10,
-    paddingRight: 20,
+    backgroundColor: '#F0F2F5',
+    paddingHorizontal: 16,
+
     flexDirection: 'row',
-    marginRight: 10,
+    minHeight: 44,
+    alignItems: 'center',
+  },
+  textInputContainer: {
+    maxHeight: 80,
+    marginVertical: 4,
   },
   textInput: {
-    marginHorizontal: 20,
     lineHeight: 20,
+    fontSize: 16,
   },
   marginWrapperView: {
     marginRight: 10,
   },
   iconStyleDefault: {
-    width: 28,
-    height: 28,
-    marginHorizontal: 12,
+    width: 24,
+    height: 24,
+    tintColor: '#7cb518',
+  },
+  chevronButton: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chevronText: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#7cb518',
+    lineHeight: 28,
   },
 });
 

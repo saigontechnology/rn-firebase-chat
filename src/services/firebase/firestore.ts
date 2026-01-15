@@ -861,4 +861,34 @@ export class FirestoreServices {
 
     return fileURLs;
   };
+
+  /**
+   * Delete a conversation from the user's conversation list
+   * @param conversationId The ID of the conversation to delete
+   */
+  deleteConversation = async (conversationId: string): Promise<void> => {
+    if (!this.userId) {
+      return;
+    }
+
+    try {
+      const userConversationRef = firestore()
+        .collection<Partial<ConversationProps>>(
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
+          )
+        )
+        .doc(conversationId);
+
+      await userConversationRef.delete();
+
+      // Clear conversation info if the deleted conversation is currently active
+      if (this.conversationId === conversationId) {
+        this.clearConversationInfo();
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      throw error;
+    }
+  };
 }

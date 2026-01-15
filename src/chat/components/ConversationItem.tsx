@@ -18,6 +18,7 @@ export interface IConversationItemProps {
   wrapperStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
   lastMessageStyle?: StyleProp<TextStyle>;
+  timeStyle?: StyleProp<TextStyle>;
   unReadWrapperStyle?: StyleProp<ViewStyle>;
   unReadStyle?: StyleProp<TextStyle>;
   CustomImage?: typeof Image;
@@ -32,6 +33,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
   wrapperStyle,
   titleStyle,
   lastMessageStyle,
+  timeStyle,
   unReadWrapperStyle,
   unReadStyle,
   CustomImage,
@@ -44,6 +46,29 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     if (!data.image) return randomColor(data.name || '');
     return undefined;
   }, [data.image, data.name]);
+
+  const formatTime = (timestamp: number): string => {
+    const now = new Date();
+    const messageDate = new Date(timestamp);
+    const diffInMs = now.getTime() - messageDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMs / 3600000);
+    const diffInDays = Math.floor(diffInMs / 86400000);
+
+    if (diffInMinutes < 1) {
+      return 'Now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays}d`;
+    } else {
+      const month = messageDate.getMonth() + 1;
+      const day = messageDate.getDate();
+      return `${month}/${day}`;
+    }
+  };
 
   const getInitialsChat = (type: string | undefined): string => {
     if (!data?.latestMessage || !type) return '';
@@ -93,30 +118,41 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
           renderMessage()
         ) : (
           <View style={styles.contentContainer}>
-            <Text
-              style={[styles.title, StyleSheet.flatten(titleStyle)]}
-              numberOfLines={1}
-            >
-              {data?.name}
-            </Text>
-            <Text
-              style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
-              numberOfLines={1}
-            >
-              {getInitialsChat(data?.latestMessage?.type)}
-            </Text>
-          </View>
-        )}
-        {!!data.unRead && (
-          <View
-            style={[
-              styles.unReadWrapper,
-              StyleSheet.flatten(unReadWrapperStyle),
-            ]}
-          >
-            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
-              {data.unRead}
-            </Text>
+            <View style={styles.headerRow}>
+              <Text
+                style={[styles.title, StyleSheet.flatten(titleStyle)]}
+                numberOfLines={1}
+              >
+                {data?.name}
+              </Text>
+              {data?.updatedAt && (
+                <Text style={[styles.time, StyleSheet.flatten(timeStyle)]}>
+                  {formatTime(data.updatedAt)}
+                </Text>
+              )}
+            </View>
+            <View style={styles.messageRow}>
+              <Text
+                style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
+                numberOfLines={1}
+              >
+                {getInitialsChat(data?.latestMessage?.type)}
+              </Text>
+              {!!data.unRead && (
+                <View
+                  style={[
+                    styles.unReadWrapper,
+                    StyleSheet.flatten(unReadWrapperStyle),
+                  ]}
+                >
+                  <Text
+                    style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}
+                  >
+                    {data.unRead}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         )}
       </View>
@@ -126,8 +162,9 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    paddingVertical: 12,
     paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
   },
   row: {
     flexDirection: 'row',
@@ -136,6 +173,7 @@ const styles = StyleSheet.create({
   avatarContainer: {
     width: 50,
     height: 50,
+    marginRight: 12,
   },
   avatarWrapper: {
     width: 50,
@@ -143,11 +181,25 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 10,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
     width: 50,
@@ -155,27 +207,41 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   title: {
-    fontSize: 15,
-    marginBottom: 2,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginRight: 8,
+  },
+  time: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '400',
   },
   message: {
-    fontSize: 10,
-    color: '#909090',
+    flex: 1,
+    fontSize: 14,
+    color: '#8E8E93',
+    lineHeight: 18,
+    marginRight: 8,
   },
   textAvatar: {
-    fontSize: 24,
-    color: '#fff',
+    fontSize: 26,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   unReadWrapper: {
-    width: 20,
+    minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#2684FF',
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 5,
   },
   unRead: {
-    fontSize: 10,
-    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
