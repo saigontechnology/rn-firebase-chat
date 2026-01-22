@@ -109,6 +109,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
   );
+  // Keep conversationRef in sync with conversationInfo for listeners
+  conversationRef.current = conversationInfo;
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
@@ -256,7 +258,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         userConversation();
       }
     };
-  }, [firebaseInstance, partners, userInfo?.id]);
+  }, [firebaseInstance, partners, userInfo?.id, conversationInfo?.id]);
 
   // Listener of current conversation list messages
   useEffect(() => {
@@ -286,7 +288,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         receiveMessageRef();
       }
     };
-  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+  }, [firebaseInstance, userInfo, conversationInfo?.id]);
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
@@ -384,6 +386,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
+          extraData={{ userUnreadMessage }}
           renderBubble={renderBubble}
         />
       </KeyboardAvoidingView>
