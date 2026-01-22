@@ -381,10 +381,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
-          renderBubble={renderBubble}
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
+          renderBubble={renderBubble}
         />
       </KeyboardAvoidingView>
       <SelectedImageModal
