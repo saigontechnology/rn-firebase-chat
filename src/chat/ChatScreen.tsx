@@ -17,6 +17,7 @@ import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
 import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
+import MessageStatus from './components/MessageStatus';
 import { FirestoreServices } from '../services/firebase';
 import type {
   ConversationData,
@@ -302,7 +303,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   );
 
   const renderBubble = (bubble: BubbleProps<MessageProps>) => {
-    if (props.renderBubble) return props.renderBubble(bubble);
+    // Check if this is the user's latest message (for message status)
+    const isMyLatestMessage =
+      !Object.keys(bubble.nextMessage ?? {}).length &&
+      bubble.position === 'right';
+
+    // If custom renderBubble is provided, wrap it with message status if enabled
+    if (props.renderBubble) {
+      const customBubble = props.renderBubble(bubble);
+
+      // Render message status for custom bubble if enabled
+      if (messageStatusEnable && isMyLatestMessage) {
+        return (
+          <View>
+            {customBubble}
+            <MessageStatus
+              userUnreadMessage={userUnreadMessage}
+              customContainerStyle={props.customContainerStyle}
+              customTextStyle={props.customTextStyle}
+              unReadSentMessage={props.unReadSentMessage}
+              unReadSeenMessage={props.unReadSeenMessage}
+              customMessageStatus={props.customMessageStatus}
+            />
+          </View>
+        );
+      }
+
+      return customBubble;
+    }
+
     return (
       <CustomBubble
         bubbleMessage={bubble}
