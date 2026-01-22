@@ -386,6 +386,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
+          extraData={{ userUnreadMessage }}
           renderBubble={renderBubble}
         />
       </KeyboardAvoidingView>
