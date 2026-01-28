@@ -299,19 +299,33 @@ export class FirestoreServices {
       conversationRef = await conversationRef.add(conversationData);
     }
     /** Add the conversation to the user who is conversation's member */
+    /**
+     * Determine if we should use personalized info for each member.
+     * Use personalized info when:
+     * 1. Not a group chat (1-on-1) - existing behavior
+     * 2. Group chat but no custom name and image provided (just custom conversation ID)
+     *    This allows users to create a conversation with a specific ID
+     *    while still showing personalized name/image for each participant
+     */
+    const usePersonalizedInfo = !isGroup || (!name && !image);
+
     await Promise.all([
       memberIds.map((memberId) => {
-        const otherMemberConversationData = isGroup
-          ? conversationData
-          : /**
-             * If this is 1-on-1 chat
+        const otherMemberConversationData = usePersonalizedInfo
+          ? /**
+             * For 1-on-1 chat or group chat without custom name/image:
              * We map conversation info of other people with this user info
              */
             {
               ...conversationData,
               name: this.userInfo?.name,
               image: this.userInfo?.avatar,
-            };
+            }
+          : /**
+             * For group chat with custom name and image:
+             * Use the common conversation data for all members
+             */
+            conversationData;
         return firestore()
           .collection(
             this.getUrlWithPrefix(
@@ -798,6 +812,42 @@ export class FirestoreServices {
           resolve(listChannels);
         })
     );
+  };
+
+  /**
+   * Search conversations by name or latest message text.
+   * Fetches all conversations for the current user and filters client-side.
+   * This approach is used because Firebase doesn't support case-insensitive
+   * or full-text search natively.
+   *
+   * @param searchText The text to search for in conversation names or messages
+   * @returns Promise resolving to filtered conversations
+   */
+  searchConversations = async (
+    searchText: string
+  ): Promise<ConversationProps[]> => {
+    if (!searchText.trim()) {
+      return this.getListConversation();
+    }
+
+    const normalizedSearch = searchText.toLowerCase().trim();
+
+    try {
+      // Fetch all conversations for the current user
+      const allConversations = await this.getListConversation();
+
+      // Filter conversations by name or latest message text (case-insensitive)
+      return allConversations.filter(
+        (conversation) =>
+          conversation.name?.toLowerCase().includes(normalizedSearch) ||
+          conversation.latestMessage?.text
+            ?.toLowerCase()
+            .includes(normalizedSearch)
+      );
+    } catch (error) {
+      console.error('Error searching conversations:', error);
+      return [];
+    }
   };
 
   listenConversationUpdate = (
