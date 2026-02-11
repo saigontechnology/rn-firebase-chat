@@ -3,13 +3,14 @@ import type {
   UploadResult,
   StorageFile,
 } from '../../interfaces/storage';
+import { FirebaseStorageTypes } from '@react-native-firebase/storage';
 
 /**
  * Firebase Storage implementation of StorageProvider.
  * Requires @react-native-firebase/storage to be installed.
  */
 export class FirebaseStorageProvider implements StorageProvider {
-  private storage: any;
+  private storage: () => FirebaseStorageTypes.Module;
 
   constructor() {
     try {
@@ -41,7 +42,7 @@ export class FirebaseStorageProvider implements StorageProvider {
     const listRef = this.storage().ref(directoryPath);
     const result = await listRef.listAll();
     const files: StorageFile[] = await Promise.all(
-      result.items.map(async (fileRef: any) => ({
+      result.items.map(async (fileRef: FirebaseStorageTypes.Reference) => ({
         name: fileRef.name,
         downloadUrl: await fileRef.getDownloadURL(),
       }))

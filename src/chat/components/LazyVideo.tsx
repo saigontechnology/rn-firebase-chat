@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let VideoComponent: any = null;
 let videoLoadAttempted = false;
 
@@ -20,6 +21,7 @@ const loadVideoComponent = () => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const LazyVideo = forwardRef<any, any>((props, ref) => {
   const Video = loadVideoComponent();
   if (!Video) {

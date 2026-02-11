@@ -40,7 +40,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   playIconStyle,
 }) => {
   const [isPauseVideo, setIsPauseVideo] = useState(true);
-  const videoRefs = useRef<any>(null);
+  const videoRefs = useRef<{ seek: (time: number) => void } | null>(null);
 
   const handleImagePress = () => {
     if (message.path && message.type === MessageTypes.image) {

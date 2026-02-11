@@ -19,7 +19,7 @@ interface VideoPlayerProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: any
+    videoRef: unknown
   ) => React.ReactNode;
 }
 
@@ -30,13 +30,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [paused, setPaused] = useState(true);
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const videoRef = useRef<any>(null);
+  const videoRef = useRef<{
+    seek: (time: number) => void;
+    resume: () => void;
+    pause: () => void;
+  } | null>(null);
 
-  const handleLoad = (meta: any) => {
+  const handleLoad = (meta: { duration: number }) => {
     setDuration(meta.duration);
   };
 
-  const handleProgress = (progress: any) => {
+  const handleProgress = (progress: { currentTime: number }) => {
     setCurrentTime(progress.currentTime);
   };
 

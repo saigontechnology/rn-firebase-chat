@@ -32,7 +32,7 @@ interface GalleryModalProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: any
+    videoRef: unknown
   ) => React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
   tabStyle?: StyleProp<ViewStyle>;

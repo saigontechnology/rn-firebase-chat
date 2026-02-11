@@ -21,7 +21,7 @@ interface SelectedViewModalProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: any
+    videoRef: unknown
   ) => React.ReactNode;
 }
 

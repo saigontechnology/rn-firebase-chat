@@ -14,7 +14,7 @@ export const ThumbnailVideoPlayer: React.FC<ThumbnailVideoPlayerProps> = ({
 }) => {
   const [duration, setDuration] = useState<number>(0);
 
-  const handleLoad = useCallback((meta: any) => {
+  const handleLoad = useCallback((meta: { duration: number }) => {
     setDuration(meta.duration);
   }, []);
 

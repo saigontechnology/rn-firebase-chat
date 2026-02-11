@@ -18,10 +18,25 @@ import type {
   CameraError,
   CameraAnalytics,
   MediaProcessingOptions,
+  CameraAnalyticsEvent,
 } from './interface';
 
-let useCameraPermissionHook: any = null;
-let launchImageLibraryFn: any = null;
+let useCameraPermissionHook:
+  | (() => {
+      hasPermission: boolean;
+      requestPermission: () => Promise<boolean>;
+    })
+  | null = null;
+interface ImagePickerAsset {
+  uri?: string;
+  type?: string;
+  fileSize?: number;
+  fileName?: string;
+}
+
+let launchImageLibraryFn:
+  | ((options: unknown) => Promise<{ assets?: ImagePickerAsset[] }>)
+  | null = null;
 
 try {
   useCameraPermissionHook =
@@ -61,8 +76,7 @@ export const useEnhancedCamera = (
 
   const trackEvent = useCallback(
     (event: string, properties?: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      analytics?.trackEvent(event as any, properties);
+      analytics?.trackEvent(event as CameraAnalyticsEvent, properties);
     },
     [analytics]
   );

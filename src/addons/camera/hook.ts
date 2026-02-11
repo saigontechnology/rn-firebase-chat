@@ -4,8 +4,22 @@ import { MessageTypes } from '../../interfaces';
 import { convertExtension } from './utilities';
 import { ImagePickerValue } from './interface';
 
-let useCameraPermissionHook: any = null;
-let launchImageLibraryFn: any = null;
+let useCameraPermissionHook:
+  | (() => {
+      hasPermission: boolean;
+      requestPermission: () => Promise<boolean>;
+    })
+  | null = null;
+interface ImagePickerAsset {
+  uri?: string;
+  type?: string;
+  fileSize?: number;
+  fileName?: string;
+}
+
+let launchImageLibraryFn:
+  | ((options: unknown) => Promise<{ assets?: ImagePickerAsset[] }>)
+  | null = null;
 
 try {
   useCameraPermissionHook =
