@@ -1,12 +1,5 @@
 import { useCallback, useState, useRef } from 'react';
 import { Keyboard, Alert, Vibration, Platform } from 'react-native';
-import { useCameraPermission } from 'react-native-vision-camera';
-import {
-  launchImageLibrary,
-  PhotoQuality,
-  type ImageLibraryOptions,
-  type ImagePickerResponse,
-} from 'react-native-image-picker';
 
 import { cameraRef } from './CameraView';
 import { MessageTypes } from '../../interfaces';
@@ -27,12 +20,31 @@ import type {
   MediaProcessingOptions,
 } from './interface';
 
+let useCameraPermissionHook: any = null;
+let launchImageLibraryFn: any = null;
+
+try {
+  useCameraPermissionHook =
+    require('react-native-vision-camera').useCameraPermission;
+} catch {
+  // react-native-vision-camera not installed
+}
+
+try {
+  launchImageLibraryFn =
+    require('react-native-image-picker').launchImageLibrary;
+} catch {
+  // react-native-image-picker not installed
+}
+
 // Enhanced camera hook with modern features
 export const useEnhancedCamera = (
   config?: CameraHookConfig,
   analytics?: CameraAnalytics
 ) => {
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const cameraPermission = useCameraPermissionHook?.();
+  const hasPermission = cameraPermission?.hasPermission ?? false;
+  const requestPermission = cameraPermission?.requestPermission;
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastError, setLastError] = useState<CameraError | null>(null);
   const lastOperationRef = useRef<string>('');
@@ -237,17 +249,23 @@ export const useEnhancedCamera = (
       setIsProcessing(true);
 
       try {
-        const libraryOptions: ImageLibraryOptions = {
-          mediaType: 'mixed',
-          quality: defaultConfig.compressionQuality as PhotoQuality,
+        if (!launchImageLibraryFn) {
+          console.warn(
+            'react-native-image-picker is not installed. Gallery is unavailable.'
+          );
+          return;
+        }
+
+        const libraryOptions = {
+          mediaType: 'mixed' as const,
+          quality: defaultConfig.compressionQuality,
           maxWidth: CAMERA_CONFIG.MAX_PHOTO_WIDTH,
           maxHeight: CAMERA_CONFIG.MAX_PHOTO_HEIGHT,
           includeBase64: false,
           includeExtra: true,
         };
 
-        const result: ImagePickerResponse =
-          await launchImageLibrary(libraryOptions);
+        const result = await launchImageLibraryFn(libraryOptions);
 
         if (result?.assets && result.assets.length > 0) {
           const file = result.assets[0];

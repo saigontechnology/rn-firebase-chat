@@ -7,11 +7,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import Video, {
-  OnLoadData,
-  OnProgressData,
-  VideoRef,
-} from 'react-native-video';
+import { LazyVideo } from '../LazyVideo';
 import { formatTime } from '../../../utilities';
 import CustomSlider from '../slider';
 import Images from '../../../asset';
@@ -23,7 +19,7 @@ interface VideoPlayerProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: VideoRef | null
+    videoRef: any
   ) => React.ReactNode;
 }
 
@@ -34,13 +30,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [paused, setPaused] = useState(true);
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const videoRef = useRef<VideoRef>(null);
+  const videoRef = useRef<any>(null);
 
-  const handleLoad = (meta: OnLoadData) => {
+  const handleLoad = (meta: any) => {
     setDuration(meta.duration);
   };
 
-  const handleProgress = (progress: OnProgressData) => {
+  const handleProgress = (progress: any) => {
     setCurrentTime(progress.currentTime);
   };
 
@@ -93,7 +89,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Video
+      <LazyVideo
         ref={videoRef}
         source={{ uri: videoUri }}
         style={styles.video}

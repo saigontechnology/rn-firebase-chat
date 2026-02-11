@@ -25,4 +25,12 @@ const formatTime = (time: number) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-export { formatDate, timeFromNow, formatTime, getCurrentTimestamp };
+const getServerTimestamp = () => firestore.FieldValue.serverTimestamp();
+
+export {
+  formatDate,
+  timeFromNow,
+  formatTime,
+  getCurrentTimestamp,
+  getServerTimestamp,
+};

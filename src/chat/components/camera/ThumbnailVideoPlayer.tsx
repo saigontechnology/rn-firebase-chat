@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Video, { OnLoadData } from 'react-native-video';
+import { LazyVideo } from '../LazyVideo';
 import { formatTime } from '../../../utilities';
 
 const { width } = Dimensions.get('window');
@@ -14,13 +14,13 @@ export const ThumbnailVideoPlayer: React.FC<ThumbnailVideoPlayerProps> = ({
 }) => {
   const [duration, setDuration] = useState<number>(0);
 
-  const handleLoad = useCallback((meta: OnLoadData) => {
+  const handleLoad = useCallback((meta: any) => {
     setDuration(meta.duration);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Video
+      <LazyVideo
         source={{ uri: videoUrl }}
         style={styles.video}
         onLoad={handleLoad}

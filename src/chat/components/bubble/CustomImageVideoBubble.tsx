@@ -9,7 +9,7 @@ import {
   StyleProp,
   ImageStyle,
 } from 'react-native';
-import Video, { VideoRef } from 'react-native-video';
+import { LazyVideo } from '../LazyVideo';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import Images from '../../../asset';
 import { CustomImage } from '../CustomImage';
@@ -40,7 +40,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   playIconStyle,
 }) => {
   const [isPauseVideo, setIsPauseVideo] = useState(true);
-  const videoRefs = useRef<VideoRef>(null);
+  const videoRefs = useRef<any>(null);
 
   const handleImagePress = () => {
     if (message.path && message.type === MessageTypes.image) {
@@ -73,7 +73,7 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
       onPress={handleVideoPress}
     >
       <View>
-        <Video
+        <LazyVideo
           source={{ uri: message.path }}
           style={[styles.video, videoStyle]}
           paused={isPauseVideo}

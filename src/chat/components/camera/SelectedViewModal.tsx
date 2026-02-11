@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { MessageTypes } from '../../../interfaces';
 import Images from '../../../asset';
-import { VideoRef } from 'react-native-video';
 import { VideoPlayer } from './VideoPlayer';
 import { CustomImage } from '../CustomImage';
 
@@ -22,7 +21,7 @@ interface SelectedViewModalProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: VideoRef | null
+    videoRef: any
   ) => React.ReactNode;
 }
 

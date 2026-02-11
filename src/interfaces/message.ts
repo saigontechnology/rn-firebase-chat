@@ -2,9 +2,12 @@
  * Created by NL on 6/27/23.
  */
 
+import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { IMessage } from 'react-native-gifted-chat';
 import type { BaseEntity } from './base';
-import type { MessageStatus } from './conversation';
+import { type MessageStatus, MessageTypes } from './conversation';
+
+type TimestampField = number | FirebaseFirestoreTypes.FieldValue;
 
 interface LatestMessageProps {
   readBy: {
@@ -34,7 +37,7 @@ interface MessageProps extends BaseEntity, IMessage {
 
 interface SendMessageProps {
   text: string;
-  createdAt?: number;
+  createdAt?: TimestampField;
   senderId: string;
   readBy: {
     [userId: string]: boolean;
@@ -47,9 +50,17 @@ interface SendMessageProps {
 
 type MediaType = 'image' | 'video' | 'text' | undefined;
 
+type ImagePickerValue = {
+  type: MessageTypes.image | MessageTypes.video;
+  path: string;
+  extension: string;
+};
+
 export {
   type MessageProps,
   type LatestMessageProps,
   type SendMessageProps,
   type MediaType,
+  type TimestampField,
+  type ImagePickerValue,
 };
