@@ -62,7 +62,14 @@ const formatMessageData = async (
       decryptMessageFunc
     ),
     _id: message.id,
-    createdAt: message.createdAt || getCurrentTimestamp(),
+    createdAt:
+      message.createdAt &&
+      typeof (message.createdAt as unknown as Record<string, unknown>)
+        .toMillis === 'function'
+        ? (
+            message.createdAt as unknown as { toMillis: () => number }
+          ).toMillis()
+        : message.createdAt || getCurrentTimestamp(),
     user: {
       _id: userInfo.id,
       name: userInfo.name,
