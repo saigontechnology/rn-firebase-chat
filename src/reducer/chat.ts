@@ -46,7 +46,7 @@ export const chatReducer = (
 
       const newListConversation = state.listConversation
         ?.map((item) => (item.id === message.id ? message : item))
-        .sort((a, b) => b.updatedAt - a.updatedAt);
+        .sort((a, b) => (b.updatedAt as number) - (a.updatedAt as number));
 
       return {
         ...state,

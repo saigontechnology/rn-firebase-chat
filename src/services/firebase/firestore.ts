@@ -202,7 +202,8 @@ export class FirestoreServices {
     >,
   >(
     key: K
-  ) => this[key];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => (this as Record<string, any>)[key];
 
   /**
    * Validates if encryption is properly configured
