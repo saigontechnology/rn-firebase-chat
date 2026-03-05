@@ -13,7 +13,6 @@ import {
 import { FirestoreServices } from '../services/firebase';
 import { MessageTypes, type MediaFile } from '../interfaces';
 import { GalleryType } from '../interfaces/gallery';
-import { VideoRef } from 'react-native-video';
 import { SelectedViewModal, ThumbnailVideoPlayer } from './components/camera';
 import { CustomImage } from './components/CustomImage';
 type MediaItem = {
@@ -33,7 +32,7 @@ interface GalleryModalProps {
     currentTime: number,
     duration: number,
     paused: boolean,
-    videoRef: VideoRef | null
+    videoRef: unknown
   ) => React.ReactNode;
   headerStyle?: StyleProp<ViewStyle>;
   tabStyle?: StyleProp<ViewStyle>;

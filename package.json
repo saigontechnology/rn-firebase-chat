@@ -108,9 +108,22 @@
     "react-native": "*",
     "react-native-aes-crypto": "*",
     "react-native-gifted-chat": "*",
-    "react-native-image-picker": "*",
     "react-native-keyboard-controller": "*",
     "react-native-reanimated": "*"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-firebase/storage": {
+      "optional": true
+    },
+    "react-native-image-picker": {
+      "optional": true
+    },
+    "react-native-video": {
+      "optional": true
+    },
+    "react-native-vision-camera": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">= 16.0.0"

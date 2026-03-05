@@ -12,7 +12,7 @@ import {
   MessageTypes,
 } from '../interfaces';
 import { getTextMessage } from './blacklist';
-import { getCurrentTimestamp } from './date';
+import { getCurrentTimestamp, getServerTimestamp } from './date';
 
 const convertTextMessage = async (
   text: string,
@@ -62,7 +62,14 @@ const formatMessageData = async (
       decryptMessageFunc
     ),
     _id: message.id,
-    createdAt: message.createdAt || getCurrentTimestamp(),
+    createdAt:
+      message.createdAt &&
+      typeof (message.createdAt as unknown as Record<string, unknown>)
+        .toMillis === 'function'
+        ? (
+            message.createdAt as unknown as { toMillis: () => number }
+          ).toMillis()
+        : message.createdAt || getCurrentTimestamp(),
     user: {
       _id: userInfo.id,
       name: userInfo.name,
@@ -90,7 +97,7 @@ const formatSendMessage = (
   },
   status: MessageStatus.sent,
   senderId: userId,
-  createdAt: getCurrentTimestamp(),
+  createdAt: getServerTimestamp(),
   text: text ?? '',
   type: type ?? MessageTypes.text,
   path: path ?? '',

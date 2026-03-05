@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
-import Video from 'react-native-video';
+import { LazyVideo } from '../../chat/components/LazyVideo';
 import { CaptureCameraButton } from './CaptureButton';
 import type {
   CameraViewMethods,
@@ -147,7 +147,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
             resizeMode="cover"
           />
         ) : (
-          <Video source={source} style={StyleSheet.absoluteFill} />
+          <LazyVideo source={source} style={StyleSheet.absoluteFill} />
         )}
         <TouchableOpacity
           style={styles.closeButton}

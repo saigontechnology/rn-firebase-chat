@@ -2,6 +2,7 @@
  * Created by NL on 6/27/23.
  */
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import type { FieldValue } from '@react-native-firebase/firestore';
 import type { BaseEntity } from './base';
 import type { LatestMessageProps, MediaType, MessageProps } from './message';
 
@@ -17,7 +18,7 @@ interface CustomConversationInfo {
 
 interface ConversationProps extends BaseEntity {
   latestMessage?: LatestMessageProps;
-  updatedAt: number;
+  updatedAt: number | FieldValue;
   members: string[];
   name?: string;
   image?: string;

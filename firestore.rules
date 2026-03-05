@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+
+      // User's conversation list
+      // Other members write here when sending messages (to update latestMessage, updatedAt, unRead)
+      match /conversations/{conversationId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null;
+      }
+    }
+
+    // Shared conversation data (typing indicators, read receipts)
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null
+          && request.resource.data.senderId == request.auth.uid;
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+  }
+}

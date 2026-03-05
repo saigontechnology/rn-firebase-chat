@@ -1,8 +1,6 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
-
 import {
   encryptData,
   decryptData,
@@ -13,6 +11,7 @@ import {
   generateBadWordsRegex,
   generateEncryptionKey,
   getCurrentTimestamp,
+  getServerTimestamp,
   getMediaTypeFromExtension,
   validateUserId,
   validateEncryptionKey,
@@ -34,7 +33,7 @@ import {
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
-import { uploadFileToFirebase } from './storage';
+import type { StorageProvider } from '../../interfaces/storage';
 
 type PropsWithEncryption = {
   enableEncrypt: true;
@@ -54,6 +53,7 @@ type FirestoreBaseProps = {
   blackListWords?: string[];
   encryptionFuncProps?: EncryptionFunctions;
   prefix?: string;
+  storageProvider?: StorageProvider;
 };
 
 export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
@@ -72,6 +72,9 @@ export class FirestoreServices {
   generateKeyFunctionProp: ((key: string) => Promise<string>) | undefined;
   encryptFunctionProp: ((text: string) => Promise<string>) | undefined;
   decryptFunctionProp: ((text: string) => Promise<string>) | undefined;
+
+  /** Storage provider */
+  private storageProvider: StorageProvider | null = null;
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -100,6 +103,21 @@ export class FirestoreServices {
       FirestoreServices.instance = new FirestoreServices();
     }
     return FirestoreServices.instance;
+  };
+
+  setStorageProvider = (provider: StorageProvider): void => {
+    this.storageProvider = provider;
+  };
+
+  private getStorageProviderOrThrow = (): StorageProvider => {
+    if (!this.storageProvider) {
+      throw new Error(
+        'StorageProvider is not configured. To send files, call ' +
+          'FirestoreServices.getInstance().setStorageProvider(provider) ' +
+          'with a StorageProvider implementation (e.g., FirebaseStorageProvider).'
+      );
+    }
+    return this.storageProvider;
   };
 
   createEncryptionsFunction = (functions: EncryptionFunctions) => {
@@ -184,7 +202,8 @@ export class FirestoreServices {
     >,
   >(
     key: K
-  ) => this[key];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => (this as Record<string, any>)[key];
 
   /**
    * Validates if encryption is properly configured
@@ -277,7 +296,7 @@ export class FirestoreServices {
     const conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
       name,
-      updatedAt: getCurrentTimestamp(),
+      updatedAt: getServerTimestamp(),
     };
 
     if (image) {
@@ -337,14 +356,10 @@ export class FirestoreServices {
     }
 
     try {
-      const uploadResult = await uploadFileToFirebase(
-        path,
-        this.conversationId,
-        extension
-      );
-      const imgURL = await storage()
-        .ref(uploadResult.metadata.fullPath)
-        .getDownloadURL();
+      const provider = this.getStorageProviderOrThrow();
+      const remotePath = `${this.conversationId}/${new Date().getTime()}.${extension}`;
+      const uploadResult = await provider.uploadFile(path, remotePath);
+      const imgURL = uploadResult.downloadUrl;
 
       // Create message copy for storage
       const messageForStorage = { ...message, path: imgURL };
@@ -505,7 +520,7 @@ export class FirestoreServices {
         .set(
           {
             latestMessage: latestMessageData,
-            updatedAt: getCurrentTimestamp(),
+            updatedAt: getServerTimestamp(),
             /** Update unRead for this user to 0 */
             unRead: 0,
           },
@@ -524,7 +539,7 @@ export class FirestoreServices {
             .set(
               {
                 latestMessage: latestMessageData,
-                updatedAt: getCurrentTimestamp(),
+                updatedAt: getServerTimestamp(),
                 /** Increase unRead for other uses */
                 unRead: unReadCount ? unReadCount + 1 : 1,
               },
@@ -845,19 +860,17 @@ export class FirestoreServices {
       return [];
     }
 
-    const listRef = storage().ref(this.conversationId);
-    const result = await listRef.listAll();
+    const provider = this.getStorageProviderOrThrow();
+    const files = await provider.listFiles(this.conversationId);
 
-    const filePromises = result.items.map(async (fileRef) => {
-      const filePath = await fileRef.getDownloadURL();
-      const id = fileRef.name?.split('.')[0];
+    const fileURLs: MediaFile[] = files.map((file) => {
+      const id = file.name?.split('.')[0];
       return {
         id: id || getCurrentTimestamp().toString(),
-        path: filePath,
-        type: getMediaTypeFromExtension(fileRef.name),
+        path: file.downloadUrl,
+        type: getMediaTypeFromExtension(file.name),
       };
     });
-    const fileURLs: MediaFile[] = await Promise.all(filePromises);
 
     return fileURLs;
   };

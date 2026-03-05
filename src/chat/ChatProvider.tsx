@@ -23,6 +23,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   blackListWords,
   encryptionFuncProps,
   prefix = '',
+  storageProvider,
   CustomImageComponent,
   ...props
 }) => {
@@ -68,6 +69,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     firestoreServices.configuration({ prefix });
   }, [prefix]);
+
+  useEffect(() => {
+    if (storageProvider) {
+      firestoreServices.setStorageProvider(storageProvider);
+    }
+  }, [storageProvider]);
 
   return (
     <ChatContext.Provider

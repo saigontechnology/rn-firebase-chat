@@ -1,6 +1,6 @@
 import firestore from '@react-native-firebase/firestore';
 import { FireStoreCollection, type UserProfileProps } from '../../interfaces';
-import { getCurrentTimestamp } from '../../utilities';
+import { getServerTimestamp } from '../../utilities';
 import { FirestoreServices } from './firestore';
 
 const firestoreServices = FirestoreServices.getInstance();
@@ -14,10 +14,10 @@ const createUserProfile = async (userId: string, name: string) => {
   const user = await userRef.get();
   if (!user.exists) {
     await userRef.set({
-      created: getCurrentTimestamp(),
+      created: getServerTimestamp(),
       status: 'online',
       name,
-      updated: getCurrentTimestamp(),
+      updated: getServerTimestamp(),
     });
   } else {
     // console.log('Document data:', user.data());

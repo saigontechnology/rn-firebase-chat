@@ -1,21 +1,52 @@
 import { Keyboard } from 'react-native';
-// Camera
-import { useCameraPermission } from 'react-native-vision-camera';
 import { cameraRef } from './CameraView';
-// Image Picker
-import {
-  launchImageLibrary,
-  type ImageLibraryOptions,
-  type ImagePickerResponse,
-} from 'react-native-image-picker';
 import { MessageTypes } from '../../interfaces';
 import { convertExtension } from './utilities';
 import { ImagePickerValue } from './interface';
 
+let useCameraPermissionHook:
+  | (() => {
+      hasPermission: boolean;
+      requestPermission: () => Promise<boolean>;
+    })
+  | null = null;
+interface ImagePickerAsset {
+  uri?: string;
+  type?: string;
+  fileSize?: number;
+  fileName?: string;
+}
+
+let launchImageLibraryFn:
+  | ((options: unknown) => Promise<{ assets?: ImagePickerAsset[] }>)
+  | null = null;
+
+try {
+  useCameraPermissionHook =
+    require('react-native-vision-camera').useCameraPermission;
+} catch {
+  // react-native-vision-camera not installed
+}
+
+try {
+  launchImageLibraryFn =
+    require('react-native-image-picker').launchImageLibrary;
+} catch {
+  // react-native-image-picker not installed
+}
+
 const useCamera = () => {
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const cameraPermission = useCameraPermissionHook?.();
+  const hasPermission = cameraPermission?.hasPermission ?? false;
+  const requestPermission = cameraPermission?.requestPermission;
 
   const onPressCamera = () => {
+    if (!useCameraPermissionHook) {
+      console.warn(
+        'react-native-vision-camera is not installed. Camera is unavailable.'
+      );
+      return;
+    }
     if (!hasPermission) {
       requestPermission?.();
       return;
@@ -28,12 +59,18 @@ const useCamera = () => {
   };
 
   const onPressGallery = async (): Promise<ImagePickerValue | void> => {
+    if (!launchImageLibraryFn) {
+      console.warn(
+        'react-native-image-picker is not installed. Gallery is unavailable.'
+      );
+      return;
+    }
     try {
-      const options: ImageLibraryOptions = {
-        mediaType: 'mixed',
+      const options = {
+        mediaType: 'mixed' as const,
       };
 
-      const result: ImagePickerResponse = await launchImageLibrary(options);
+      const result = await launchImageLibraryFn(options);
 
       if (result?.assets) {
         const file = result?.assets[0];
