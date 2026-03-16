@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   FlatListProps,
@@ -16,14 +10,13 @@ import {
   ImageStyle,
   ActivityIndicator,
 } from 'react-native';
-import debounce from 'lodash.debounce';
 import {
   ConversationItem,
   IConversationItemProps,
 } from './components/ConversationItem';
 import { SearchBar, ISearchBarProps } from './components/SearchBar';
 import type { ConversationProps } from '../interfaces';
-import { useChatContext, useChatSelector } from '../hooks';
+import { useChatContext, useChatSelector, useDebounce } from '../hooks';
 import { setConversation } from '../reducer';
 import { getListConversation } from '../reducer/selectors';
 import { FirestoreServices } from '../services/firebase';
@@ -88,43 +81,37 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
 
-  // Create debounced search function using lodash
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(async (text: string) => {
-        if (!hasSearchBar) {
-          return;
-        }
+  // Debounce the search text
+  const debouncedSearchText = useDebounce(searchText, searchDebounceDelay);
 
-        if (!text.trim()) {
-          setSearchResults([]);
-          setIsSearching(false);
-          return;
-        }
-
-        setIsSearching(true);
-        try {
-          const results = await firebaseInstance.searchConversations(text);
-          setSearchResults(results);
-        } catch (error) {
-          console.error('Search error:', error);
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, searchDebounceDelay),
-    [firebaseInstance, hasSearchBar, searchDebounceDelay]
-  );
-
-  // Trigger debounced search when search text changes
+  // Perform search when debounced search text changes
   useEffect(() => {
-    debouncedSearch(searchText);
+    if (!hasSearchBar) {
+      return;
+    }
 
-    // Cancel pending debounced calls on cleanup
-    return () => {
-      debouncedSearch.cancel();
+    if (!debouncedSearchText.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        const results =
+          await firebaseInstance.searchConversations(debouncedSearchText);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
     };
-  }, [searchText, debouncedSearch]);
+
+    performSearch();
+  }, [debouncedSearchText, firebaseInstance, hasSearchBar]);
 
   // Determine which data to display
   const data =
