@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
 import { FirestoreServices } from './services/firebase';
@@ -90,4 +90,45 @@ const useTypingIndicator = (
   };
 };
 
-export { useChatContext, useChatSelector, useTypingIndicator, useChat };
+/**
+ * Custom hook to debounce a value.
+ * Returns the debounced value that only updates after the specified delay.
+ *
+ * @param value The value to debounce
+ * @param delay The debounce delay in milliseconds
+ * @returns The debounced value
+ *
+ * @example
+ * ```tsx
+ * const [searchText, setSearchText] = useState('');
+ * const debouncedSearchText = useDebounce(searchText, 300);
+ *
+ * useEffect(() => {
+ *   // This effect runs only after searchText stops changing for 300ms
+ *   performSearch(debouncedSearchText);
+ * }, [debouncedSearchText]);
+ * ```
+ */
+const useDebounce = <T>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
+export {
+  useChatContext,
+  useChatSelector,
+  useTypingIndicator,
+  useChat,
+  useDebounce,
+};

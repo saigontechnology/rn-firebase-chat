@@ -17,6 +17,7 @@ import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
 import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
 import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
+import MessageStatus from './components/MessageStatus';
 import { FirestoreServices } from '../services/firebase';
 import type {
   ConversationData,
@@ -37,9 +38,11 @@ import { useChatContext, useChatSelector, useTypingIndicator } from '../hooks';
 import { getConversation } from '../reducer/selectors';
 import InputToolbar, { IInputToolbar } from './components/InputToolbar';
 
-type ChildrenProps = {
+export type ChatScreenChildrenProps = {
   onSend: (messages: MessageProps) => Promise<void>;
 };
+
+type RenderChildren = (props: ChatScreenChildrenProps) => React.ReactNode;
 
 interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   style?: StyleProp<ViewStyle>;
@@ -61,7 +64,10 @@ interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
-  children?: (props: ChildrenProps) => ReactNode | ReactNode;
+  /** Render prop children to access onSend function */
+  children?: RenderChildren;
+  /** Whether this is a group conversation. When true, all members see the same conversation name/image. */
+  isGroup?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -80,6 +86,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  isGroup = false,
+  children,
   ...props
 }) => {
   const { userInfo, chatDispatch } = useChatContext();
@@ -101,6 +109,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const conversationRef = useRef<ConversationProps | undefined>(
     conversationInfo
   );
+  // Keep conversationRef in sync with conversationInfo for listeners
+  conversationRef.current = conversationInfo;
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
@@ -145,8 +155,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           image: partners[0]?.avatar,
           ...(customConversationInfo || {}),
         };
-        // We identify a group chat if the conversation have custom-info
-        const isGroup = !!customConversationInfo;
         conversationRef.current = await firebaseInstance.createConversation(
           newConversationInfo.id,
           memberIds,
@@ -171,6 +179,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       await firebaseInstance.sendMessage(messages);
 
+      // Clear any existing notification timeout to prevent multiple notifications
+      // when sending multiple messages (e.g., multi-image selection)
+      if (timeoutMessageRef.current) {
+        clearTimeout(timeoutMessageRef.current);
+      }
       timeoutMessageRef.current = setTimeout(() => {
         sendMessageNotification?.();
       }, timeoutSendNotify);
@@ -182,6 +195,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       memberIds,
       partners,
       sendMessageNotification,
+      isGroup,
     ]
   );
 
@@ -244,7 +258,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         userConversation();
       }
     };
-  }, [firebaseInstance, partners, userInfo?.id]);
+  }, [firebaseInstance, partners, userInfo?.id, conversationInfo?.id]);
 
   // Listener of current conversation list messages
   useEffect(() => {
@@ -274,7 +288,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         receiveMessageRef();
       }
     };
-  }, [firebaseInstance, userInfo, conversationRef.current?.id]);
+  }, [firebaseInstance, userInfo, conversationInfo?.id]);
 
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
@@ -291,7 +305,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   );
 
   const renderBubble = (bubble: BubbleProps<MessageProps>) => {
-    if (props.renderBubble) return props.renderBubble(bubble);
+    // Check if this is the user's latest message (for message status)
+    const isMyLatestMessage =
+      !Object.keys(bubble.nextMessage ?? {}).length &&
+      bubble.position === 'right';
+
+    // If custom renderBubble is provided, wrap it with message status if enabled
+    if (props.renderBubble) {
+      const customBubble = props.renderBubble(bubble);
+
+      // Render message status for custom bubble if enabled
+      if (messageStatusEnable && isMyLatestMessage) {
+        return (
+          <View>
+            {customBubble}
+            <MessageStatus
+              userUnreadMessage={userUnreadMessage}
+              customContainerStyle={props.customContainerStyle}
+              customTextStyle={props.customTextStyle}
+              unReadSentMessage={props.unReadSentMessage}
+              unReadSeenMessage={props.unReadSeenMessage}
+              customMessageStatus={props.customMessageStatus}
+            />
+          </View>
+        );
+      }
+
+      return customBubble;
+    }
+
     return (
       <CustomBubble
         bubbleMessage={bubble}
@@ -341,19 +383,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           renderChatFooter={() => <TypingIndicator />}
           onLoadEarlier={onLoadEarlier}
           renderComposer={inputToolbar}
-          renderBubble={renderBubble}
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
+          extraData={{ userUnreadMessage }}
+          renderBubble={renderBubble}
         />
       </KeyboardAvoidingView>
       <SelectedImageModal
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
       />
-      {typeof props.children === 'function'
-        ? props.children({ onSend })
-        : props.children}
+      {children?.({ onSend })}
     </View>
   );
 };
