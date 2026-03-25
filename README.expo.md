@@ -5,6 +5,7 @@ This guide explains how to configure an Expo app to use `rn-firebase-chat`, incl
 ### 1) Install dependencies
 
 Install the library and peer dependencies, plus `expo-build-properties` (required for the `plugins` configuration below):
+
 > **Note** Skip this if you have already installed these libs following main README file.
 
 ```sh
@@ -17,7 +18,7 @@ or
 npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller react-native-video react-native-vision-camera react-native-image-picker expo-build-properties --save
 ```
 
-If you use EAS Build, ensure you have initialized your project for the new architecture as needed by your RN/Expo version.
+Ensure your Expo project is compatible with the React Native version required by the library.
 
 ### 2) Configure `app.config.ts`
 
@@ -60,7 +61,8 @@ const config: ExpoConfig = {
         cameraPermissionText: '$(PRODUCT_NAME) needs access to your Camera.',
         // optionally, if you want to record audio:
         enableMicrophonePermission: true,
-        microphonePermissionText: '$(PRODUCT_NAME) needs access to your Microphone.',
+        microphonePermissionText:
+          '$(PRODUCT_NAME) needs access to your Microphone.',
       },
     ],
     // <-- Adding these values -->
@@ -71,37 +73,101 @@ export default config;
 ```
 
 Notes:
+
 - `expo-build-properties` is required for `ios.useFrameworks = "static"` to support some native modules.
 - `@react-native-firebase/app` config enables Firebase auto-configuration.
 - `react-native-video` and `react-native-vision-camera` require native configuration when prebuilding.
 
 ### 3) Add Firebase configuration files
 
-Place your Firebase config files in the native project directories:
-
-- Android: put `google-services.json` in `android/app/google-services.json`
-- iOS: put `GoogleService-Info.plist` in `ios/GoogleService-Info.plist`
-
-If you are using EAS Build and prefer referencing paths via config, you can also set:
+Place your Firebase config files in the project directories:
 
 ```ts
 // inside the same app.config.ts
 ios: {
-  googleServicesFile: './ios/GoogleService-Info.plist',
+   googleServicesFile: './google-services/ios/GoogleService-Info.plist',
 },
 android: {
-  googleServicesFile: './android/app/google-services.json',
+  googleServicesFile: './google-services/android/google-services.json',
 },
 ```
 
 ### 4) Prebuild and run
 
-If you are using the managed workflow, run prebuild to generate native projects with the configured plugins:
+For managed workflow, run prebuild to generate native projects with the configured plugins:
 
 ```sh
 expo prebuild --clean
 ```
 
-Then build and run with your preferred workflow (EAS Build or local builds).
+Then run your app:
 
+```sh
+# For development
+expo run:ios
+expo run:android
 
+# Or using npx
+npx expo run:ios
+npx expo run:android
+```
+
+### 5) Usage with Expo
+
+After setup, you can use all the customization features available in the main library:
+
+```tsx
+// App.tsx or your chat screen component
+import React from 'react';
+import { ChatProvider, ChatScreen } from 'rn-firebase-chat';
+import { CameraView, useCamera } from 'rn-firebase-chat/src/addons/camera';
+
+const userInfo = {
+  id: 'user123',
+  name: 'John Doe',
+  avatar: 'https://example.com/avatar.jpg',
+};
+
+const partnerInfo = {
+  id: 'partner123',
+  name: 'Jane Smith',
+  avatar: 'https://example.com/jane.jpg',
+};
+
+function ChatScreenComponent() {
+  const { onPressCamera, onPressGallery } = useCamera();
+
+  return (
+    <ChatScreen
+      memberIds={[partnerInfo.id]}
+      partners={[partnerInfo]}
+      messageStatusEnable={true}
+      enableTyping={true}
+      inputToolbarProps={{
+        hasCamera: true,
+        hasGallery: true,
+        onPressCamera,
+        onPressGallery,
+      }}
+    >
+      {({ onSend }) => <CameraView onSend={onSend} />}
+    </ChatScreen>
+  );
+}
+
+export default function App() {
+  return (
+    <ChatProvider userInfo={userInfo}>
+      <ChatScreenComponent />
+    </ChatProvider>
+  );
+}
+```
+
+### Notes for Expo Development
+
+- All styling and customization options work the same as in standard React Native projects
+- Make sure to test camera and gallery features on physical devices, as they may not work properly in simulators
+- Camera and microphone permissions are automatically handled by the plugins configuration
+- For development, you may need to clear Metro cache when adding new assets: `expo start --clear`
+- If you encounter issues with Firebase, ensure your configuration files are in the correct paths as specified in `app.config.ts`
