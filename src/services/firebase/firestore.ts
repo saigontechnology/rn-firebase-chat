@@ -495,11 +495,12 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data - use original text for latest message */
+        /** Format latest message data - use original text for latest message, preserve type */
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
-          text // Use original text, not encrypted for latest message display
+          text, // Use original text, not encrypted for latest message display
+          type
         );
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
