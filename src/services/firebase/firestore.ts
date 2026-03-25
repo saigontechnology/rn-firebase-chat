@@ -460,8 +460,8 @@ export class FirestoreServices {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
       await this.sendMessageWithFile(messageData);
     } else {
-      /** Format message */
-      messageData = formatSendMessage(this.userId, text);
+      /** Format message - pass type through for custom message types */
+      messageData = formatSendMessage(this.userId, text, type);
 
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey && text?.trim()) {
