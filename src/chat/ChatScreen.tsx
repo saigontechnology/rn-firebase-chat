@@ -266,11 +266,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     if (conversationRef.current?.id) {
       receiveMessageRef = firebaseInstance.receiveMessageListener(
         (message: MessageProps) => {
-          if (userInfo && message.senderId !== userInfo.id) {
-            setMessagesList((previousMessages) =>
-              GiftedChat.append(previousMessages, [message])
+          // Add message to list with deduplication.
+          // Skip if message already exists (e.g., added optimistically by onSend).
+          setMessagesList((previousMessages) => {
+            const exists = previousMessages.some(
+              (m) => m._id === message._id || m.id === message.id
             );
-          }
+            if (exists) return previousMessages;
+            return GiftedChat.append(previousMessages, [message]);
+          });
           // Use a more reliable timeout for read status update
           const timeoutId = setTimeout(
             () => firebaseInstance.changeReadMessage(message.id, userInfo?.id),
