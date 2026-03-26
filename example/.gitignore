@@ -36,7 +36,6 @@ yarn-error.*
 # Firebase config (keep out of source control)
 google-services.json
 GoogleService-Info.plist
-debug.keystore
 
 # typescript
 *.tsbuildinfo
