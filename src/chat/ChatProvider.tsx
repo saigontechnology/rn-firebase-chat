@@ -57,11 +57,15 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       firestoreServices.createEncryptionsFunction(encryptionFuncProps);
     }
     if (enableEncrypt && encryptKey && encryptionOptions) {
-      firestoreServices.configurationEncryption({
-        encryptKey,
-        enableEncrypt: enableEncrypt as true,
-        encryptionOptions,
-      });
+      firestoreServices
+        .configurationEncryption({
+          encryptKey,
+          enableEncrypt: enableEncrypt as true,
+          encryptionOptions,
+        })
+        .catch((error) => {
+          console.error('Failed to configure encryption:', error);
+        });
     }
   }, [enableEncrypt, encryptKey, encryptionOptions, encryptionFuncProps]);
 
