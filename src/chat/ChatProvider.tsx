@@ -27,7 +27,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   CustomImageComponent,
   enableEncrypt = true,
   encryptKey = 'saigontechnology@2026',
-  encryptionOptions = { salt: '' },
+  encryptionOptions = { salt: 'saigontechnology@2026' },
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
