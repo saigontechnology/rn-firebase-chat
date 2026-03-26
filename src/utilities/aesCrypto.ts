@@ -51,26 +51,22 @@ const decryptData = async (cipher: string, key: string): Promise<string> => {
   }
 };
 
-const CHARACTERS =
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-const IV_LENGTH = 16;
+const HEX_CHARS = '0123456789abcdef';
+// IV is 16 bytes = 32 hex characters
+const IV_LENGTH = 32;
 
 const createIV = (length = IV_LENGTH): string => {
-  // Use crypto-secure random generation
-  const array = new Uint8Array(length);
-  // if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-  //   crypto.getRandomValues(array);
-  // } else {
-  // Fallback for environments without crypto
-  for (let i = 0; i < length; i++) {
+  const array = new Uint8Array(length / 2);
+  for (let i = 0; i < array.length; i++) {
     array[i] = Math.floor(Math.random() * 256);
   }
-  // }
 
-  // Convert to base64-like string using our character set
+  // Convert bytes to hex string
   let result = '';
-  for (let i = 0; i < length; i++) {
-    result += CHARACTERS.charAt((array[i] ?? 0) % CHARACTERS.length);
+  for (let i = 0; i < array.length; i++) {
+    const byte = array[i] ?? 0;
+    result += HEX_CHARS.charAt(byte >> 4);
+    result += HEX_CHARS.charAt(byte & 0x0f);
   }
 
   return result;
