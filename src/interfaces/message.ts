@@ -48,7 +48,7 @@ interface SendMessageProps {
   extension?: string;
 }
 
-type MediaType = 'image' | 'video' | 'text' | undefined;
+type MediaType = 'image' | 'video' | 'text' | (string & {}) | undefined;
 
 type ImagePickerValue = {
   type: MessageTypes.image | MessageTypes.video;

@@ -460,8 +460,8 @@ export class FirestoreServices {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
       await this.sendMessageWithFile(messageData);
     } else {
-      /** Format message */
-      messageData = formatSendMessage(this.userId, text);
+      /** Format message - pass type through for custom message types */
+      messageData = formatSendMessage(this.userId, text, type);
 
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey && text?.trim()) {
@@ -495,11 +495,12 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data - use original text for latest message */
+        /** Format latest message data - use original text for latest message, preserve type */
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
-          text // Use original text, not encrypted for latest message display
+          text, // Use original text, not encrypted for latest message display
+          type
         );
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
