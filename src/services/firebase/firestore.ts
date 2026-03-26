@@ -91,7 +91,7 @@ export class FirestoreServices {
    * The constructor should always be private to prevent direct
    * construction calls with the `new` operator.
    */
-  constructor() { }
+  constructor() {}
 
   get userId(): string {
     if (!this.userInfo?.id) {
@@ -115,8 +115,8 @@ export class FirestoreServices {
     if (!this.storageProvider) {
       throw new Error(
         'StorageProvider is not configured. To send files, call ' +
-        'FirestoreServices.getInstance().setStorageProvider(provider) ' +
-        'with a StorageProvider implementation (e.g., FirebaseStorageProvider).'
+          'FirestoreServices.getInstance().setStorageProvider(provider) ' +
+          'with a StorageProvider implementation (e.g., FirebaseStorageProvider).'
       );
     }
     return this.storageProvider;
@@ -337,16 +337,16 @@ export class FirestoreServices {
              * For 1-on-1 chat or group chat without custom name/image:
              * We map conversation info of other people with this user info
              */
-          {
-            ...conversationData,
-            name: this.userInfo?.name,
-            image: this.userInfo?.avatar,
-          }
+            {
+              ...conversationData,
+              name: this.userInfo?.name,
+              image: this.userInfo?.avatar,
+            }
           : /**
              * For group chat with custom name and image:
              * Use the common conversation data for all members
              */
-          conversationData;
+            conversationData;
         return firestore()
           .collection(
             this.getUrlWithPrefix(
@@ -817,11 +817,11 @@ export class FirestoreServices {
               ...data,
               latestMessage: data.latestMessage
                 ? await formatMessageText(
-                  data?.latestMessage,
-                  this.regexBlacklist,
-                  this.encryptKey,
-                  this.decryptFunctionProp
-                )
+                    data?.latestMessage,
+                    this.regexBlacklist,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
                 : data.latestMessage,
             } as ConversationProps;
             listChannels.push(message);
@@ -890,11 +890,11 @@ export class FirestoreServices {
                 ...data,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
-                    data?.latestMessage,
-                    regex,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
+                      data?.latestMessage,
+                      regex,
+                      this.encryptKey,
+                      this.decryptFunctionProp
+                    )
                   : data.latestMessage,
               } as ConversationProps;
               callback?.(message);

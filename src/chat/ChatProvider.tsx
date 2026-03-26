@@ -27,13 +27,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   CustomImageComponent,
   enableEncrypt = true,
   encryptKey = 'saigontechnology@2026',
-  encryptionOptions = { salt: "" },
+  encryptionOptions = { salt: '' },
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
-    let unsubscribeListener = () => { };
+    let unsubscribeListener = () => {};
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
       createUserProfile(userInfo.id, userInfo.name).then(() => {
@@ -81,17 +81,19 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
   return (
     <ChatContext.Provider
-      value={{
-        userInfo,
-        blackListWords,
-        CustomImageComponent,
-        enableEncrypt,
-        encryptKey,
-        encryptionOptions,
-        ...props,
-        chatState: state,
-        chatDispatch: dispatch,
-      } as IChatContext}
+      value={
+        {
+          userInfo,
+          blackListWords,
+          CustomImageComponent,
+          enableEncrypt,
+          encryptKey,
+          encryptionOptions,
+          ...props,
+          chatState: state,
+          chatDispatch: dispatch,
+        } as IChatContext
+      }
     >
       {children}
     </ChatContext.Provider>
