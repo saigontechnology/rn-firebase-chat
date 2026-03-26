@@ -45,8 +45,7 @@ const decryptData = async (cipher: string, key: string): Promise<string> => {
     const iv = cipher.substring(0, IV_LENGTH);
     const encryptedText = cipher.substring(IV_LENGTH);
     return await Aes.decrypt(encryptedText, key, iv, 'aes-256-cbc');
-  } catch (error) {
-    console.error('Decryption failed:', error);
+  } catch {
     throw new Error('Failed to decrypt message');
   }
 };
@@ -95,16 +94,19 @@ const decryptedMessageData = async (
   key: string
 ): Promise<string> => {
   if (!text || !key) {
-    console.warn('Invalid parameters for decryption, returning original text');
+    return text;
+  }
+
+  // Text shorter than IV_LENGTH cannot be an encrypted message — skip decryption
+  if (text.length <= IV_LENGTH) {
     return text;
   }
 
   try {
     const decryptedMessage = await decryptData(text, key);
     return decryptedMessage || text;
-  } catch (error) {
-    console.error('Error decrypting message data:', error);
-    // Return original text if decryption fails to maintain functionality
+  } catch {
+    // Return original text if decryption fails (e.g. plain-text messages stored before encryption was enabled)
     return text;
   }
 };
