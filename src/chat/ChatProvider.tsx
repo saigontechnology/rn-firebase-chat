@@ -27,6 +27,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   CustomImageComponent,
   enableEncrypt = true,
   encryptKey = 'saigontechnology@2026',
+  encryptionOptions = { salt: "" },
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
@@ -55,14 +56,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     if (encryptionFuncProps) {
       firestoreServices.createEncryptionsFunction(encryptionFuncProps);
     }
-    if (props.enableEncrypt && props.encryptKey) {
+    if (enableEncrypt && encryptKey && encryptionOptions) {
       firestoreServices.configurationEncryption({
-        encryptKey: props.encryptKey,
-        enableEncrypt: props.enableEncrypt,
-        encryptionOptions: props.encryptionOptions,
+        encryptKey,
+        enableEncrypt: enableEncrypt as true,
+        encryptionOptions,
       });
     }
-  }, [props, encryptionFuncProps]);
+  }, [enableEncrypt, encryptKey, encryptionOptions, encryptionFuncProps]);
 
   useEffect(() => {
     firestoreServices.configuration({ blackListWords });
@@ -84,10 +85,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         userInfo,
         blackListWords,
         CustomImageComponent,
+        enableEncrypt,
+        encryptKey,
+        encryptionOptions,
         ...props,
         chatState: state,
         chatDispatch: dispatch,
-      }}
+      } as IChatContext}
     >
       {children}
     </ChatContext.Provider>

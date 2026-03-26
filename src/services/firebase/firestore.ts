@@ -33,7 +33,7 @@ import {
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
-import type { StorageProvider } from '../../interfFirestoreEncryptionPropsaces/storage';
+import type { StorageProvider } from '../../interfaces/storage';
 
 type PropsWithEncryption = {
   enableEncrypt?: true;
@@ -58,7 +58,7 @@ type FirestoreBaseProps = {
   storageProvider?: StorageProvider;
 };
 
-export type FirestoreProps = FirestoreBaseProps & ;
+export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
 
 export class FirestoreServices {
   private static instance: FirestoreServices;
