@@ -25,12 +25,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   prefix = '',
   storageProvider,
   CustomImageComponent,
+  enableEncrypt = true,
+  encryptKey = 'saigontechnology@2026',
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
-    let unsubscribeListener = () => {};
+    let unsubscribeListener = () => { };
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
       createUserProfile(userInfo.id, userInfo.name).then(() => {

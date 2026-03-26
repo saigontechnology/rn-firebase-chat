@@ -386,6 +386,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
+          maxInputLength={props.maxInputLength || 1000}
           extraData={{ userUnreadMessage }}
           renderBubble={renderBubble}
         />
