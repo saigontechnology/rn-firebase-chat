@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {
   KeyboardAvoidingView,
+  Platform,
   type StyleProp,
   StyleSheet,
   View,
@@ -368,7 +369,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <KeyboardAvoidingView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
         <GiftedChat
           messages={messagesList}
           onSend={(messages) => onSend(messages[0] as MessageProps)}

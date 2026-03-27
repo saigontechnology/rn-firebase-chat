@@ -547,26 +547,17 @@ export class FirestoreServices {
         });
     } else {
       userConversationRef
-        .get()
-        .then((snapshot) => {
-          /** Get unRead count for other members */
-          const unReadCount = snapshot.data()?.unRead;
-          userConversationRef
-            .set(
-              {
-                latestMessage: latestMessageData,
-                updatedAt: getServerTimestamp(),
-                /** Increase unRead for other uses */
-                unRead: unReadCount ? unReadCount + 1 : 1,
-              },
-              { merge: true }
-            )
-            .catch((error) => {
-              console.error('Error updating user conversation:', error);
-            });
-        })
+        .set(
+          {
+            latestMessage: latestMessageData,
+            updatedAt: getServerTimestamp(),
+            /** Atomically increment unRead without requiring a read of the other user's doc */
+            unRead: firestore.FieldValue.increment(1),
+          },
+          { merge: true }
+        )
         .catch((error) => {
-          console.error('Error getting user conversation snapshot:', error);
+          console.error('Error updating user conversation:', error);
         });
     }
   };
@@ -701,7 +692,7 @@ export class FirestoreServices {
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
       )
-      .where('createdAt', '>', getCurrentTimestamp())
+      .where('createdAt', '>', firestore.Timestamp.now())
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {
