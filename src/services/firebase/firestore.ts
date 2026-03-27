@@ -1,6 +1,7 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
+import { InteractionManager } from 'react-native';
 import {
   encryptData,
   decryptData,
@@ -632,6 +633,9 @@ export class FirestoreServices {
       .limit(maxPageSize)
       .get();
 
+    await new Promise<void>((resolve) =>
+      InteractionManager.runAfterInteractions(resolve)
+    );
     const results = await Promise.all(
       querySnapshot.docs.map((doc) => {
         const data = { ...doc.data(), id: doc.id };
@@ -675,6 +679,9 @@ export class FirestoreServices {
       .startAfter(this.messageCursor)
       .get();
 
+    await new Promise<void>((resolve) =>
+      InteractionManager.runAfterInteractions(resolve)
+    );
     const results = await Promise.all(
       querySnapshot.docs.map((doc) => {
         const data = { ...doc.data(), id: doc.id };
@@ -820,6 +827,9 @@ export class FirestoreServices {
         .orderBy('updatedAt', 'desc')
         .get()
         .then(async (querySnapshot) => {
+          await new Promise<void>((resolve) =>
+            InteractionManager.runAfterInteractions(resolve)
+          );
           const messages = await Promise.all(
             querySnapshot.docs.map(async (doc) => {
               const data = { ...doc.data(), id: doc.id };
