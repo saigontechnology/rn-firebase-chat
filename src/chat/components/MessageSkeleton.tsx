@@ -17,9 +17,7 @@ const SkeletonLine = ({
 }: {
   width: number;
   opacity: Animated.Value;
-}) => (
-  <Animated.View style={[styles.line, { width, opacity }]} />
-);
+}) => <Animated.View style={[styles.line, { width, opacity }]} />;
 
 const SkeletonBubble = ({
   align,
