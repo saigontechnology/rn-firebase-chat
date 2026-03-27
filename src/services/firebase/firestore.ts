@@ -402,13 +402,23 @@ export class FirestoreServices {
         )
         .add(messageForStorage);
 
+      let latestFileText = message.text || '';
+      if (this.enableEncrypt && this.encryptKey && latestFileText.trim()) {
+        try {
+          latestFileText = this.encryptFunctionProp
+            ? await this.encryptFunctionProp(latestFileText)
+            : await encryptData(latestFileText, this.encryptKey);
+        } catch {
+          latestFileText = message.text || '';
+        }
+      }
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
           formatLatestMessage(
             this.userId,
             this.userInfo?.name || '',
-            message.text || '', // Use original text for latest message
+            latestFileText,
             type,
             path,
             extension
@@ -497,11 +507,21 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data - use original text for latest message */
+        /** Format latest message data - encrypt same as message */
+        let latestText = text;
+        if (this.enableEncrypt && this.encryptKey && text?.trim()) {
+          try {
+            latestText = this.encryptFunctionProp
+              ? await this.encryptFunctionProp(text)
+              : await encryptData(text, this.encryptKey);
+          } catch {
+            latestText = text;
+          }
+        }
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
-          text // Use original text, not encrypted for latest message display
+          latestText
         );
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
