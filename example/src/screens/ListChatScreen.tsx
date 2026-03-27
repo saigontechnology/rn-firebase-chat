@@ -6,7 +6,6 @@ import {
   View,
   TextInput,
   Alert,
-  ScrollView,
 } from 'react-native';
 import {
   ListConversationScreen,
@@ -65,7 +64,7 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
   }, [otherUserId, currentUserId, navigation, chatDispatch]);
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+    <View style={styles.container}>
       <View style={styles.infoBox}>
         <Text style={styles.label}>Your UID (share with the other device):</Text>
         <Text selectable style={styles.uid}>{currentUserId}</Text>
@@ -85,7 +84,7 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
       </View>
 
       <ListConversationScreen onPress={handleItemPress} />
-    </ScrollView>
+    </View>
   );
 };
 
