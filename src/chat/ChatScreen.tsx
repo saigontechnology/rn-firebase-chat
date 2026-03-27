@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   type StyleProp,
@@ -29,6 +28,7 @@ import type {
 } from '../interfaces';
 import { formatMessageText, isOtherUserTyping } from '../utilities';
 import SelectedImageModal from './components/SelectedImage';
+import MessageSkeleton from './components/MessageSkeleton';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
 import {
@@ -373,8 +373,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   if (isLoadingMessages) {
     return (
-      <View style={[styles.container, styles.loadingContainer, style]}>
-        <ActivityIndicator size="large" />
+      <View style={[styles.container, style]}>
+        <MessageSkeleton />
       </View>
     );
   }
@@ -419,9 +419,5 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
