@@ -36,13 +36,15 @@ import {
 import type { StorageProvider } from '../../interfaces/storage';
 
 type PropsWithEncryption = {
-  enableEncrypt: true;
+  enableEncrypt?: true;
   encryptionOptions: EncryptionOptions;
   encryptKey?: string;
 };
 
 type PropsWithoutEncryption = {
   enableEncrypt: false;
+  encryptionOptions?: never;
+  encryptKey?: never;
 };
 
 type FirestoreEncryptionProps = PropsWithEncryption | PropsWithoutEncryption;
@@ -400,13 +402,23 @@ export class FirestoreServices {
         )
         .add(messageForStorage);
 
+      let latestFileText = message.text || '';
+      if (this.enableEncrypt && this.encryptKey && latestFileText.trim()) {
+        try {
+          latestFileText = this.encryptFunctionProp
+            ? await this.encryptFunctionProp(latestFileText)
+            : await encryptData(latestFileText, this.encryptKey);
+        } catch {
+          latestFileText = message.text || '';
+        }
+      }
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
           formatLatestMessage(
             this.userId,
             this.userInfo?.name || '',
-            message.text || '', // Use original text for latest message
+            latestFileText,
             type,
             path,
             extension
@@ -495,11 +507,21 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data - use original text for latest message */
+        /** Format latest message data - encrypt same as message */
+        let latestText = text;
+        if (this.enableEncrypt && this.encryptKey && text?.trim()) {
+          try {
+            latestText = this.encryptFunctionProp
+              ? await this.encryptFunctionProp(text)
+              : await encryptData(text, this.encryptKey);
+          } catch {
+            latestText = text;
+          }
+        }
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
-          text // Use original text, not encrypted for latest message display
+          latestText
         );
         this.memberIds?.forEach((memberId) => {
           this.updateUserConversation(memberId, latestMessageData);
@@ -545,26 +567,17 @@ export class FirestoreServices {
         });
     } else {
       userConversationRef
-        .get()
-        .then((snapshot) => {
-          /** Get unRead count for other members */
-          const unReadCount = snapshot.data()?.unRead;
-          userConversationRef
-            .set(
-              {
-                latestMessage: latestMessageData,
-                updatedAt: getServerTimestamp(),
-                /** Increase unRead for other uses */
-                unRead: unReadCount ? unReadCount + 1 : 1,
-              },
-              { merge: true }
-            )
-            .catch((error) => {
-              console.error('Error updating user conversation:', error);
-            });
-        })
+        .set(
+          {
+            latestMessage: latestMessageData,
+            updatedAt: getServerTimestamp(),
+            /** Atomically increment unRead without requiring a read of the other user's doc */
+            unRead: firestore.FieldValue.increment(1),
+          },
+          { merge: true }
+        )
         .catch((error) => {
-          console.error('Error getting user conversation snapshot:', error);
+          console.error('Error updating user conversation:', error);
         });
     }
   };
@@ -699,7 +712,7 @@ export class FirestoreServices {
           `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
         )
       )
-      .where('createdAt', '>', getCurrentTimestamp())
+      .where('createdAt', '>', firestore.Timestamp.now())
       .onSnapshot(async (snapshot) => {
         if (snapshot) {
           for (const change of snapshot.docChanges()) {

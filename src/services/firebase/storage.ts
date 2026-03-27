@@ -1,6 +1,4 @@
-import storage, {
-  FirebaseStorageTypes,
-} from '@react-native-firebase/storage';
+import storage, { FirebaseStorageTypes } from '@react-native-firebase/storage';
 
 /**
  * Generate a unique ID using timestamp and random string
