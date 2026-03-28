@@ -47,20 +47,26 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
       Alert.alert('Enter the other user\'s UID first');
       return;
     }
-    const firestoreServices = FirestoreServices.getInstance();
-    // Use a deterministic conversation ID based on both user IDs
-    const conversationId = [currentUserId, targetId].sort().join('_');
-    const conversation = await firestoreServices.createConversation(
-      conversationId,
-      [targetId],
-      'Chat'
-    );
-    chatDispatch?.(setConversation(conversation));
-    navigation.navigate(RouteKey.ChatScreen, {
-      conversationId,
-      name: 'Chat',
-      otherUserId: targetId,
-    });
+    try {
+      const firestoreServices = FirestoreServices.getInstance();
+      const conversationId = [currentUserId, targetId].sort().join('_');
+      const conversation = await firestoreServices.createConversation(
+        conversationId,
+        [targetId],
+        'Chat'
+      );
+      chatDispatch?.(setConversation(conversation));
+      navigation.navigate(RouteKey.ChatScreen, {
+        conversationId,
+        name: 'Chat',
+        otherUserId: targetId,
+      });
+    } catch {
+      Alert.alert(
+        'Error',
+        'Could not start chat. Please check your connection and try again.'
+      );
+    }
   }, [otherUserId, currentUserId, navigation, chatDispatch]);
 
   return (
