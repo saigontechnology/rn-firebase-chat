@@ -126,16 +126,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         partners
       );
       setIsLoadingMessages(true);
-      firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
-        setMessagesList(res);
-        setIsLoadingMessages(false);
-        setHasMoreMessages(res.length === maxPageSize);
-        const firstMessage = res?.length > 0 && res[0];
-        if (firstMessage && firstMessage.senderId !== userInfo?.id) {
-          firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
-        }
-        onLoadEnd?.();
-      });
+      firebaseInstance
+        .getMessageHistory(maxPageSize)
+        .then((res) => {
+          setMessagesList(res);
+          setIsLoadingMessages(false);
+          setHasMoreMessages(res.length === maxPageSize);
+          const firstMessage = res?.length > 0 && res[0];
+          if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+            firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+          }
+          onLoadEnd?.();
+        })
+        .catch(() => {
+          setIsLoadingMessages(false);
+          onLoadEnd?.();
+        });
     }
   }, [
     conversationInfo?.id,
@@ -209,13 +215,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
     isLoadingRef.current = true;
     if (conversationRef.current?.id) {
-      const res = await firebaseInstance.getMoreMessage(maxPageSize);
-      const isMoreMessage = res.length === maxPageSize;
-      setHasMoreMessages(isMoreMessage);
-      isLoadingRef.current = !isMoreMessage;
-      setMessagesList((previousMessages) =>
-        GiftedChat.prepend(previousMessages, res)
-      );
+      try {
+        const res = await firebaseInstance.getMoreMessage(maxPageSize);
+        const isMoreMessage = res.length === maxPageSize;
+        setHasMoreMessages(isMoreMessage);
+        isLoadingRef.current = !isMoreMessage;
+        setMessagesList((previousMessages) =>
+          GiftedChat.prepend(previousMessages, res)
+        );
+      } catch {
+        isLoadingRef.current = false;
+      }
     }
   }, [maxPageSize, firebaseInstance]);
 
