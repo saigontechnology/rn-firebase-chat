@@ -91,8 +91,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
           blackListWords,
           CustomImageComponent,
           enableEncrypt,
-          encryptKey,
-          encryptionOptions,
           ...props,
           chatState: state,
           chatDispatch: dispatch,

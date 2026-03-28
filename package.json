@@ -26,7 +26,7 @@
     "release:ci": "release-it --ci",
     "release:check": "node scripts/check-release.cjs",
     "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install && yarn example pods"
+    "bootstrap": "npm --prefix example install && yarn install && yarn example pods"
   },
   "keywords": [
     "react-native",
