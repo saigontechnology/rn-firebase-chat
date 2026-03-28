@@ -33,7 +33,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   const [state, dispatch] = useReducer(chatReducer, {});
 
   useEffect(() => {
-    let unsubscribeListener = () => { };
+    let unsubscribeListener = () => {};
     if (userInfo?.id) {
       firestoreServices.configuration({ userInfo });
       createUserProfile(userInfo.id, userInfo.name).then(() => {
