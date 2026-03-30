@@ -28,6 +28,7 @@ import type {
 } from '../interfaces';
 import { formatMessageText, isOtherUserTyping } from '../utilities';
 import SelectedImageModal from './components/SelectedImage';
+import MessageSkeleton from './components/MessageSkeleton';
 import { CustomBubble, CustomImageVideoBubbleProps } from './components/bubble';
 import { clearConversation } from '../reducer';
 import {
@@ -99,6 +100,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const [messagesList, setMessagesList] = useState<MessageProps[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const isLoadingRef = useRef(false);
@@ -123,15 +125,23 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         memberIds,
         partners
       );
-      firebaseInstance.getMessageHistory(maxPageSize).then((res) => {
-        setMessagesList(res);
-        setHasMoreMessages(res.length === maxPageSize);
-        const firstMessage = res?.length > 0 && res[0];
-        if (firstMessage && firstMessage.senderId !== userInfo?.id) {
-          firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
-        }
-        onLoadEnd?.();
-      });
+      setIsLoadingMessages(true);
+      firebaseInstance
+        .getMessageHistory(maxPageSize)
+        .then((res) => {
+          setMessagesList(res);
+          setIsLoadingMessages(false);
+          setHasMoreMessages(res.length === maxPageSize);
+          const firstMessage = res?.length > 0 && res[0];
+          if (firstMessage && firstMessage.senderId !== userInfo?.id) {
+            firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+          }
+          onLoadEnd?.();
+        })
+        .catch(() => {
+          setIsLoadingMessages(false);
+          onLoadEnd?.();
+        });
     }
   }, [
     conversationInfo?.id,
@@ -205,13 +215,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
     isLoadingRef.current = true;
     if (conversationRef.current?.id) {
-      const res = await firebaseInstance.getMoreMessage(maxPageSize);
-      const isMoreMessage = res.length === maxPageSize;
-      setHasMoreMessages(isMoreMessage);
-      isLoadingRef.current = !isMoreMessage;
-      setMessagesList((previousMessages) =>
-        GiftedChat.prepend(previousMessages, res)
-      );
+      try {
+        const res = await firebaseInstance.getMoreMessage(maxPageSize);
+        const isMoreMessage = res.length === maxPageSize;
+        setHasMoreMessages(isMoreMessage);
+        isLoadingRef.current = !isMoreMessage;
+        setMessagesList((previousMessages) =>
+          GiftedChat.prepend(previousMessages, res)
+        );
+      } catch {
+        isLoadingRef.current = false;
+      }
     }
   }, [maxPageSize, firebaseInstance]);
 
@@ -366,6 +380,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     changeUserConversationTyping,
     typingTimeoutSeconds
   );
+
+  if (isLoadingMessages) {
+    return (
+      <View style={[styles.container, style]}>
+        <MessageSkeleton />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, style]}>

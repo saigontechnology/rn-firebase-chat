@@ -1,6 +1,7 @@
 import firestore, {
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
+import { InteractionManager } from 'react-native';
 import {
   encryptData,
   decryptData,
@@ -77,6 +78,9 @@ export class FirestoreServices {
 
   /** Storage provider */
   private storageProvider: StorageProvider | null = null;
+
+  /** Decryption cache: ciphertext → plaintext, cleared when encryptKey changes */
+  private decryptCache = new Map<string, string>();
 
   /** Conversation info */
   conversationId: string | null = null;
@@ -181,10 +185,12 @@ export class FirestoreServices {
       if (!this.encryptKey || this.encryptKey.length === 0) {
         throw new Error('Failed to generate encryption key');
       }
+      this.decryptCache.clear();
     } catch (error) {
       console.error('Error configuring encryption:', error);
       this.enableEncrypt = false;
       this.encryptKey = '';
+      this.decryptCache.clear();
       throw new Error('Failed to configure encryption');
     }
   };
@@ -195,6 +201,18 @@ export class FirestoreServices {
 
   getUrlWithPrefix = (url: string) =>
     this.prefix ? `${this.prefix}-${url}` : url;
+
+  /** Cached decrypt — avoids re-decrypting the same ciphertext multiple times */
+  private cachedDecrypt = async (cipher: string): Promise<string> => {
+    if (this.decryptCache.has(cipher)) {
+      return this.decryptCache.get(cipher)!;
+    }
+    const plain = this.decryptFunctionProp
+      ? await this.decryptFunctionProp(cipher)
+      : cipher;
+    this.decryptCache.set(cipher, plain);
+    return plain;
+  };
 
   getConfiguration = <
     K extends keyof Omit<
@@ -390,7 +408,6 @@ export class FirestoreServices {
           messageForStorage.text = encryptedText;
         } catch (error) {
           console.error('Failed to encrypt file message text:', error);
-          // Continue with unencrypted text for file messages as the media itself might be more important
         }
       }
 
@@ -402,16 +419,8 @@ export class FirestoreServices {
         )
         .add(messageForStorage);
 
-      let latestFileText = message.text || '';
-      if (this.enableEncrypt && this.encryptKey && latestFileText.trim()) {
-        try {
-          latestFileText = this.encryptFunctionProp
-            ? await this.encryptFunctionProp(latestFileText)
-            : await encryptData(latestFileText, this.encryptKey);
-        } catch {
-          latestFileText = message.text || '';
-        }
-      }
+      /** Reuse already-encrypted text for latestMessage — no second encryption */
+      const latestFileText = messageForStorage.text ?? message.text ?? '';
       this.memberIds?.forEach((memberId) => {
         this.updateUserConversation(
           memberId,
@@ -489,10 +498,6 @@ export class FirestoreServices {
           messageData.text = encryptedText;
         } catch (error) {
           console.error('Failed to encrypt message:', error);
-          // Depending on security requirements, you might want to:
-          // 1. Throw error to prevent sending unencrypted message
-          // 2. Send unencrypted message with warning
-          // 3. Retry encryption
           throw new Error('Message encryption failed - message not sent');
         }
       }
@@ -507,17 +512,8 @@ export class FirestoreServices {
           )
           .add(messageData);
 
-        /** Format latest message data - encrypt same as message */
-        let latestText = text;
-        if (this.enableEncrypt && this.encryptKey && text?.trim()) {
-          try {
-            latestText = this.encryptFunctionProp
-              ? await this.encryptFunctionProp(text)
-              : await encryptData(text, this.encryptKey);
-          } catch {
-            latestText = text;
-          }
-        }
+        /** Reuse already-encrypted text for latestMessage — no second encryption */
+        const latestText = messageData.text ?? text;
         const latestMessageData = formatLatestMessage(
           this.userId,
           this.userInfo?.name || '',
@@ -637,22 +633,26 @@ export class FirestoreServices {
       .limit(maxPageSize)
       .get();
 
-    for (const doc of querySnapshot.docs) {
-      const data = { ...doc.data(), id: doc.id };
-      const userInfo =
-        data.senderId === this.userInfo?.id
-          ? this.userInfo
-          : (this.partners?.[doc.data().senderId] as IUserInfo);
-      listMessage.push(
-        await formatMessageData(
+    await new Promise<void>((resolve) =>
+      InteractionManager.runAfterInteractions(resolve)
+    );
+    const results = await Promise.all(
+      querySnapshot.docs.map((doc) => {
+        const data = { ...doc.data(), id: doc.id };
+        const userInfo =
+          data.senderId === this.userInfo?.id
+            ? this.userInfo
+            : (this.partners?.[doc.data().senderId] as IUserInfo);
+        return formatMessageData(
           data,
           userInfo,
           this.regexBlacklist,
           this.encryptKey,
           this.decryptFunctionProp
-        )
-      );
-    }
+        );
+      })
+    );
+    listMessage.push(...results);
 
     if (listMessage.length > 0) {
       this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -679,22 +679,26 @@ export class FirestoreServices {
       .startAfter(this.messageCursor)
       .get();
 
-    for (const doc of querySnapshot.docs) {
-      const data = { ...doc.data(), id: doc.id };
-      const userInfo =
-        data.senderId === this.userInfo?.id
-          ? this.userInfo
-          : (this.partners?.[doc.data().senderId] as IUserInfo);
-      listMessage.push(
-        await formatMessageData(
+    await new Promise<void>((resolve) =>
+      InteractionManager.runAfterInteractions(resolve)
+    );
+    const results = await Promise.all(
+      querySnapshot.docs.map((doc) => {
+        const data = { ...doc.data(), id: doc.id };
+        const userInfo =
+          data.senderId === this.userInfo?.id
+            ? this.userInfo
+            : (this.partners?.[doc.data().senderId] as IUserInfo);
+        return formatMessageData(
           data,
           userInfo,
           this.regexBlacklist,
           this.encryptKey,
           this.decryptFunctionProp
-        )
-      );
-    }
+        );
+      })
+    );
+    listMessage.push(...results);
 
     if (listMessage.length > 0) {
       this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -713,30 +717,31 @@ export class FirestoreServices {
         )
       )
       .where('createdAt', '>', firestore.Timestamp.now())
-      .onSnapshot(async (snapshot) => {
-        if (snapshot) {
-          for (const change of snapshot.docChanges()) {
-            if (change.type === 'added') {
-              const data = {
-                ...change.doc.data(),
-                id: change.doc.id,
-              } as MessageProps & { id: string };
-              const userInfo =
-                data.senderId === this.userInfo?.id
-                  ? this.userInfo
-                  : (this.partners?.[change.doc.data().senderId] as IUserInfo);
-              callBack(
-                await formatMessageData(
-                  data,
-                  userInfo,
-                  this.regexBlacklist,
-                  this.encryptKey,
-                  this.decryptFunctionProp
-                )
-              );
-            }
-          }
-        }
+      .onSnapshot((snapshot) => {
+        if (!snapshot) return;
+        const added = snapshot
+          .docChanges()
+          .filter((change) => change.type === 'added');
+        if (!added.length) return;
+        Promise.all(
+          added.map((change) => {
+            const data = {
+              ...change.doc.data(),
+              id: change.doc.id,
+            } as MessageProps & { id: string };
+            const userInfo =
+              data.senderId === this.userInfo?.id
+                ? this.userInfo
+                : (this.partners?.[change.doc.data().senderId] as IUserInfo);
+            return formatMessageData(
+              data,
+              userInfo,
+              this.regexBlacklist,
+              this.encryptKey,
+              this.decryptFunctionProp
+            );
+          })
+        ).then((messages) => messages.forEach(callBack));
       });
   };
 
@@ -822,21 +827,26 @@ export class FirestoreServices {
         .orderBy('updatedAt', 'desc')
         .get()
         .then(async (querySnapshot) => {
-          for (const doc of querySnapshot.docs) {
-            const data = { ...doc.data(), id: doc.id };
-            const message = {
-              ...data,
-              latestMessage: data.latestMessage
-                ? await formatMessageText(
-                    data?.latestMessage,
-                    this.regexBlacklist,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
-                : data.latestMessage,
-            } as ConversationProps;
-            listChannels.push(message);
-          }
+          await new Promise<void>((resolve) =>
+            InteractionManager.runAfterInteractions(resolve)
+          );
+          const messages = await Promise.all(
+            querySnapshot.docs.map(async (doc) => {
+              const data = { ...doc.data(), id: doc.id };
+              return {
+                ...data,
+                latestMessage: data.latestMessage
+                  ? await formatMessageText(
+                      data?.latestMessage,
+                      this.regexBlacklist,
+                      this.encryptKey,
+                      this.decryptFunctionProp
+                    )
+                  : data.latestMessage,
+              } as ConversationProps;
+            })
+          );
+          listChannels.push(...messages);
           resolve(listChannels);
         })
     );
@@ -889,29 +899,31 @@ export class FirestoreServices {
           `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
         )
       )
-      .onSnapshot(async (snapshot) => {
-        if (snapshot) {
-          for (const change of snapshot.docChanges()) {
-            if (change.type === 'modified') {
-              const data = {
-                ...(change.doc.data() as ConversationProps),
-                id: change.doc.id,
-              };
-              const message = {
-                ...data,
-                latestMessage: data.latestMessage
-                  ? await formatMessageText(
-                      data?.latestMessage,
-                      regex,
-                      this.encryptKey,
-                      this.decryptFunctionProp
-                    )
-                  : data.latestMessage,
-              } as ConversationProps;
-              callback?.(message);
-            }
-          }
-        }
+      .onSnapshot((snapshot) => {
+        if (!snapshot) return;
+        const modified = snapshot
+          .docChanges()
+          .filter((change) => change.type === 'modified');
+        if (!modified.length) return;
+        Promise.all(
+          modified.map(async (change) => {
+            const data = {
+              ...(change.doc.data() as ConversationProps),
+              id: change.doc.id,
+            };
+            return {
+              ...data,
+              latestMessage: data.latestMessage
+                ? await formatMessageText(
+                    data?.latestMessage,
+                    regex,
+                    this.encryptKey,
+                    this.decryptFunctionProp
+                  )
+                : data.latestMessage,
+            } as ConversationProps;
+          })
+        ).then((messages) => messages.forEach(callback));
       });
   };
 
