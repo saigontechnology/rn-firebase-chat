@@ -6,21 +6,25 @@ import { FirestoreServices } from './firestore';
 const firestoreServices = FirestoreServices.getInstance();
 
 const createUserProfile = async (userId: string, name: string) => {
-  const userRef = firestore()
-    .collection<
-      Omit<UserProfileProps, 'id'>
-    >(firestoreServices.getUrlWithPrefix(FireStoreCollection.users))
-    .doc(userId);
-  const user = await userRef.get();
-  if (!user.exists) {
-    await userRef.set({
-      created: getServerTimestamp(),
-      status: 'online',
-      name,
-      updated: getServerTimestamp(),
-    });
-  } else {
-    // console.log('Document data:', user.data());
+  const path = firestoreServices.getUrlWithPrefix(FireStoreCollection.users);
+  console.log('[createUserProfile] path:', path, 'userId:', userId);
+  try {
+    const userRef = firestore()
+      .collection<Omit<UserProfileProps, 'id'>>(path)
+      .doc(userId);
+    const user = await userRef.get();
+    console.log('[createUserProfile] exists:', user.exists());
+    if (!user.exists()) {
+      await userRef.set({
+        created: getServerTimestamp(),
+        status: 'online',
+        name,
+        updated: getServerTimestamp(),
+      });
+      console.log('[createUserProfile] created user doc');
+    }
+  } catch (e) {
+    console.error('[createUserProfile] error:', e);
   }
 };
 

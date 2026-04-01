@@ -107,18 +107,27 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             </Text>
           </View>
         )}
-        {!!data.unRead && (
-          <View
-            style={[
-              styles.unReadWrapper,
-              StyleSheet.flatten(unReadWrapperStyle),
-            ]}
-          >
-            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
-              {data.unRead}
-            </Text>
-          </View>
-        )}
+        {(() => {
+          const unReadValue = userInfo?.id
+            ? Number(data.unRead?.[userInfo.id])
+            : 0;
+          if (!unReadValue || unReadValue <= 0 || !isFinite(unReadValue)) {
+            return null;
+          }
+          const label = unReadValue > 99 ? '99+' : String(unReadValue);
+          return (
+            <View
+              style={[
+                styles.unReadWrapper,
+                StyleSheet.flatten(unReadWrapperStyle),
+              ]}
+            >
+              <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+                {label}
+              </Text>
+            </View>
+          );
+        })()}
       </View>
     </TouchableOpacity>
   );
@@ -167,9 +176,10 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   unReadWrapper: {
-    width: 20,
+    minWidth: 20,
     height: 20,
     borderRadius: 10,
+    paddingHorizontal: 4,
     backgroundColor: '#2684FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -177,5 +187,6 @@ const styles = StyleSheet.create({
   unRead: {
     fontSize: 10,
     color: '#fff',
+    fontWeight: '600',
   },
 });

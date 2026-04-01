@@ -10,6 +10,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FirestoreServices } from '../services/firebase';
 import { MessageTypes, type MediaFile } from '../interfaces';
 import { GalleryType } from '../interfaces/gallery';
@@ -177,10 +178,10 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   ]);
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <SafeAreaView style={[styles.container, containerStyle]} edges={['bottom']}>
       {renderHeader()}
       {renderContent()}
-    </View>
+    </SafeAreaView>
   );
 };
 
