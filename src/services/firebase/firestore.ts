@@ -1,5 +1,10 @@
 import firestore, {
+  collection,
   FirebaseFirestoreTypes,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
 } from '@react-native-firebase/firestore';
 import { InteractionManager } from 'react-native';
 import {
@@ -20,7 +25,6 @@ import {
   sanitizeUserInput,
 } from '../../utilities';
 import {
-  ConversationData,
   ConversationProps,
   EncryptionFunctions,
   EncryptionOptions,
@@ -30,7 +34,6 @@ import {
   MediaFile,
   MessageTypes,
   type IUserInfo,
-  type LatestMessageProps,
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
@@ -99,9 +102,11 @@ export class FirestoreServices {
 
   get userId(): string {
     if (!this.userInfo?.id) {
-      console.error('Please set userInfo before call chat  function');
+      throw new Error(
+        'FirestoreServices: userInfo not configured. Call configuration() before using chat functions.'
+      );
     }
-    return this.userInfo?.id || '';
+    return this.userInfo.id;
   }
 
   static getInstance = () => {
@@ -139,6 +144,12 @@ export class FirestoreServices {
   }: FirestoreBaseProps): Promise<void> => {
     // Validate user info
     if (userInfo) {
+      console.log(
+        '[configuration] userId:',
+        userInfo.id,
+        'valid:',
+        validateUserId(userInfo.id)
+      );
       if (!validateUserId(userInfo.id)) {
         throw new Error('Invalid user ID format');
       }
@@ -148,6 +159,7 @@ export class FirestoreServices {
         ...userInfo,
         name: sanitizeUserInput(userInfo.name || ''),
       };
+      console.log('[configuration] userInfo set successfully');
     }
 
     if (blackListWords) {
@@ -310,8 +322,7 @@ export class FirestoreServices {
     conversationId: string,
     memberIds: string[],
     name?: string,
-    image?: string,
-    isGroup?: boolean
+    image?: string
   ): Promise<ConversationProps> => {
     const conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
@@ -323,58 +334,17 @@ export class FirestoreServices {
       conversationData.image = image;
     }
 
-    let conversationRef: FirestoreReference = firestore().collection<
+    const conversationsCollection = firestore().collection<
       Partial<ConversationProps>
-    >(
-      this.getUrlWithPrefix(
-        `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-      )
-    );
-    /** Create the conversation to the user who create the chat */
-    if (conversationId) {
-      conversationRef = conversationRef.doc(conversationId);
-      await conversationRef.set(conversationData);
-    } else {
-      conversationRef = await conversationRef.add(conversationData);
-    }
-    /** Add the conversation to the user who is conversation's member */
-    /**
-     * Determine if we should use personalized info for each member.
-     * Use personalized info when:
-     * 1. Not a group chat (1-on-1) - existing behavior
-     * 2. Group chat but no custom name and image provided (just custom conversation ID)
-     *    This allows users to create a conversation with a specific ID
-     *    while still showing personalized name/image for each participant
-     */
-    const usePersonalizedInfo = !isGroup || (!name && !image);
+    >(this.getUrlWithPrefix(FireStoreCollection.conversations));
 
-    await Promise.all([
-      memberIds.map((memberId) => {
-        const otherMemberConversationData = usePersonalizedInfo
-          ? /**
-             * For 1-on-1 chat or group chat without custom name/image:
-             * We map conversation info of other people with this user info
-             */
-            {
-              ...conversationData,
-              name: this.userInfo?.name,
-              image: this.userInfo?.avatar,
-            }
-          : /**
-             * For group chat with custom name and image:
-             * Use the common conversation data for all members
-             */
-            conversationData;
-        return firestore()
-          .collection(
-            this.getUrlWithPrefix(
-              `${FireStoreCollection.users}/${memberId}/${FireStoreCollection.conversations}`
-            )
-          )
-          .doc(conversationRef.id)
-          .set(otherMemberConversationData);
-      }),
-    ]);
+    let conversationRef: FirestoreReference;
+    if (conversationId) {
+      conversationRef = conversationsCollection.doc(conversationId);
+      await conversationRef.set(conversationData, { merge: true });
+    } else {
+      conversationRef = await conversationsCollection.add(conversationData);
+    }
 
     this.conversationId = conversationRef.id;
     this.memberIds = memberIds;
@@ -382,7 +352,7 @@ export class FirestoreServices {
   };
 
   sendMessageWithFile = async (message: SendMessageProps): Promise<void> => {
-    const { path, extension, type } = message;
+    const { path, extension } = message;
 
     if (!path || !extension || this.conversationId === null) {
       console.error('Please provide path and extension');
@@ -418,22 +388,6 @@ export class FirestoreServices {
           )
         )
         .add(messageForStorage);
-
-      /** Reuse already-encrypted text for latestMessage — no second encryption */
-      const latestFileText = messageForStorage.text ?? message.text ?? '';
-      this.memberIds?.forEach((memberId) => {
-        this.updateUserConversation(
-          memberId,
-          formatLatestMessage(
-            this.userId,
-            this.userInfo?.name || '',
-            latestFileText,
-            type,
-            path,
-            extension
-          )
-        );
-      });
     } catch (error) {
       console.error('Error sending message with file:', error);
       throw error; // Re-throw to allow caller to handle
@@ -519,9 +473,30 @@ export class FirestoreServices {
           this.userInfo?.name || '',
           latestText
         );
-        this.memberIds?.forEach((memberId) => {
-          this.updateUserConversation(memberId, latestMessageData);
+
+        /** Build unRead update using dot-notation field paths so each key is
+         *  written atomically without overwriting other members' counters.
+         *  sender → 0, all other members → increment by 1 */
+        const conversationUpdate: Record<string, unknown> = {
+          latestMessage: latestMessageData,
+          updatedAt: getServerTimestamp(),
+          [`unRead.${this.userId}`]: 0,
+        };
+        this.memberIds.forEach((memberId) => {
+          if (memberId !== this.userId) {
+            conversationUpdate[`unRead.${memberId}`] =
+              firestore.FieldValue.increment(1);
+          }
         });
+
+        /** Update top-level conversations doc so listenConversationUpdate fires */
+        firestore()
+          .collection(this.getUrlWithPrefix(FireStoreCollection.conversations))
+          .doc(this.conversationId!)
+          .update(conversationUpdate)
+          .catch((error) =>
+            console.error('Error updating conversation:', error)
+          );
       } catch (e) {
         console.error('Error sending message:', e);
         throw e; // Re-throw to allow caller to handle
@@ -529,88 +504,16 @@ export class FirestoreServices {
     }
   };
 
-  updateUserConversation = (
-    userId: string,
-    latestMessageData: LatestMessageProps
-  ): void => {
-    if (!this.conversationId) {
-      console.error(
-        'Please create conversation before send the first message!'
-      );
-      return;
-    }
-    const userConversationRef = firestore()
-      .collection<Partial<ConversationProps>>(
-        this.getUrlWithPrefix(
-          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
-        )
-      )
-      .doc(this.conversationId);
-    if (userId === this.userId) {
-      /** Update latest message for each member */
-      userConversationRef
-        .set(
-          {
-            latestMessage: latestMessageData,
-            updatedAt: getServerTimestamp(),
-            /** Update unRead for this user to 0 */
-            unRead: 0,
-          },
-          { merge: true }
-        )
-        .catch((error) => {
-          console.error('Error updating user conversation:', error);
-        });
-    } else {
-      userConversationRef
-        .set(
-          {
-            latestMessage: latestMessageData,
-            updatedAt: getServerTimestamp(),
-            /** Atomically increment unRead without requiring a read of the other user's doc */
-            unRead: firestore.FieldValue.increment(1),
-          },
-          { merge: true }
-        )
-        .catch((error) => {
-          console.error('Error updating user conversation:', error);
-        });
-    }
-  };
-
-  changeReadMessage = async (messageId: string, userId?: string) => {
+  changeReadMessage = async (_messageId: string, userId?: string) => {
     if (!userId || !this.conversationId) {
       return;
     }
-    const conversationRef = firestore()
-      .collection<ConversationData>(
-        this.getUrlWithPrefix(`${FireStoreCollection.conversations}`)
-      )
-      .doc(this.conversationId);
-    const userConversationRef = firestore()
-      .collection<Partial<ConversationProps>>(
-        this.getUrlWithPrefix(
-          `${FireStoreCollection.users}/${userId}/${FireStoreCollection.conversations}`
-        )
-      )
-      .doc(this.conversationId);
 
     try {
-      await firestore().runTransaction(async (transaction) => {
-        const conversationDoc = await transaction.get(conversationRef);
-        let unRead: Record<string, string> = {};
-
-        if (conversationDoc.exists()) {
-          const conversationData = conversationDoc.data();
-          if (conversationData && conversationData.unRead) {
-            unRead = conversationData.unRead;
-          }
-        }
-
-        unRead[userId] = messageId;
-        transaction.set(conversationRef, { unRead }, { merge: true });
-        transaction.set(userConversationRef, { unRead: 0 }, { merge: true });
-      });
+      await firestore()
+        .collection(this.getUrlWithPrefix(FireStoreCollection.conversations))
+        .doc(this.conversationId)
+        .update({ [`unRead.${userId}`]: 0 });
     } catch (error) {
       console.error('Error updating unread message ID: ', error);
     }
@@ -619,43 +522,69 @@ export class FirestoreServices {
   getMessageHistory = async (maxPageSize: number) => {
     const listMessage: Awaited<MessageProps>[] = [];
 
+    console.log(
+      '[getMessageHistory] START. userInfo:',
+      this.userInfo,
+      'conversationId:',
+      this.conversationId
+    );
     if (!this.userInfo) {
+      console.log('[getMessageHistory] userInfo is undefined, returning []');
       return listMessage;
     }
 
-    const querySnapshot = await firestore()
-      .collection<MessageProps>(
-        this.getUrlWithPrefix(
-          `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
-        )
-      )
-      .orderBy('createdAt', 'desc')
-      .limit(maxPageSize)
-      .get();
+    try {
+      const path = this.getUrlWithPrefix(
+        `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+      );
+      console.log('[getMessageHistory] executing query at path:', path);
 
-    await new Promise<void>((resolve) =>
-      InteractionManager.runAfterInteractions(resolve)
-    );
-    const results = await Promise.all(
-      querySnapshot.docs.map((doc) => {
-        const data = { ...doc.data(), id: doc.id };
-        const userInfo =
-          data.senderId === this.userInfo?.id
-            ? this.userInfo
-            : (this.partners?.[doc.data().senderId] as IUserInfo);
-        return formatMessageData(
-          data,
-          userInfo,
-          this.regexBlacklist,
-          this.encryptKey,
-          this.decryptFunctionProp
-        );
-      })
-    );
-    listMessage.push(...results);
+      const querySnapshot = await firestore()
+        .collection<MessageProps>(path)
+        .orderBy('createdAt', 'desc')
+        .limit(maxPageSize)
+        .get();
 
-    if (listMessage.length > 0) {
-      this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
+      console.log(
+        '[getMessageHistory] query finished, docs mapped count:',
+        querySnapshot.docs.length
+      );
+
+      await new Promise<void>((resolve) =>
+        InteractionManager.runAfterInteractions(resolve)
+      );
+
+      console.log(
+        '[getMessageHistory] InteractionManager resolved, now resolving promises'
+      );
+
+      const results = await Promise.all(
+        querySnapshot.docs.map((doc) => {
+          const data = { ...doc.data(), id: doc.id };
+          const userInfo =
+            data.senderId === this.userInfo?.id
+              ? this.userInfo
+              : (this.partners?.[doc.data().senderId] as IUserInfo);
+          return formatMessageData(
+            data,
+            userInfo,
+            this.regexBlacklist,
+            this.encryptKey,
+            this.decryptFunctionProp
+          );
+        })
+      );
+      listMessage.push(...results);
+
+      if (listMessage.length > 0) {
+        this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
+      }
+      console.log(
+        '[getMessageHistory] Returning messages length:',
+        listMessage.length
+      );
+    } catch (err) {
+      console.error('[getMessageHistory] Exception occurred:', err);
     }
 
     return listMessage;
@@ -820,10 +749,9 @@ export class FirestoreServices {
     return new Promise((resolve) =>
       firestore()
         .collection<Partial<ConversationProps>>(
-          this.getUrlWithPrefix(
-            `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-          )
+          this.getUrlWithPrefix(FireStoreCollection.conversations)
         )
+        .where('members', 'array-contains', this.userId)
         .orderBy('updatedAt', 'desc')
         .get()
         .then(async (querySnapshot) => {
@@ -893,38 +821,43 @@ export class FirestoreServices {
   ): (() => void) => {
     const regex = this.regexBlacklist;
 
-    return firestore()
-      .collection(
-        this.getUrlWithPrefix(
-          `${FireStoreCollection.users}/${this.userId}/${FireStoreCollection.conversations}`
-        )
-      )
-      .onSnapshot((snapshot) => {
-        if (!snapshot) return;
-        const modified = snapshot
-          .docChanges()
-          .filter((change) => change.type === 'modified');
-        if (!modified.length) return;
-        Promise.all(
-          modified.map(async (change) => {
-            const data = {
-              ...(change.doc.data() as ConversationProps),
-              id: change.doc.id,
-            };
-            return {
-              ...data,
-              latestMessage: data.latestMessage
-                ? await formatMessageText(
-                    data?.latestMessage,
-                    regex,
-                    this.encryptKey,
-                    this.decryptFunctionProp
-                  )
-                : data.latestMessage,
-            } as ConversationProps;
-          })
-        ).then((messages) => messages.forEach(callback));
-      });
+    const q = query(
+      collection(
+        firestore(),
+        this.getUrlWithPrefix(FireStoreCollection.conversations)
+      ),
+      where('members', 'array-contains', this.userId),
+      orderBy('updatedAt', 'desc')
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      if (!snapshot) return;
+      const modified = snapshot
+        .docChanges()
+        .filter(
+          (change) => change.type === 'modified' || change.type === 'added'
+        );
+      if (!modified.length) return;
+      Promise.all(
+        modified.map(async (change) => {
+          const data = {
+            ...(change.doc.data() as ConversationProps),
+            id: change.doc.id,
+          };
+          return {
+            ...data,
+            latestMessage: data.latestMessage
+              ? await formatMessageText(
+                  data?.latestMessage,
+                  regex,
+                  this.encryptKey,
+                  this.decryptFunctionProp
+                )
+              : data.latestMessage,
+          } as ConversationProps;
+        })
+      ).then((messages) => messages.forEach(callback));
+    });
   };
 
   getMediaFilesByConversationId = async (): Promise<MediaFile[]> => {

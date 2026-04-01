@@ -19,8 +19,6 @@ const createUserProfile = async (userId: string, name: string) => {
       name,
       updated: getServerTimestamp(),
     });
-  } else {
-    // console.log('Document data:', user.data());
   }
 };
 

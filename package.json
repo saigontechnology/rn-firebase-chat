@@ -89,6 +89,7 @@
     "react-native-keyboard-controller": "^1.18.6",
     "react-native-reanimated": "^4.1.2",
     "react-native-gesture-handler": "2.31.0",
+    "react-native-safe-area-context": "^5.7.0",
     "react-native-video": "^6.15.0",
     "react-native-vision-camera": "^4.7.0",
     "release-it": "^19.0.3",
@@ -109,7 +110,8 @@
     "react-native-aes-crypto": "*",
     "react-native-gifted-chat": "*",
     "react-native-keyboard-controller": "*",
-    "react-native-reanimated": "*"
+    "react-native-reanimated": "*",
+    "react-native-safe-area-context": "*"
   },
   "peerDependenciesMeta": {
     "@react-native-firebase/storage": {

@@ -13,6 +13,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
 import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
 import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
@@ -67,8 +68,6 @@ interface ChatScreenProps extends GiftedChatProps<MessageProps> {
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
   /** Render prop children to access onSend function */
   children?: RenderChildren;
-  /** Whether this is a group conversation. When true, all members see the same conversation name/image. */
-  isGroup?: boolean;
 }
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({
@@ -87,7 +86,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
-  isGroup = false,
   children,
   ...props
 }) => {
@@ -157,7 +155,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           }
           onLoadEndRef.current?.();
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('[ChatScreen] getMessageHistory error:', err);
           setIsLoadingMessages(false);
           onLoadEndRef.current?.();
         });
@@ -183,8 +182,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           newConversationInfo.id,
           memberIds,
           newConversationInfo?.name,
-          newConversationInfo?.image,
-          isGroup
+          newConversationInfo?.image
         );
         firebaseInstance.setConversationInfo(
           conversationRef.current?.id,
@@ -219,7 +217,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       memberIds,
       partners,
       sendMessageNotification,
-      isGroup,
     ]
   );
 
@@ -397,14 +394,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   if (isLoadingMessages) {
     return (
-      <View style={[styles.container, style]}>
+      <SafeAreaView style={[styles.container, style]} edges={['bottom']}>
         <MessageSkeleton />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <SafeAreaView style={[styles.container, style]} edges={['bottom']}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -438,7 +435,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onClose={() => setImgVideoUrl('')}
       />
       {children?.({ onSend })}
-    </View>
+    </SafeAreaView>
   );
 };
 
