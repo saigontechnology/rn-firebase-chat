@@ -35,9 +35,27 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   messageStatusEnable,
   customMessageStatus,
 }) => {
-  const styleBuble = {
-    left: { backgroundColor: 'transparent' },
-    right: { backgroundColor: 'transparent' },
+  const bubbleWrapperStyle = {
+    left: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 18,
+      borderBottomLeftRadius: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    right: {
+      backgroundColor: '#0084FF',
+      borderRadius: 18,
+      borderBottomRightRadius: 4,
+    },
+  };
+
+  const bubbleTextStyle = {
+    left: { color: '#111827', fontSize: 15, lineHeight: 20 },
+    right: { color: '#FFFFFF', fontSize: 15, lineHeight: 20 },
   };
 
   const renderMessageStatus = (
@@ -81,15 +99,15 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                   <CustomImageVideoBubble
                     {...customImageVideoBubbleProps}
                     message={currentMessage}
-                    onSelectImgVideoUrl={(message) => {
-                      console.log('message: ', message);
+                    onSelectImgVideoUrl={() => {
                       //TODO: handle image/video press
                     }}
                     position={position}
                   />
                 )
               }
-              wrapperStyle={styleBuble}
+              wrapperStyle={bubbleWrapperStyle}
+              textStyle={bubbleTextStyle}
             />
             {ViewMessageStatus}
           </View>
@@ -98,7 +116,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <Bubble {...bubbleMessage} />
+            <Bubble
+              {...bubbleMessage}
+              wrapperStyle={bubbleWrapperStyle}
+              textStyle={bubbleTextStyle}
+            />
             {ViewMessageStatus}
           </View>
         );
@@ -116,6 +138,6 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexShrink: 1,
   },
 });
