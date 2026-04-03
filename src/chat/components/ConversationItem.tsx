@@ -1,7 +1,7 @@
 /**
  * Created by NL on 01/07/21.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import {
@@ -45,19 +45,18 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     return undefined;
   }, [data.image, data.name]);
 
-  const getInitialsChat = (type: string | undefined): string => {
-    if (!data?.latestMessage || !type) return '';
+  const getInitialsChat = useCallback(
+    (type: string | undefined): string => {
+      if (!data?.latestMessage || !type) return '';
 
-    const { latestMessage } = data;
-    const { senderId, text } = latestMessage;
-    const isCurrentUser = senderId === userInfo?.id;
-
-    const getMessageText = (messageType: string): string => {
+      const { latestMessage } = data;
+      const { senderId, text } = latestMessage;
+      const isCurrentUser = senderId === userInfo?.id;
       const senderInfo = `${
         isCurrentUser ? 'You' : data.latestMessage?.name
       } sent a`;
 
-      switch (messageType) {
+      switch (type) {
         case MessageTypes.text:
           return text;
         case MessageTypes.image:
@@ -69,10 +68,26 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
         default:
           return '';
       }
-    };
+    },
+    [data, userInfo?.id]
+  );
 
-    return getMessageText(type);
-  };
+  const unReadBadge = useMemo(() => {
+    const unReadValue = userInfo?.id ? Number(data.unRead?.[userInfo.id]) : 0;
+    if (!unReadValue || unReadValue <= 0 || !isFinite(unReadValue)) {
+      return null;
+    }
+    const label = unReadValue > 99 ? '99+' : String(unReadValue);
+    return (
+      <View
+        style={[styles.unReadWrapper, StyleSheet.flatten(unReadWrapperStyle)]}
+      >
+        <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+          {label}
+        </Text>
+      </View>
+    );
+  }, [data.unRead, userInfo?.id, unReadWrapperStyle, unReadStyle]);
 
   return (
     <TouchableOpacity
@@ -107,27 +122,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             </Text>
           </View>
         )}
-        {(() => {
-          const unReadValue = userInfo?.id
-            ? Number(data.unRead?.[userInfo.id])
-            : 0;
-          if (!unReadValue || unReadValue <= 0 || !isFinite(unReadValue)) {
-            return null;
-          }
-          const label = unReadValue > 99 ? '99+' : String(unReadValue);
-          return (
-            <View
-              style={[
-                styles.unReadWrapper,
-                StyleSheet.flatten(unReadWrapperStyle),
-              ]}
-            >
-              <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
-                {label}
-              </Text>
-            </View>
-          );
-        })()}
+        {unReadBadge}
       </View>
     </TouchableOpacity>
   );
