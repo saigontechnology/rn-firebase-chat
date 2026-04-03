@@ -10,6 +10,7 @@ import {
   ImageStyle,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ConversationItem,
   IConversationItemProps,
@@ -152,7 +153,7 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {hasSearchBar && (
         <SearchBar
           value={searchText}
@@ -174,7 +175,7 @@ export const ListConversationScreen: React.FC<IListConversationProps> = ({
         renderItem={renderItem}
         {...flatListProps}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

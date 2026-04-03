@@ -121,8 +121,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: '#F2F2F2',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E5EA',
   },
   composeWrapper: {
     flex: 1,
@@ -131,11 +134,12 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 20,
     flexDirection: 'row',
-    marginRight: 10,
+    marginRight: 8,
   },
   textInput: {
     marginHorizontal: 20,
     lineHeight: 20,
+    color: '#111827',
   },
   marginWrapperView: {
     marginRight: 10,

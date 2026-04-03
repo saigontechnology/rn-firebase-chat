@@ -20,7 +20,7 @@
     "expo-status-bar": "~55.0.4",
     "randomcolor": "^0.6.2",
     "react": "19.2.0",
-    "react-native": "0.83.2",
+    "react-native": "0.83.4",
     "react-native-aes-crypto": "^3.3.0",
     "react-native-gifted-chat": "^3.3.2",
     "react-native-keyboard-controller": "^1.21.2",

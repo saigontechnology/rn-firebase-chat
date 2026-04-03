@@ -4,6 +4,7 @@
 import React, { useMemo } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import {
   IUserInfo,
   MessageTypes,
@@ -45,6 +46,29 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     return undefined;
   }, [data.image, data.name]);
 
+  const formatTime = (
+    timestamp: number | FirebaseFirestoreTypes.FieldValue | undefined
+  ): string => {
+    if (!timestamp) return '';
+    let date: Date;
+    if (typeof timestamp === 'number') {
+      date = new Date(timestamp);
+    } else if (typeof (timestamp as any).toDate === 'function') {
+      date = (timestamp as any).toDate();
+    } else {
+      return '';
+    }
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   const getInitialsChat = (type: string | undefined): string => {
     if (!data?.latestMessage || !type) return '';
 
@@ -53,9 +77,8 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
     const isCurrentUser = senderId === userInfo?.id;
 
     const getMessageText = (messageType: string): string => {
-      const senderInfo = `${
-        isCurrentUser ? 'You' : data.latestMessage?.name
-      } sent a`;
+      const senderInfo = `${isCurrentUser ? 'You' : data.latestMessage?.name
+        } sent a`;
 
       switch (messageType) {
         case MessageTypes.text:
@@ -97,7 +120,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               style={[styles.title, StyleSheet.flatten(titleStyle)]}
               numberOfLines={1}
             >
-              {data?.name}
+              {data?.name || data.id.slice(0, 6) + '...'}
             </Text>
             <Text
               style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
@@ -107,18 +130,30 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             </Text>
           </View>
         )}
-        {!!data.unRead && (
-          <View
-            style={[
-              styles.unReadWrapper,
-              StyleSheet.flatten(unReadWrapperStyle),
-            ]}
-          >
-            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
-              {data.unRead}
-            </Text>
-          </View>
-        )}
+        <View style={styles.rightColumn}>
+          <Text style={styles.timeText}>{formatTime(data.updatedAt)}</Text>
+          {(() => {
+            const unReadValue = userInfo?.id
+              ? Number(data.unRead?.[userInfo.id])
+              : 0;
+            if (!unReadValue || unReadValue <= 0 || !isFinite(unReadValue)) {
+              return null;
+            }
+            const label = unReadValue > 99 ? '99+' : String(unReadValue);
+            return (
+              <View
+                style={[
+                  styles.unReadWrapper,
+                  StyleSheet.flatten(unReadWrapperStyle),
+                ]}
+              >
+                <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+                  {label}
+                </Text>
+              </View>
+            );
+          })()}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -131,7 +166,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   avatarContainer: {
     width: 50,
@@ -166,10 +201,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#fff',
   },
+  rightColumn: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
+  timeText: {
+    fontSize: 11,
+    color: '#909090',
+    marginBottom: 4,
+  },
   unReadWrapper: {
-    width: 20,
+    minWidth: 20,
     height: 20,
     borderRadius: 10,
+    paddingHorizontal: 4,
     backgroundColor: '#2684FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -177,5 +223,6 @@ const styles = StyleSheet.create({
   unRead: {
     fontSize: 10,
     color: '#fff',
+    fontWeight: '600',
   },
 });
