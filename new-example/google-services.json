@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "172513666833",
+    "project_id": "fb-chat-test-18e4b",
+    "storage_bucket": "fb-chat-test-18e4b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172513666833:android:afb4ad3ca0383323dc0eb0",
+        "android_client_info": {
+          "package_name": "com.saigontechnology.fbchattest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7gO-ftFzyaUBj5XTXVUqkpXkye7byQQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

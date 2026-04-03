@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo:*)",
+      "Bash(yarn build:types)",
+      "Bash(tsc --project tsconfig.build.json --emitDeclarationOnly)",
+      "Bash(npx bob:*)",
+      "mcp__plugin_firebase_firebase__firebase_get_environment",
+      "mcp__plugin_firebase_firebase__firebase_update_environment",
+      "mcp__plugin_firebase_firebase__firebase_list_apps",
+      "mcp__plugin_firebase_firebase__firebase_get_sdk_config",
+      "WebSearch",
+      "Bash(pod install:*)",
+      "Bash(gh issue:*)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
