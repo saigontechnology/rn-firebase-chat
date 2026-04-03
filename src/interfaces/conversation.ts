@@ -25,7 +25,7 @@ interface ConversationProps extends BaseEntity {
   typing?: {
     [userId: string]: boolean;
   };
-  unRead?: number;
+  unRead?: { [userId: string]: number | string };
 }
 
 enum MessageTypes {
@@ -43,7 +43,7 @@ enum MessageStatus {
 }
 
 interface ConversationData {
-  unRead?: { [key: string]: string };
+  unRead?: { [key: string]: number };
   typing?: { [key: string]: boolean };
   messages?: FirebaseFirestoreTypes.CollectionReference<MessageProps>;
 }

@@ -123,7 +123,7 @@ export const generateThumbnailPath = (originalPath: string): string => {
 export const cleanupTempFile = async (filePath: string): Promise<void> => {
   try {
     // Note: This would need react-native-fs or similar library for actual implementation
-    console.log('Cleaning up temp file:', filePath);
+    void filePath;
   } catch (error) {
     console.warn('Failed to cleanup temp file:', error);
   }
