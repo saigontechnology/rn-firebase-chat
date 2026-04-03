@@ -12,7 +12,7 @@ const createUserProfile = async (userId: string, name: string) => {
     >(firestoreServices.getUrlWithPrefix(FireStoreCollection.users))
     .doc(userId);
   const user = await userRef.get();
-  if (!user.exists) {
+  if (!user.exists?.()) {
     await userRef.set({
       created: getServerTimestamp(),
       status: 'online',
