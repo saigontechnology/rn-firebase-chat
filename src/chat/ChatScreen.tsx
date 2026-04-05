@@ -142,6 +142,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           setIsLoadingMessages(false);
           onLoadEnd?.();
         });
+    } else {
+      // No conversation yet (new chat) — skip loading and show empty chat
+      // so the user can type and send the first message
+      setIsLoadingMessages(false);
     }
   }, [
     conversationInfo?.id,
