@@ -1,6 +1,8 @@
 import React from 'react';
 import {
   View,
+  Text,
+  TouchableOpacity,
   StyleSheet,
   ScrollView,
   StyleProp,
@@ -80,23 +82,32 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
-  return (
-    <View style={[styles.container, containerStyle]}>
-      {renderLeftCustomView && renderLeftCustomView()}
-      {hasCamera && (
+  const renderLeftIcons = () => {
+    if (renderLeftCustomView) return renderLeftCustomView();
+    if (hasCamera) {
+      return (
         <PressableIcon
           icon={cameraIcon}
           iconStyle={flattenedIconStyle}
           onPress={onPressCamera}
         />
-      )}
-      {hasGallery && (
+      );
+    }
+    if (hasGallery) {
+      return (
         <PressableIcon
           onPress={handleGalleryPress}
           icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />
-      )}
+      );
+    }
+    return null;
+  };
+
+  return (
+    <View style={[styles.container, containerStyle]}>
+      {renderLeftIcons()}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
@@ -105,13 +116,14 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           />
         </ScrollView>
       </View>
-      {!!text && (
-        <PressableIcon
-          iconStyle={flattenedIconStyle}
-          onPress={() => onSend?.({ text: text }, true)}
-          icon={iconSend}
-        />
-      )}
+      <PressableIcon
+        iconStyle={[
+          flattenedIconStyle,
+          !text ? styles.sendIconInactive : undefined,
+        ]}
+        onPress={() => text && onSend?.({ text: text }, true)}
+        icon={iconSend}
+      />
       {renderRightCustomView && renderRightCustomView()}
     </View>
   );
@@ -121,29 +133,43 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
-    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E5EA',
   },
   composeWrapper: {
     flex: 1,
     borderRadius: 22,
-    backgroundColor: 'lightgray',
+    backgroundColor: '#F0F0F0',
     paddingLeft: 10,
-    paddingRight: 20,
+    paddingRight: 10,
     flexDirection: 'row',
-    marginRight: 10,
+    marginHorizontal: 8,
   },
   textInput: {
-    marginHorizontal: 20,
+    marginHorizontal: 4,
     lineHeight: 20,
+    color: '#111827',
   },
   marginWrapperView: {
     marginRight: 10,
   },
   iconStyleDefault: {
-    width: 28,
-    height: 28,
-    marginHorizontal: 12,
+    width: 24,
+    height: 24,
+    marginHorizontal: 8,
+    tintColor: '#8E8E93',
+  },
+  emojiButton: {
+    marginHorizontal: 6,
+  },
+  emojiText: {
+    fontSize: 22,
+  },
+  sendIconInactive: {
+    tintColor: '#C7C7CC',
   },
 });
 

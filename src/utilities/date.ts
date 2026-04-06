@@ -27,10 +27,32 @@ const formatTime = (time: number) => {
 
 const getServerTimestamp = () => firestore.FieldValue.serverTimestamp();
 
+const formatConversationTime = (timestamp: number | unknown): string => {
+  if (!timestamp) return '';
+  const ms =
+    typeof timestamp === 'number'
+      ? timestamp
+      : typeof (timestamp as { toMillis?: () => number }).toMillis ===
+          'function'
+        ? (timestamp as { toMillis: () => number }).toMillis()
+        : null;
+  if (!ms) return '';
+  const date = dayjs(ms);
+  const now = dayjs();
+  if (date.isSame(now, 'day')) {
+    return date.format('hh:mm A');
+  }
+  if (now.diff(date, 'day') < 7) {
+    return date.format('ddd');
+  }
+  return date.format('MMM D');
+};
+
 export {
   formatDate,
   timeFromNow,
   formatTime,
   getCurrentTimestamp,
   getServerTimestamp,
+  formatConversationTime,
 };
