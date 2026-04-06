@@ -116,47 +116,57 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messageRef = useRef<MessageProps[]>(messagesList);
   messageRef.current = messagesList;
 
+  const memberIdsRef = useRef(memberIds);
+  memberIdsRef.current = memberIds;
+  const partnersRef = useRef(partners);
+  partnersRef.current = partners;
+  const maxPageSizeRef = useRef(maxPageSize);
+  maxPageSizeRef.current = maxPageSize;
+  const userInfoRef = useRef(userInfo);
+  userInfoRef.current = userInfo;
+  const onStartLoadRef = useRef(onStartLoad);
+  onStartLoadRef.current = onStartLoad;
+  const onLoadEndRef = useRef(onLoadEnd);
+  onLoadEndRef.current = onLoadEnd;
+
   // Fetch latest conversation and messages data
   useEffect(() => {
     if (conversationInfo?.id) {
-      onStartLoad?.();
+      onStartLoadRef.current?.();
       firebaseInstance.setConversationInfo(
-        conversationInfo?.id,
-        memberIds,
-        partners
+        conversationInfo.id,
+        memberIdsRef.current,
+        partnersRef.current
       );
       setIsLoadingMessages(true);
       firebaseInstance
-        .getMessageHistory(maxPageSize)
+        .getMessageHistory(maxPageSizeRef.current)
         .then((res) => {
           setMessagesList(res);
           setIsLoadingMessages(false);
-          setHasMoreMessages(res.length === maxPageSize);
+          setHasMoreMessages(res.length === maxPageSizeRef.current);
           const firstMessage = res?.length > 0 && res[0];
-          if (firstMessage && firstMessage.senderId !== userInfo?.id) {
-            firebaseInstance.changeReadMessage(firstMessage.id, userInfo?.id);
+          if (
+            firstMessage &&
+            firstMessage.senderId !== userInfoRef.current?.id
+          ) {
+            firebaseInstance.changeReadMessage(
+              firstMessage.id,
+              userInfoRef.current?.id
+            );
           }
-          onLoadEnd?.();
+          onLoadEndRef.current?.();
         })
         .catch(() => {
           setIsLoadingMessages(false);
-          onLoadEnd?.();
+          onLoadEndRef.current?.();
         });
     } else {
       // No conversation yet (new chat) — skip loading and show empty chat
       // so the user can type and send the first message
       setIsLoadingMessages(false);
     }
-  }, [
-    conversationInfo?.id,
-    firebaseInstance,
-    onLoadEnd,
-    onStartLoad,
-    memberIds,
-    partners,
-    maxPageSize,
-    userInfo?.id,
-  ]);
+  }, [conversationInfo?.id, firebaseInstance]);
 
   const onSend = useCallback(
     async (messages: MessageProps) => {
@@ -401,6 +411,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <GiftedChat
+          messagesContainerStyle={styles.messagesContainer}
+          placeholder="Type a message..."
           messages={messagesList}
           onSend={(messages) => onSend(messages[0] as MessageProps)}
           user={{
@@ -433,5 +445,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  messagesContainer: {
+    backgroundColor: '#F5F5F5',
   },
 });

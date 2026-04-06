@@ -38,18 +38,16 @@ const MessageStatus: React.FC<MessageStatusProps> = ({
 
 const styles = StyleSheet.create({
   statusContainer: {
-    backgroundColor: '#a9a9a9',
-    borderRadius: 10,
     paddingVertical: 2,
-    paddingHorizontal: 14,
+    paddingHorizontal: 4,
     alignSelf: 'flex-end',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
   },
   statusText: {
-    fontSize: 12,
-    color: 'white',
+    fontSize: 11,
+    color: '#8E8E93',
   },
 });
 

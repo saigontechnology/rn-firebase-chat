@@ -4,12 +4,13 @@
 import React, { useMemo } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+
 import {
   IUserInfo,
   MessageTypes,
   type ConversationProps,
 } from '../../interfaces';
-import { randomColor } from '../../utilities';
+import { randomColor, formatConversationTime } from '../../utilities';
 
 export interface IConversationItemProps {
   data: ConversationProps;
@@ -107,18 +108,23 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             </Text>
           </View>
         )}
-        {!!data.unRead && (
-          <View
-            style={[
-              styles.unReadWrapper,
-              StyleSheet.flatten(unReadWrapperStyle),
-            ]}
-          >
-            <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
-              {data.unRead}
-            </Text>
-          </View>
-        )}
+        <View style={styles.rightColumn}>
+          <Text style={styles.time}>
+            {formatConversationTime(data.updatedAt)}
+          </Text>
+          {!!data.unRead && (
+            <View
+              style={[
+                styles.unReadWrapper,
+                StyleSheet.flatten(unReadWrapperStyle),
+              ]}
+            >
+              <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+                {data.unRead}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -165,6 +171,15 @@ const styles = StyleSheet.create({
   textAvatar: {
     fontSize: 24,
     color: '#fff',
+  },
+  rightColumn: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  time: {
+    fontSize: 11,
+    color: '#8E8E93',
   },
   unReadWrapper: {
     width: 20,
