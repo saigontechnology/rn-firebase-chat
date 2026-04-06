@@ -35,9 +35,20 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   messageStatusEnable,
   customMessageStatus,
 }) => {
-  const styleBuble = {
-    left: { backgroundColor: 'transparent' },
-    right: { backgroundColor: 'transparent' },
+  const bubbleWrapperStyle = {
+    left: {
+      backgroundColor: '#E9E9EB',
+      borderRadius: 18,
+    },
+    right: {
+      backgroundColor: '#1A1A1A',
+      borderRadius: 18,
+    },
+  };
+
+  const bubbleTextStyle = {
+    left: { color: '#111827', fontSize: 15, lineHeight: 20 },
+    right: { color: '#FFFFFF', fontSize: 15, lineHeight: 20 },
   };
 
   const renderMessageStatus = (
@@ -89,7 +100,8 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                   />
                 )
               }
-              wrapperStyle={styleBuble}
+              wrapperStyle={bubbleWrapperStyle}
+              textStyle={bubbleTextStyle}
             />
             {ViewMessageStatus}
           </View>
@@ -98,7 +110,11 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       default: {
         return (
           <View>
-            <Bubble {...bubbleMessage} />
+            <Bubble
+              {...bubbleMessage}
+              wrapperStyle={bubbleWrapperStyle}
+              textStyle={bubbleTextStyle}
+            />
             {ViewMessageStatus}
           </View>
         );
