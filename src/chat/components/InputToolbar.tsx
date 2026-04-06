@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   StyleProp,
@@ -93,13 +91,16 @@ const InputToolbar: React.FC<IInputToolbar> = ({
         />
       );
     }
-    return (
-      <PressableIcon
-        onPress={hasGallery ? handleGalleryPress : undefined}
-        icon={galleryIcon}
-        iconStyle={flattenedIconStyle}
-      />
-    );
+    if (hasGallery) {
+      return (
+        <PressableIcon
+          onPress={handleGalleryPress}
+          icon={galleryIcon}
+          iconStyle={flattenedIconStyle}
+        />
+      );
+    }
+    return null;
   };
 
   return (
@@ -113,20 +114,13 @@ const InputToolbar: React.FC<IInputToolbar> = ({
           />
         </ScrollView>
       </View>
-      <TouchableOpacity
-        style={styles.emojiButton}
-        hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-      >
-        <Text style={styles.emojiText}>😊</Text>
-      </TouchableOpacity>
-      <PressableIcon
-        iconStyle={[
-          flattenedIconStyle,
-          !text ? styles.sendIconInactive : undefined,
-        ]}
-        onPress={() => text && onSend?.({ text: text }, true)}
-        icon={iconSend}
-      />
+      {!!text && (
+        <PressableIcon
+          iconStyle={flattenedIconStyle}
+          onPress={() => onSend?.({ text: text }, true)}
+          icon={iconSend}
+        />
+      )}
       {renderRightCustomView && renderRightCustomView()}
     </View>
   );
@@ -170,9 +164,6 @@ const styles = StyleSheet.create({
   },
   emojiText: {
     fontSize: 22,
-  },
-  sendIconInactive: {
-    tintColor: '#C7C7CC',
   },
 });
 
