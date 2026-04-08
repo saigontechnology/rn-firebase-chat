@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import type { ViewProps } from 'react-native';
+import type { TouchableOpacityProps } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
 import type { OnOffType } from './interface';
@@ -8,7 +8,7 @@ import { MessageTypes } from '../../interfaces';
 
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
 
-interface Props extends ViewProps {
+interface Props extends TouchableOpacityProps {
   camera: React.RefObject<Camera | null>;
   onMediaCaptured: (media: PhotoFile | VideoFile, type: MessageTypes) => void;
   flash: OnOffType;
