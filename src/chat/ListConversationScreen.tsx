@@ -40,7 +40,8 @@ export interface ISearchBarStyleProps {
 type ManagedFlatListProps = 'data' | 'renderItem' | 'keyExtractor';
 
 export interface IListConversationProps
-  extends ISearchBarStyleProps,
+  extends
+    ISearchBarStyleProps,
     Omit<FlatListProps<ConversationProps>, ManagedFlatListProps> {
   /** Whether to show the search bar */
   hasSearchBar?: boolean;

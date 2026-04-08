@@ -20,16 +20,16 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Lint files
-        run: yarn lint
+        run: pnpm lint
 
       - name: Typecheck files
-        run: yarn typecheck
+        run: pnpm typecheck
 
       - name: Run unit tests
-        run: yarn test --maxWorkers=2 --coverage
+        run: pnpm test --maxWorkers=2 --coverage
 
       - name: Build package
-        run: yarn prepack
+        run: pnpm prepack
 
       - name: Setup Git user
         run: |
@@ -40,7 +40,7 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
       - name: Release
-        run: yarn release --ci
+        run: pnpm release --ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
