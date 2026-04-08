@@ -2387,13 +2387,6 @@
   resolved "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.5.tgz"
   integrity sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==
 
-"@types/react-native-doc-viewer@^2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@types/react-native-doc-viewer/-/react-native-doc-viewer-2.7.6.tgz#4cd1614337204145c9207a764e31aa0fff8dab65"
-  integrity sha512-tXcor1mmGH/1ONbpD9qu/Tu6mpgWOUud2IzKuu+ggXT2Mp/coObapYGYm9hHt+3R0h0U9ubBDa2IkyBCPW0+5A==
-  dependencies:
-    react-native-fs "^2.13.0"
-
 "@types/react-native@0.71.8":
   version "0.71.8"
   resolved "https://registry.npmjs.org/@types/react-native/-/react-native-0.71.8.tgz"
@@ -8562,12 +8555,7 @@ react-native-communications@2.2.1:
   resolved "https://registry.npmjs.org/react-native-communications/-/react-native-communications-2.2.1.tgz"
   integrity sha512-5+C0X9mopI0+qxyQHzOPEi5v5rxNBQjxydPPiKMQSlX1RBIcJ8uTcqUPssQ9Mo8p6c1IKIWJUSqCj4jAmD0qVQ==
 
-react-native-doc-viewer@^2.7.8:
-  version "2.7.8"
-  resolved "https://registry.yarnpkg.com/react-native-doc-viewer/-/react-native-doc-viewer-2.7.8.tgz#43d065328fb1b7ec90d321e5bd234711e807c8f6"
-  integrity sha512-6rAHGfU6CedfGhr8SoqbdtA3MHKRnbKqwjzzCFnTEniynM0PgJxC4vXZF3MxbJdh6nGWPVVuM23zCfWNLvAuRg==
-
-react-native-fs@^2.13.0, react-native-fs@^2.20.0:
+react-native-fs@^2.20.0:
   version "2.20.0"
   resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.20.0.tgz#05a9362b473bfc0910772c0acbb73a78dbc810f6"
   integrity sha512-VkTBzs7fIDUiy/XajOSNk0XazFE9l+QlMAce7lGuebZcag5CnjszB+u4BdqzwaQOdcYb5wsJIsqq4kxInIRpJQ==

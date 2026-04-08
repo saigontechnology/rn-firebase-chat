@@ -42,6 +42,7 @@ import {
   type UploadingFile,
   type ConversationData,
   MessageTypes,
+  DocumentProps,
 } from '../interfaces';
 import { useCameraPermission } from 'react-native-vision-camera';
 import type { CustomImageVideoBubbleProps } from './components/bubble/CustomImageVideoBubble';
@@ -76,6 +77,7 @@ interface ChatScreenProps extends GiftedChatProps {
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
   renderCallBubble?(props: Bubble<MessageProps>['props']): React.ReactNode;
+  onDocumentsPress?: (doc: DocumentProps) => void;
 }
 
 export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
@@ -397,6 +399,7 @@ export const ChatScreen = forwardRef<ChatScreenRef, ChatScreenProps>(
           customTextStyle={props.customTextStyle}
           unReadSentMessage={props.unReadSentMessage}
           unReadSeenMessage={props.unReadSeenMessage}
+          onDocumentsPress={props.onDocumentsPress}
         />
       );
     };

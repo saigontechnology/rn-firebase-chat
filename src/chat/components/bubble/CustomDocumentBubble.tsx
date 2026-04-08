@@ -14,8 +14,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import type { MessageProps } from '../../../interfaces';
-import OpenFile from 'react-native-doc-viewer';
+import type { DocumentProps, MessageProps } from '../../../interfaces';
 import RNFS from 'react-native-fs';
 import { getAbsoluteFilePath } from '../../../utilities';
 
@@ -31,6 +30,7 @@ export interface CustomDocumentBubbleProps {
   doucmentStyle?: StyleProp<ViewStyle>;
 
   renderCustomDocument?: () => React.ReactNode;
+  onDocumentsPress?: (doc: DocumentProps) => void;
 }
 
 export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
@@ -44,6 +44,7 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
   textStyle,
   textSizeStyle,
   renderCustomDocument,
+  onDocumentsPress,
 }) => {
   const [loading, setLoading] = useState(false);
   const doneEvent = () => {
@@ -85,29 +86,13 @@ export const CustomDocumentBubble: React.FC<CustomDocumentBubbleProps> = ({
         }
       }
 
-      OpenFile.openDoc(
-        [
-          {
-            url: getAbsoluteFilePath(downloadDest),
-            fileNameOptional: message.name,
-            fileName: message.name,
-            fileType: message.type,
-            cache: true,
-          },
-        ],
-        (error_, url) => {
-          console.log('url: ', url);
-          if (error_) {
-            Alert.alert('Error', 'Failed to open document');
-          }
-          setLoading(false);
-        }
-      );
+      onDocumentsPress?.({ path: getAbsoluteFilePath(downloadDest) });
     } catch (err) {
       Alert.alert('Error', 'Failed to download document');
+    } finally {
       setLoading(false);
     }
-  }, [message]);
+  }, [message, onDocumentsPress]);
 
   const renderDocument = () => {
     return (

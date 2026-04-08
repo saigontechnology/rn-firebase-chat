@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import {
+  DocumentProps,
   MessageTypes,
   UploadingFile,
   type MessageProps,
@@ -41,6 +42,7 @@ interface CustomBubbleProps {
   customTextStyle?: StyleProp<ViewStyle>;
   unReadSentMessage?: string;
   unReadSeenMessage?: string;
+  onDocumentsPress?: (doc: DocumentProps) => void;
 }
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
@@ -57,6 +59,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   customTextStyle,
   unReadSeenMessage,
   unReadSentMessage,
+  onDocumentsPress,
 }) => {
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const styleBuble = {
@@ -190,6 +193,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                   <CustomDocumentBubble
                     message={currentMessage}
                     position={position}
+                    onDocumentsPress={onDocumentsPress}
                   />
                   {renderUploadIndicator()}
                   {renderTime(bubbleMessage.currentMessage?.createdAt)}
