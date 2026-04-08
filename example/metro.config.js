@@ -6,6 +6,12 @@ const libraryRoot = path.resolve(projectRoot, '..');
 
 const config = getDefaultConfig(projectRoot);
 
+// Exclude the nested example symlink to prevent infinite resolution loops
+const nestedExamplePath = path.join(projectRoot, 'node_modules', 'rn-firebase-chat', 'example');
+config.resolver.blockList = new RegExp(
+  `^${nestedExamplePath.replace(/[/\\]/g, '[/\\\\]')}.*$`
+);
+
 // Watch the library root so Metro can serve files from lib/commonjs/
 config.watchFolders = [libraryRoot];
 
