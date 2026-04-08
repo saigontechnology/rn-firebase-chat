@@ -67,7 +67,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.7",
     "@types/parse-path": "^7.1.0",
-    "@types/react": "19.1.8",
+    "@types/react": "~19.2.2",
     "@types/react-native": "0.73.0",
     "commitlint": "^19.8.1",
     "del-cli": "^6.0.0",
@@ -81,8 +81,8 @@
     "pod-install": "^0.3.9",
     "prettier": "^3.6.2",
     "randomcolor": "^0.6.2",
-    "react": "19.1.0",
-    "react-native": "0.80.0",
+    "react": "19.2.0",
+    "react-native": "0.83.4",
     "react-native-aes-crypto": "^3.2.1",
     "react-native-builder-bob": "^0.40.12",
     "react-native-gifted-chat": "^2.8.1",
@@ -101,7 +101,7 @@
   "pnpm": {
     "overrides": {
       "@types/react-native": "0.73.0",
-      "@types/react": "19.1.8"
+      "@types/react": "~19.2.2"
     }
   },
   "peerDependencies": {
@@ -211,6 +211,7 @@
       "commonjs",
       "module",
       "typescript"
-    ]
+    ],
+    "exclude": "example/**"
   }
 }

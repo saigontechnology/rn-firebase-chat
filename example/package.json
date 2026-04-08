@@ -28,7 +28,7 @@
     "react-native-worklets": "0.8.x",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.24.0",
-    "rn-firebase-chat": "file:.."
+    "rn-firebase-chat": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
