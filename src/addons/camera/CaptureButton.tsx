@@ -88,7 +88,7 @@ const CaptureButton: React.FC<Props> = ({
       onPress={onPress}
       activeOpacity={1}
       style={style}
-      {...props}
+      {...(props as any)}
     >
       <View style={styles.button} />
     </TouchableOpacity>

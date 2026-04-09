@@ -394,14 +394,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   if (isLoadingMessages) {
     return (
-      <SafeAreaView style={[styles.container, style]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, StyleSheet.flatten(style)]} edges={['bottom']}>
         <MessageSkeleton />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, style]} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, StyleSheet.flatten(style)]} edges={['bottom']}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

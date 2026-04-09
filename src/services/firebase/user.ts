@@ -6,13 +6,12 @@ import { FirestoreServices } from './firestore';
 const firestoreServices = FirestoreServices.getInstance();
 
 const createUserProfile = async (userId: string, name: string) => {
+  const path = firestoreServices.getUrlWithPrefix(FireStoreCollection.users);
   const userRef = firestore()
-    .collection<
-      Omit<UserProfileProps, 'id'>
-    >(firestoreServices.getUrlWithPrefix(FireStoreCollection.users))
+    .collection<Omit<UserProfileProps, 'id'>>(path)
     .doc(userId);
   const user = await userRef.get();
-  if (!user.exists?.()) {
+  if (!user.exists()) {
     await userRef.set({
       created: getServerTimestamp(),
       status: 'online',

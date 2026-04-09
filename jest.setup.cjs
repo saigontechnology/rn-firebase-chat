@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Mock react-native modules
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');

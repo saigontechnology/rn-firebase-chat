@@ -5,7 +5,7 @@ const RouteKey = {
 
 export type RootStackParamList = {
   [RouteKey.ListChatScreen]: undefined;
-  [RouteKey.ChatScreen]: { conversationId: string; name?: string };
+  [RouteKey.ChatScreen]: { conversationId: string; name?: string; otherUserId?: string };
 };
 
 export default RouteKey;

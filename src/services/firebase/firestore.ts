@@ -144,12 +144,6 @@ export class FirestoreServices {
   }: FirestoreBaseProps): Promise<void> => {
     // Validate user info
     if (userInfo) {
-      console.log(
-        '[configuration] userId:',
-        userInfo.id,
-        'valid:',
-        validateUserId(userInfo.id)
-      );
       if (!validateUserId(userInfo.id)) {
         throw new Error('Invalid user ID format');
       }
@@ -159,7 +153,6 @@ export class FirestoreServices {
         ...userInfo,
         name: sanitizeUserInput(userInfo.name || ''),
       };
-      console.log('[configuration] userInfo set successfully');
     }
 
     if (blackListWords) {
@@ -522,14 +515,7 @@ export class FirestoreServices {
   getMessageHistory = async (maxPageSize: number) => {
     const listMessage: Awaited<MessageProps>[] = [];
 
-    console.log(
-      '[getMessageHistory] START. userInfo:',
-      this.userInfo,
-      'conversationId:',
-      this.conversationId
-    );
     if (!this.userInfo) {
-      console.log('[getMessageHistory] userInfo is undefined, returning []');
       return listMessage;
     }
 
@@ -537,7 +523,6 @@ export class FirestoreServices {
       const path = this.getUrlWithPrefix(
         `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
       );
-      console.log('[getMessageHistory] executing query at path:', path);
 
       const querySnapshot = await firestore()
         .collection<MessageProps>(path)
@@ -545,17 +530,8 @@ export class FirestoreServices {
         .limit(maxPageSize)
         .get();
 
-      console.log(
-        '[getMessageHistory] query finished, docs mapped count:',
-        querySnapshot.docs.length
-      );
-
       await new Promise<void>((resolve) =>
         InteractionManager.runAfterInteractions(resolve)
-      );
-
-      console.log(
-        '[getMessageHistory] InteractionManager resolved, now resolving promises'
       );
 
       const results = await Promise.all(
@@ -579,10 +555,6 @@ export class FirestoreServices {
       if (listMessage.length > 0) {
         this.messageCursor = querySnapshot.docs[querySnapshot.docs.length - 1];
       }
-      console.log(
-        '[getMessageHistory] Returning messages length:',
-        listMessage.length
-      );
     } catch (err) {
       console.error('[getMessageHistory] Exception occurred:', err);
     }
@@ -650,10 +622,13 @@ export class FirestoreServices {
         if (!snapshot) return;
         const added = snapshot
           .docChanges()
-          .filter((change) => change.type === 'added');
+          .filter(
+            (change: FirebaseFirestoreTypes.DocumentChange) =>
+              change.type === 'added'
+          );
         if (!added.length) return;
         Promise.all(
-          added.map((change) => {
+          added.map((change: FirebaseFirestoreTypes.DocumentChange) => {
             const data = {
               ...change.doc.data(),
               id: change.doc.id,
@@ -835,11 +810,13 @@ export class FirestoreServices {
       const modified = snapshot
         .docChanges()
         .filter(
-          (change) => change.type === 'modified' || change.type === 'added'
+          (change: FirebaseFirestoreTypes.DocumentChange) =>
+            change.type === 'modified' || change.type === 'added'
         );
       if (!modified.length) return;
       Promise.all(
-        modified.map(async (change) => {
+        modified.map(
+          async (change: FirebaseFirestoreTypes.DocumentChange) => {
           const data = {
             ...(change.doc.data() as ConversationProps),
             id: change.doc.id,

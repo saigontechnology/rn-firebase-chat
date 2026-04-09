@@ -178,7 +178,7 @@ export const GalleryScreen: React.FC<GalleryModalProps> = ({
   ]);
 
   return (
-    <SafeAreaView style={[styles.container, containerStyle]} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, StyleSheet.flatten(containerStyle)]} edges={['bottom']}>
       {renderHeader()}
       {renderContent()}
     </SafeAreaView>

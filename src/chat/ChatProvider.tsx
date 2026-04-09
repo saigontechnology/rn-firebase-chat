@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  Dispatch,
   PropsWithChildren,
   useEffect,
   useLayoutEffect,
@@ -11,11 +12,16 @@ import {
   chatReducer,
   setListConversation,
   updateConversation,
+  type ChatAction,
+  type ChatState,
 } from '../reducer';
 
 const firestoreServices = FirestoreServices.getInstance();
 
-type ChatProviderProps = IChatContext & PropsWithChildren;
+type ChatProviderProps = Omit<IChatContext, 'chatState' | 'chatDispatch'> & {
+  chatState?: ChatState;
+  chatDispatch?: Dispatch<ChatAction>;
+} & PropsWithChildren;
 
 export const ChatContext = createContext<IChatContext>({} as IChatContext);
 export const ChatProvider: React.FC<ChatProviderProps> = ({
