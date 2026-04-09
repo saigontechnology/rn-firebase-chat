@@ -13,11 +13,17 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { type ComposerProps, GiftedChat } from 'react-native-gifted-chat';
-import type { GiftedChatProps } from 'react-native-gifted-chat/lib/GiftedChat/types';
-import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
-import TypingIndicator from 'react-native-gifted-chat/lib/TypingIndicator';
+import {
+  GiftedChat,
+  type ComposerProps,
+  type BubbleProps,
+} from 'react-native-gifted-chat';
+
+type GiftedChatProps<_TMessage = unknown> = React.ComponentProps<
+  typeof GiftedChat
+>;
 import MessageStatus from './components/MessageStatus';
 import { FirestoreServices } from '../services/firebase';
 import type {
@@ -337,7 +343,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
     // If custom renderBubble is provided, wrap it with message status if enabled
     if (props.renderBubble) {
-      const customBubble = props.renderBubble(bubble);
+      const customBubble = props.renderBubble(bubble as never);
 
       // Render message status for custom bubble if enabled
       if (messageStatusEnable && isMyLatestMessage) {
@@ -386,11 +392,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [firebaseInstance]
   );
 
-  const { handleTextChange } = useTypingIndicator(
-    enableTyping,
-    changeUserConversationTyping,
-    typingTimeoutSeconds
-  );
+  const keyboardVerticalOffset = useHeaderHeight();
 
   if (isLoadingMessages) {
     return (
@@ -415,25 +417,25 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       >
         <GiftedChat
           messagesContainerStyle={styles.messagesContainer}
-          placeholder="Type a message..."
           messages={messagesList}
           onSend={(messages) => onSend(messages[0] as MessageProps)}
           user={{
             _id: userInfo?.id || '',
             ...userInfo,
           }}
-          keyboardShouldPersistTaps={'never'}
-          infiniteScroll
-          loadEarlier={hasMoreMessages}
-          renderChatFooter={() => <TypingIndicator />}
-          onLoadEarlier={onLoadEarlier}
+          keyboardAvoidingViewProps={{ keyboardVerticalOffset }}
+          loadEarlierMessagesProps={{
+            isAvailable: true,
+            isLoading: hasMoreMessages,
+            onPress: onLoadEarlier,
+          }}
           renderComposer={inputToolbar}
-          onInputTextChanged={handleTextChange}
           isTyping={isTyping}
           {...props}
-          maxInputLength={props.maxInputLength ?? 1000}
-          extraData={{ userUnreadMessage }}
-          renderBubble={renderBubble}
+          isScrollToBottomEnabled
+          renderBubble={
+            renderBubble as unknown as GiftedChatProps['renderBubble']
+          }
         />
       </KeyboardAvoidingView>
       <SelectedImageModal

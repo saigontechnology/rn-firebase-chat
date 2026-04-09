@@ -1,0 +1,209 @@
+{
+  "name": "rn-firebase-chat",
+  "version": "0.7.2",
+  "description": "React Native Firebase Chat",
+  "type": "module",
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/index.d.ts",
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "jest",
+    "test:ci": "jest --maxWorkers=2 --coverage",
+    "typecheck": "tsc --noEmit",
+    "typecheck:build": "tsc --project tsconfig.build.json --noEmit",
+    "typecheck:example": "tsc --project ../../example/tsconfig.json --noEmit",
+    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
+    "clean:maps": "find lib -name '*.map' -delete",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "prepack": "bob build --target commonjs && bob build --target module && (bob build --target typescript || true) && pnpm clean:maps",
+    "prepare": "bob build --target commonjs && bob build --target module && (bob build --target typescript || true) && pnpm clean:maps",
+    "release": "release-it",
+    "release:dry": "release-it --dry-run",
+    "release:ci": "release-it --ci",
+    "release:check": "node scripts/check-release.cjs"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android",
+    "chat",
+    "firebase",
+    "firestore",
+    "messaging",
+    "real-time",
+    "conversation",
+    "ui",
+    "components",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saigontechnology/rn-firebase-chat.git"
+  },
+  "author": "Saigon Technology Solutions",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/saigontechnology/rn-firebase-chat/issues"
+  },
+  "homepage": "https://github.com/saigontechnology/rn-firebase-chat#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.27.7",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@react-native-community/eslint-config": "^3.2.0",
+    "@react-native-firebase/app": "23.8.8",
+    "@react-native-firebase/firestore": "23.8.8",
+    "@react-native-firebase/storage": "23.8.8",
+    "@react-native/babel-preset": "^0.85.0",
+    "@release-it/conventional-changelog": "^10.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.7",
+    "@types/parse-path": "^7.1.0",
+    "@types/react": "~19.2.2",
+    "@types/react-native": "0.73.0",
+    "commitlint": "^19.8.1",
+    "dayjs": "^1.11.0",
+    "del-cli": "^6.0.0",
+    "eslint": "^9.30.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "jest": "^30.0.3",
+    "metro-react-native-babel-preset": "^0.77.0",
+    "pod-install": "^0.3.9",
+    "prettier": "^3.6.2",
+    "randomcolor": "^0.6.2",
+    "react": "19.2.0",
+    "react-native": "0.83.4",
+    "react-native-aes-crypto": "3.2.1",
+    "react-native-builder-bob": "0.40.12",
+    "react-native-gesture-handler": "2.31.0",
+    "react-native-gifted-chat": "3.3.2",
+    "react-native-image-picker": "^8.2.1",
+    "react-native-keyboard-controller": "1.21.4",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-reanimated": "4.3.0",
+    "react-native-worklets": "0.8.1",
+    "react-native-video": "^6.15.0",
+    "react-native-vision-camera": "^4.7.0",
+    "release-it": "^19.0.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.0.0"
+  },
+  "peerDependencies": {
+    "@react-native-firebase/app": "*",
+    "@react-native-firebase/firestore": "*",
+    "@react-native-firebase/storage": "*",
+    "randomcolor": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-aes-crypto": "*",
+    "react-native-gesture-handler": "*",
+    "react-native-gifted-chat": "*",
+    "react-native-keyboard-controller": "*",
+    "react-native-reanimated": "*",
+    "react-native-worklets": "*",
+    "react-native-safe-area-context": "*"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-firebase/storage": {
+      "optional": true
+    },
+    "react-native-image-picker": {
+      "optional": true
+    },
+    "react-native-video": {
+      "optional": true
+    },
+    "react-native-vision-camera": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">= 16.0.0"
+  },
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/lib/"
+    ],
+    "transformIgnorePatterns": [
+      "<rootDir>/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)",
+      ".*/node_modules/.pnpm/[^/]*/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.cjs"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular"
+      }
+    }
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@react-native-community",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": [
+        "error",
+        {
+          "quoteProps": "consistent",
+          "singleQuote": true,
+          "tabWidth": 2,
+          "trailingComma": "es5",
+          "useTabs": false
+        }
+      ],
+      "@typescript-eslint/no-unused-vars": 1
+    }
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "lib/",
+    "scripts/"
+  ],
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      "typescript"
+    ]
+  }
+}

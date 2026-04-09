@@ -11,17 +11,22 @@ import {
   Composer,
   InputToolbarProps,
   SendProps,
+  type ComposerProps,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
-import type { ImagePickerValue } from '../../interfaces';
+import type { ImagePickerValue, MessageProps } from '../../interfaces';
 
 const ImageURL = {
   camera: require('../../images/camera.png'),
   gallery: require('../../images/gallery.png'),
   send: require('../../images/send.png'),
 };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface IInputToolbar extends InputToolbarProps<any>, SendProps<any> {
+
+export interface IInputToolbar
+  extends
+    InputToolbarProps<MessageProps>,
+    SendProps<MessageProps>,
+    Pick<ComposerProps, 'textInputProps'> {
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
@@ -58,7 +63,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
   renderRightCustomView,
   ...props
 }) => {
-  const { onSend, text } = props;
+  const { onSend, text, textInputProps } = props;
 
   const handleGalleryPress = async () => {
     const result = await onPressGallery?.();
@@ -100,8 +105,11 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
-            {...props}
-            textInputStyle={[styles.textInput, composerTextInputStyle]}
+            text={text}
+            textInputProps={{
+              ...textInputProps,
+              style: [styles.textInput, composerTextInputStyle],
+            }}
           />
         </ScrollView>
       </View>

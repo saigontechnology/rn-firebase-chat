@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "isolatedModules": false,
+    "noEmitOnError": false,
+    "preserveSymlinks": true,
     "moduleResolution": "node",
     "jsx": "react",
     "target": "es2020",
@@ -22,6 +25,7 @@
   "exclude": [
     "example",
     "node_modules",
+    "../../node_modules",
     "lib",
     "**/*.test.*",
     "**/__tests__/**",

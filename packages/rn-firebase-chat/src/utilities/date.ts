@@ -1,4 +1,4 @@
-import firestore from '@react-native-firebase/firestore';
+import { Timestamp, serverTimestamp } from '@react-native-firebase/firestore';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -14,7 +14,7 @@ const timeFromNow = (date: number | string | Date) => {
 };
 
 const getCurrentTimestamp = () => {
-  const { seconds, nanoseconds } = firestore.Timestamp.now();
+  const { seconds, nanoseconds } = Timestamp.now();
   const msCurrentTime = seconds * 1000 + nanoseconds / 1000000;
   return Math.floor(msCurrentTime);
 };
@@ -25,7 +25,7 @@ const formatTime = (time: number) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-const getServerTimestamp = () => firestore.FieldValue.serverTimestamp();
+const getServerTimestamp = () => serverTimestamp();
 
 const formatConversationTime = (timestamp: number | unknown): string => {
   if (!timestamp) return '';

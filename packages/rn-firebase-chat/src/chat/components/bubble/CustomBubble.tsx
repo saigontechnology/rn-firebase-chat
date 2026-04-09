@@ -1,8 +1,7 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble } from 'react-native-gifted-chat';
-import type { BubbleProps } from 'react-native-gifted-chat/lib/Bubble/types';
+import { Bubble, type BubbleProps } from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
