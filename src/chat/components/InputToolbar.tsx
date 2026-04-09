@@ -80,32 +80,23 @@ const InputToolbar: React.FC<IInputToolbar> = ({
     iconStyle,
   ]);
 
-  const renderLeftIcons = () => {
-    if (renderLeftCustomView) return renderLeftCustomView();
-    if (hasCamera) {
-      return (
+  return (
+    <View style={[styles.container, containerStyle]}>
+      {renderLeftCustomView && renderLeftCustomView()}
+      {hasCamera && (
         <PressableIcon
           icon={cameraIcon}
           iconStyle={flattenedIconStyle}
           onPress={onPressCamera}
         />
-      );
-    }
-    if (hasGallery) {
-      return (
+      )}
+      {hasGallery && (
         <PressableIcon
           onPress={handleGalleryPress}
           icon={galleryIcon}
           iconStyle={flattenedIconStyle}
         />
-      );
-    }
-    return null;
-  };
-
-  return (
-    <View style={[styles.container, containerStyle]}>
-      {renderLeftIcons()}
+      )}
       <View style={[styles.composeWrapper, composeWrapperStyle]}>
         <ScrollView scrollEnabled={false}>
           <Composer
@@ -130,23 +121,23 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    backgroundColor: '#F2F2F2',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E5EA',
   },
   composeWrapper: {
     flex: 1,
     borderRadius: 22,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: 'lightgray',
     paddingLeft: 10,
-    paddingRight: 10,
+    paddingRight: 20,
     flexDirection: 'row',
-    marginHorizontal: 8,
+    marginRight: 8,
   },
   textInput: {
-    marginHorizontal: 4,
+    marginHorizontal: 20,
     lineHeight: 20,
     color: '#111827',
   },
@@ -154,16 +145,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   iconStyleDefault: {
-    width: 24,
-    height: 24,
-    marginHorizontal: 8,
-    tintColor: '#8E8E93',
-  },
-  emojiButton: {
-    marginHorizontal: 6,
-  },
-  emojiText: {
-    fontSize: 22,
+    width: 28,
+    height: 28,
+    marginHorizontal: 12,
   },
 });
 

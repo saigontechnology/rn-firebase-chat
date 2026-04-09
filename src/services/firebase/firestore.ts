@@ -815,8 +815,7 @@ export class FirestoreServices {
         );
       if (!modified.length) return;
       Promise.all(
-        modified.map(
-          async (change: FirebaseFirestoreTypes.DocumentChange) => {
+        modified.map(async (change: FirebaseFirestoreTypes.DocumentChange) => {
           const data = {
             ...(change.doc.data() as ConversationProps),
             id: change.doc.id,
