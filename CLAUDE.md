@@ -9,20 +9,23 @@ React Native Firebase Chat library (`rn-firebase-chat`) — an npm package provi
 ## Common Commands
 
 ```bash
-yarn test                # Run Jest tests
-yarn lint                # ESLint check
-yarn lint --fix          # Auto-fix lint/formatting
-yarn typecheck           # TypeScript type-check (main)
-yarn typecheck:build     # TypeScript type-check (build config)
-yarn typecheck:example   # TypeScript type-check (example app)
-yarn build:types         # Generate .d.ts declarations
-yarn bootstrap           # Install all deps + example pods
-yarn example start       # Start Metro for example app
-yarn example ios         # Run example on iOS
-yarn example android     # Run example on Android
+yarn test                              # Run Jest tests
+yarn test src/__tests__/foo.test.ts    # Run a specific test file
+yarn test -t "test name pattern"       # Run tests matching a name
+yarn test --watch                      # Watch mode
+yarn lint                              # ESLint check
+yarn lint --fix                        # Auto-fix lint/formatting
+yarn typecheck                         # TypeScript type-check (main)
+yarn typecheck:build                   # TypeScript type-check (build config)
+yarn typecheck:example                 # TypeScript type-check (example app)
+yarn build:types                       # Generate .d.ts declarations
+yarn bootstrap                         # Install all deps + example pods
+yarn example start                     # Start Metro for example app
+yarn example ios                       # Run example on iOS
+yarn example android                   # Run example on Android
 ```
 
-Use `yarn` (v1 classic), not npm. Node version: see `.nvmrc`.
+Use `yarn` (v1 classic, v1.22.22), not npm. Node >= 16 required; see `.nvmrc` for the pinned version.
 
 ## Architecture
 
@@ -37,6 +40,15 @@ Uses React Context + `useReducer` (not Redux). `ChatProvider` wraps the app and 
 ### Firebase Services (`src/services/firebase/`)
 
 `FirestoreServices` is a **singleton** (`getInstance()`) managing all Firestore operations: conversations CRUD, message sending/fetching with cursor-based pagination, real-time listeners via `onSnapshot`, typing indicators, and read receipts. `storage.ts` handles file uploads.
+
+Initialization is split across multiple methods that must be called in order:
+1. `getInstance()` — lazy-loads the singleton
+2. `configuration({ userId, blackListWords, prefix })` — sets user info; validates userId format
+3. `configurationEncryption({ key, ... })` — optional; generates PBKDF2 key for AES encryption
+4. `setStorageProvider(storage)` — required only when using file uploads
+5. `createEncryptionsFunction({ encrypt, decrypt, getKey })` — override with custom crypto functions
+
+Decrypted messages are cached in a `Map` (`decryptCache`) to avoid redundant decryption on re-renders.
 
 ### Custom Hooks (`src/hooks.ts`)
 
@@ -65,7 +77,9 @@ Optional camera integration using `react-native-vision-camera` with `useCamera()
 
 ### Utilities (`src/utilities/`)
 
-Encryption (AES via `react-native-aes-crypto`), message formatting with decryption, blacklist/bad-word filtering, input sanitization (XSS/directory traversal prevention), date and color helpers.
+- **`aesCrypto.ts`** — AES encryption with a random 16-byte IV prepended to each ciphertext. `decryptedMessageData()` falls back to plaintext if decryption fails (handles mixed encrypted/plaintext history).
+- **`security.ts`** — `sanitizeUserInput()`, `validateFilePath()` (blocks `../`), `validateEncryptionKey()`, `validateMessage()`, and a `RateLimiter` class (sliding-window, default 10 attempts/60 s). Called internally by `FirestoreServices`; not exported publicly.
+- `messageFormatter.ts` — message formatting with decryption; `blackList.ts` — bad-word filtering; date and color helpers.
 
 ## Code Style
 
@@ -74,6 +88,10 @@ Encryption (AES via `react-native-aes-crypto`), message formatting with decrypti
 - Conventional commits enforced by commitlint (`fix:`, `feat:`, `refactor:`, `docs:`, `test:`, `chore:`)
 - Pre-commit hooks (lefthook): ESLint + TypeScript check on staged files
 
+## Testing
+
+Tests live in `src/__tests__/`. Firebase SDK and `react-native-aes-crypto` are mocked — the Firebase mock only implements `collection`, `doc`, `get`, `set`, `add`, `onSnapshot`. CI runs tests with `--maxWorkers=2 --coverage`.
+
 ## Build
 
-Uses `react-native-builder-bob` — source in `src/`, output to `lib/` with targets: commonjs, module, typescript. The `prepack`/`prepare` scripts run `bob build` automatically.
+Uses `react-native-builder-bob` — source in `src/`, output to `lib/` with targets: commonjs, module, typescript. The `prepack`/`prepare` scripts run `bob build` automatically. CI also strips source maps from the build output.

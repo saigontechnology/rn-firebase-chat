@@ -1,7 +1,9 @@
 import React, {
   createContext,
+  Dispatch,
   PropsWithChildren,
   useEffect,
+  useLayoutEffect,
   useReducer,
 } from 'react';
 import { FirestoreServices, createUserProfile } from '../services/firebase';
@@ -10,11 +12,16 @@ import {
   chatReducer,
   setListConversation,
   updateConversation,
+  type ChatAction,
+  type ChatState,
 } from '../reducer';
 
 const firestoreServices = FirestoreServices.getInstance();
 
-type ChatProviderProps = IChatContext & PropsWithChildren;
+type ChatProviderProps = Omit<IChatContext, 'chatState' | 'chatDispatch'> & {
+  chatState?: ChatState;
+  chatDispatch?: Dispatch<ChatAction>;
+} & PropsWithChildren;
 
 export const ChatContext = createContext<IChatContext>({} as IChatContext);
 export const ChatProvider: React.FC<ChatProviderProps> = ({
@@ -32,20 +39,33 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
 
+  /** Run synchronously before children's useEffect so this.userInfo is set
+   * before ChatScreen calls getMessageHistory / sendMessage */
+  useLayoutEffect(() => {
+    if (userInfo?.id) {
+      firestoreServices.configuration({ userInfo }).catch((error) => {
+        console.error('Failed to configure FirestoreServices:', error);
+      });
+    }
+  }, [userInfo]);
+
   useEffect(() => {
     let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      firestoreServices.configuration({ userInfo });
-      createUserProfile(userInfo.id, userInfo.name).then(() => {
-        firestoreServices.getListConversation().then((res) => {
-          dispatch(setListConversation(res));
+      createUserProfile(userInfo.id, userInfo.name)
+        .then(() => {
+          firestoreServices.getListConversation().then((res) => {
+            dispatch(setListConversation(res));
+          });
+          unsubscribeListener = firestoreServices.listenConversationUpdate(
+            (data) => {
+              dispatch(updateConversation(data));
+            }
+          );
+        })
+        .catch((error) => {
+          console.error('Failed to initialize chat:', error);
         });
-        unsubscribeListener = firestoreServices.listenConversationUpdate(
-          (data) => {
-            dispatch(updateConversation(data));
-          }
-        );
-      });
     }
     return () => {
       unsubscribeListener();

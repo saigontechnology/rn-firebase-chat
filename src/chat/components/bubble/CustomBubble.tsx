@@ -41,14 +41,24 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       borderRadius: 18,
     },
     right: {
-      backgroundColor: '#1A1A1A',
+      backgroundColor: '#0084FF',
       borderRadius: 18,
     },
   };
 
   const bubbleTextStyle = {
-    left: { color: '#111827', fontSize: 15, lineHeight: 20 },
-    right: { color: '#FFFFFF', fontSize: 15, lineHeight: 20 },
+    left: {
+      color: '#000000',
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: '500' as const,
+    },
+    right: {
+      color: '#FFFFFF',
+      fontSize: 15,
+      lineHeight: 20,
+      fontWeight: '500' as const,
+    },
   };
 
   const renderMessageStatus = (
@@ -92,8 +102,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                   <CustomImageVideoBubble
                     {...customImageVideoBubbleProps}
                     message={currentMessage}
-                    onSelectImgVideoUrl={(message) => {
-                      console.log('message: ', message);
+                    onSelectImgVideoUrl={() => {
                       //TODO: handle image/video press
                     }}
                     position={position}
