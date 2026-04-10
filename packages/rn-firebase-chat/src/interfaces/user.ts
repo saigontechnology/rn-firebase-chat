@@ -3,17 +3,15 @@
  */
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { BaseEntity } from './base';
-import { ConversationProps } from './conversation';
+import type { ConversationProps } from './conversation';
 
-type UserStatus = 'online' | 'offline';
+export type { UserStatus } from '@saigontechnology/firebase-chat-shared';
 
-interface UserProfileProps extends BaseEntity {
+export interface UserProfileProps extends BaseEntity {
   created?: number;
   name: string;
-  status: UserStatus;
+  status: 'online' | 'offline';
   updated?: number;
-  // Collection of conversation with id of conversation
+  /** RN-specific: Firestore collection reference for the user's conversations. */
   conversations?: FirebaseFirestoreTypes.CollectionReference<ConversationProps>;
 }
-
-export { type UserProfileProps };

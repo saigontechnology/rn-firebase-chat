@@ -1,33 +1,24 @@
 import { Timestamp, serverTimestamp } from '@react-native-firebase/firestore';
 import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import relativeTime from 'dayjs/plugin/relativeTime';
 
-const formatDate = (date: number | string | Date) => {
-  dayjs.extend(customParseFormat);
-  return dayjs(date, 'DD/MM/YYYY HH:mm');
-};
+// Re-export platform-agnostic date helpers from shared
+export {
+  formatDate,
+  timeFromNow,
+  formatTime,
+} from '@saigontechnology/firebase-chat-shared';
 
-const timeFromNow = (date: number | string | Date) => {
-  dayjs.extend(relativeTime);
-  return dayjs(date).fromNow();
-};
-
-const getCurrentTimestamp = () => {
+/** RN-specific: uses Firebase Timestamp for millisecond-accurate current time. */
+export const getCurrentTimestamp = (): number => {
   const { seconds, nanoseconds } = Timestamp.now();
-  const msCurrentTime = seconds * 1000 + nanoseconds / 1000000;
-  return Math.floor(msCurrentTime);
+  return Math.floor(seconds * 1000 + nanoseconds / 1000000);
 };
 
-const formatTime = (time: number) => {
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-};
+/** RN-specific: Firestore server timestamp FieldValue. */
+export const getServerTimestamp = () => serverTimestamp();
 
-const getServerTimestamp = () => serverTimestamp();
-
-const formatConversationTime = (timestamp: number | unknown): string => {
+/** Formats a Firestore timestamp (number | { toMillis() }) for conversation list display. */
+export const formatConversationTime = (timestamp: number | unknown): string => {
   if (!timestamp) return '';
   const ms =
     typeof timestamp === 'number'
@@ -46,13 +37,4 @@ const formatConversationTime = (timestamp: number | unknown): string => {
     return date.format('ddd');
   }
   return date.format('MMM D');
-};
-
-export {
-  formatDate,
-  timeFromNow,
-  formatTime,
-  getCurrentTimestamp,
-  getServerTimestamp,
-  formatConversationTime,
 };

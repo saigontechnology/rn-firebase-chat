@@ -3,11 +3,8 @@ import type { Dispatch } from 'react';
 import type { FirestoreProps } from '../services/firebase';
 import { ImageProps } from 'react-native';
 
-export interface IUserInfo {
-  id: string;
-  name: string;
-  avatar: string;
-}
+export type { IUserInfo } from '@saigontechnology/firebase-chat-shared';
+
 export type IChatContext = {
   chatState: ChatState;
   chatDispatch: Dispatch<ChatAction>;

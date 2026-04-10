@@ -72,6 +72,10 @@ importers:
         version: 5.9.3
 
   packages/rn-firebase-chat:
+    dependencies:
+      '@saigontechnology/firebase-chat-shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@babel/core':
         specifier: ^7.27.7
@@ -199,6 +203,22 @@ importers:
       typescript-eslint:
         specifier: ^8.0.0
         version: 8.56.1(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/shared:
+    dependencies:
+      dayjs:
+        specifier: ^1.11.0
+        version: 1.11.19
+      react:
+        specifier: '*'
+        version: 19.2.0
+    devDependencies:
+      '@types/react':
+        specifier: ~19.2.2
+        version: 19.2.14
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
 
 packages:
 
@@ -8847,7 +8867,9 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   '@react-native/normalize-colors@0.83.4': {}
 

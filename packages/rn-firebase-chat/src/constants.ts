@@ -1,6 +1,10 @@
-// constants.ts
+export {
+  DEFAULT_ITERATIONS,
+  DEFAULT_KEY_LENGTH,
+  DEFAULT_CLEAR_SEND_NOTIFICATION,
+  DEFAULT_TYPING_TIMEOUT_MS,
+  IV_LENGTH,
+} from '@saigontechnology/firebase-chat-shared';
 
-export const DEFAULT_ITERATIONS: number = 10000; // Increased for better security
-export const DEFAULT_KEY_LENGTH: number = 256;
-export const DEFAULT_CLEAR_SEND_NOTIFICATION: number = 3000;
-export const DEFAULT_TYPING_TIMEOUT_SECONDS = 3000;
+// Backward-compatible alias used within this package
+export { DEFAULT_TYPING_TIMEOUT_MS as DEFAULT_TYPING_TIMEOUT_SECONDS } from '@saigontechnology/firebase-chat-shared';

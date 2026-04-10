@@ -1,16 +1,7 @@
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
-/**
- * Created by NL on 6/27/23.
- */
-enum FireStoreCollection {
-  users = 'users',
-  messages = 'messages',
-  conversations = 'conversations',
-}
+export { FireStoreCollection } from '@saigontechnology/firebase-chat-shared';
 
-type FirestoreReference =
+export type FirestoreReference =
   | FirebaseFirestoreTypes.CollectionReference
   | FirebaseFirestoreTypes.DocumentReference;
-
-export { FireStoreCollection, type FirestoreReference };

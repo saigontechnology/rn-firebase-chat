@@ -4,6 +4,12 @@
     "paths": {
       "rn-firebase-chat": [
         "./src/index"
+      ],
+      "@saigontechnology/firebase-chat-shared": [
+        "../../packages/shared/src/index"
+      ],
+      "@saigontechnology/firebase-chat-shared/rnProvider": [
+        "../../packages/shared/src/encryption/rnProvider"
       ]
     },
     "allowUnreachableCode": false,

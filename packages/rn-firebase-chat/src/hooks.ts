@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { useContext } from 'react';
 import { ChatContext } from './chat';
 import { FirestoreServices } from './services/firebase';
 import type { ChatState } from './reducer';
+
+// Re-export platform-agnostic hooks from shared
+export {
+  useTypingIndicator,
+  useDebounce,
+} from '@saigontechnology/firebase-chat-shared';
 
 const useChat = () => {
   const context = useChatContext();
@@ -27,108 +32,5 @@ const useChatSelector = <T>(selector: (chatState: ChatState) => T): T => {
   const { chatState } = useChatContext();
   return selector(chatState);
 };
-/**
- * Custom hook to manage typing indicator behavior based on user input.
- * @param enableTyping Boolean flag indicating whether typing indicator should be enabled.
- * @param changeUserConversationTyping Function to update typing indicator state in parent component.
- * @param typingTimeoutSeconds Number of time out.
- */
 
-const useTypingIndicator = (
-  enableTyping: boolean,
-  changeUserConversationTyping: (
-    isTyping: boolean,
-    callback?: () => void
-  ) => void,
-  typingTimeoutSeconds: number = 3000
-) => {
-  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const isTypingRef = useRef<boolean>(false);
-
-  const startTyping = useCallback(() => {
-    if (!isTypingRef.current) {
-      isTypingRef.current = true;
-      changeUserConversationTyping(true);
-    }
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    // Set new timeout
-    typingTimeoutRef.current = setTimeout(() => {
-      isTypingRef.current = false;
-      changeUserConversationTyping(false);
-    }, typingTimeoutSeconds);
-  }, [changeUserConversationTyping, typingTimeoutSeconds]);
-
-  const stopTyping = useCallback(() => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = undefined;
-    }
-    if (isTypingRef.current) {
-      isTypingRef.current = false;
-      changeUserConversationTyping(false);
-    }
-  }, [changeUserConversationTyping]);
-
-  const handleTextChange = useCallback(
-    (newText: string) => {
-      if (!enableTyping) return;
-
-      if (newText.trim().length > 0) {
-        startTyping();
-      } else {
-        stopTyping();
-      }
-    },
-    [enableTyping, startTyping, stopTyping]
-  );
-
-  return {
-    handleTextChange,
-  };
-};
-
-/**
- * Custom hook to debounce a value.
- * Returns the debounced value that only updates after the specified delay.
- *
- * @param value The value to debounce
- * @param delay The debounce delay in milliseconds
- * @returns The debounced value
- *
- * @example
- * ```tsx
- * const [searchText, setSearchText] = useState('');
- * const debouncedSearchText = useDebounce(searchText, 300);
- *
- * useEffect(() => {
- *   // This effect runs only after searchText stops changing for 300ms
- *   performSearch(debouncedSearchText);
- * }, [debouncedSearchText]);
- * ```
- */
-const useDebounce = <T>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
-export {
-  useChatContext,
-  useChatSelector,
-  useTypingIndicator,
-  useChat,
-  useDebounce,
-};
+export { useChatContext, useChatSelector, useChat };

@@ -54,6 +54,9 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "dependencies": {
+    "@saigontechnology/firebase-chat-shared": "workspace:*"
+  },
   "devDependencies": {
     "@babel/core": "^7.27.7",
     "@commitlint/config-conventional": "^19.8.1",
@@ -135,6 +138,10 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/lib/"
     ],
+    "moduleNameMapper": {
+      "^@saigontechnology/firebase-chat-shared/rnProvider$": "<rootDir>/../../packages/shared/src/encryption/rnProvider.ts",
+      "^@saigontechnology/firebase-chat-shared$": "<rootDir>/../../packages/shared/src/index.ts"
+    },
     "transformIgnorePatterns": [
       "<rootDir>/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)",
       ".*/node_modules/.pnpm/[^/]*/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)"

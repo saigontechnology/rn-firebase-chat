@@ -1,58 +1,63 @@
-/**
- * Created by NL on 6/1/23.
- */
+import {
+  formatLatestMessage,
+  getAbsoluteFilePath,
+  getMediaTypeFromExtension,
+  getTextMessage,
+} from '@saigontechnology/firebase-chat-shared';
 import { decryptedMessageData } from './aesCrypto';
 import {
   type IUserInfo,
   type LatestMessageProps,
   type MessageProps,
   MessageStatus,
+  MessageTypes,
   type SendMessageProps,
   type MediaType,
-  MessageTypes,
 } from '../interfaces';
-import { getTextMessage } from './blacklist';
 import { getCurrentTimestamp, getServerTimestamp } from './date';
+
+export { formatLatestMessage, getAbsoluteFilePath, getMediaTypeFromExtension };
+
+const formatdecryptedMessageData = async (
+  text: string,
+  encryptionKey: string
+): Promise<string> => {
+  return decryptedMessageData(text, encryptionKey);
+};
+
+/**
+ * Returns the effective decrypt function: the provided one, or the built-in AES
+ * decrypt bound to encryptKey when no custom function is supplied.
+ */
+const resolveDecryptFunc = (
+  encryptKey?: string,
+  decryptMessageFunc?: (text: string) => Promise<string>
+): ((text: string) => Promise<string>) | undefined =>
+  decryptMessageFunc ??
+  (encryptKey ? (t) => formatdecryptedMessageData(t, encryptKey) : undefined);
 
 const convertTextMessage = async (
   text: string,
   regex?: RegExp,
   encryptKey?: string,
   decryptMessageFunc?: (text: string) => Promise<string>
-) => {
-  let messageText = text;
-  if (encryptKey) {
-    messageText = decryptMessageFunc
-      ? await decryptMessageFunc(text)
-      : await formatdecryptedMessageData(text, encryptKey);
-  }
+): Promise<string> => {
+  const decrypt = resolveDecryptFunc(encryptKey, decryptMessageFunc);
+  const messageText = decrypt ? await decrypt(text) : text;
   return getTextMessage(regex, messageText);
 };
 
-const formatMessageText = async (
-  message: MessageProps | LatestMessageProps,
-  regexPattern?: RegExp | undefined,
-  encryptKey?: string,
-  decryptMessageFunc?: (text: string) => Promise<string>
-) => {
-  return {
-    ...message,
-    text: await convertTextMessage(
-      message.text,
-      regexPattern,
-      encryptKey,
-      decryptMessageFunc
-    ),
-  };
-};
-
+/**
+ * Transforms a raw Firestore MessageProps into the shape expected by GiftedChat.
+ * Adds `_id`, normalized `createdAt` (ms number), and `user`.
+ */
 const formatMessageData = async (
   message: MessageProps,
   userInfo: IUserInfo,
-  regexPattern?: RegExp | undefined,
+  regexPattern?: RegExp,
   encryptKey?: string,
   decryptMessageFunc?: (text: string) => Promise<string>
-) => {
+): Promise<MessageProps> => {
   return {
     ...message,
     text: await convertTextMessage(
@@ -61,7 +66,7 @@ const formatMessageData = async (
       encryptKey,
       decryptMessageFunc
     ),
-    _id: message.id,
+    _id: message.id || message._id,
     createdAt:
       message.createdAt &&
       typeof (message.createdAt as unknown as Record<string, unknown>)
@@ -69,22 +74,18 @@ const formatMessageData = async (
         ? (
             message.createdAt as unknown as { toMillis: () => number }
           ).toMillis()
-        : message.createdAt || getCurrentTimestamp(),
+        : (message.createdAt as number | Date) || getCurrentTimestamp(),
     user: {
       _id: userInfo.id,
       name: userInfo.name,
       avatar: userInfo.avatar,
     },
-  };
+  } as MessageProps;
 };
 
-const formatdecryptedMessageData = async (
-  text: string,
-  encryptionKey: string
-): Promise<string> => {
-  return await decryptedMessageData(text, encryptionKey);
-};
-
+/**
+ * Builds a SendMessageProps payload with a Firestore server timestamp for `createdAt`.
+ */
 const formatSendMessage = (
   userId: string,
   text: string,
@@ -92,9 +93,7 @@ const formatSendMessage = (
   path?: string,
   extension?: string
 ): SendMessageProps => ({
-  readBy: {
-    [userId]: true,
-  },
+  readBy: { [userId]: true },
   status: MessageStatus.sent,
   senderId: userId,
   createdAt: getServerTimestamp(),
@@ -104,46 +103,28 @@ const formatSendMessage = (
   extension: extension ?? '',
 });
 
-const formatLatestMessage = (
-  userId: string,
-  name: string,
-  message: string,
-  type?: MediaType,
-  path?: string,
-  extension?: string
-): LatestMessageProps => ({
-  text: message ?? '',
-  senderId: userId,
-  name: name,
-  readBy: {
-    [userId]: true,
-  },
-  type: type ?? MessageTypes.text,
-  path: path ?? '',
-  extension: extension ?? '',
-});
-
-export const getMediaTypeFromExtension = (path: string): MediaType => {
-  const photoExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-  const videoExtensions = ['mp4', 'mov', 'avi', 'wmv'];
-  const extension = path.split('.').pop();
-  if (extension && photoExtensions.includes(extension)) {
-    return MessageTypes.image;
-  } else if (extension && videoExtensions.includes(extension)) {
-    return MessageTypes.video;
-  } else {
-    return undefined;
-  }
-};
-
-export const getAbsoluteFilePath = (path: string) => {
-  return path?.startsWith?.('file:/') ? path : `file://${path}`;
+const formatMessageText = async (
+  message: MessageProps | LatestMessageProps,
+  regexPattern?: RegExp,
+  encryptKey?: string,
+  decryptMessageFunc?: (text: string) => Promise<string>
+): Promise<MessageProps | LatestMessageProps> => {
+  return {
+    ...message,
+    text: await convertTextMessage(
+      message.text,
+      regexPattern,
+      encryptKey,
+      decryptMessageFunc
+    ),
+  };
 };
 
 export {
   formatMessageData,
   formatdecryptedMessageData,
-  formatSendMessage,
-  formatLatestMessage,
   formatMessageText,
+  formatSendMessage,
 };
+
+export type { LatestMessageProps };
