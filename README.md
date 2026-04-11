@@ -109,6 +109,25 @@ export const ChatScreen = () => {
   );
 };
 ```
+
+---
+
+## Features
+
+### Reply to messages
+
+Swipe a message left to quote it as a reply. The reply context appears above the input toolbar. Tapping the quoted preview inside a bubble scrolls to the original message.
+
+Enabled by default — no extra props required.
+
+### Edit messages
+
+Long-press one of your own messages that has **not yet been seen** by the other participant to enter edit mode. An editing banner appears above the input showing the original text. Submitting updates the Firestore document and sets `isEdited: true` on the message.
+
+Enabled by default — no extra props required.
+
+> Editing is restricted to messages owned by the current user whose `status` is not `seen`.
+
 ---
 
 ## Contributing

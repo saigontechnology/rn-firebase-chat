@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle, Text } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble, type BubbleProps } from 'react-native-gifted-chat';
+import { Bubble, type BubbleProps, Time } from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
@@ -122,6 +122,26 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
               {...bubbleMessage}
               wrapperStyle={bubbleWrapperStyle}
               textStyle={bubbleTextStyle}
+              renderTime={(timeProps) => (
+                <View style={styles.timeContainer}>
+                  {currentMessage.isEdited && (
+                    <Text
+                      style={[
+                        styles.editedText,
+                        {
+                          color:
+                            position === 'left'
+                              ? '#666'
+                              : 'rgba(255,255,255,0.7)',
+                        },
+                      ]}
+                    >
+                      (Edited)
+                    </Text>
+                  )}
+                  <Time {...timeProps} />
+                </View>
+              )}
             />
             {ViewMessageStatus}
           </View>
@@ -141,5 +161,14 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexShrink: 1,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 5,
+  },
+  editedText: {
+    fontSize: 10,
+    marginRight: 4,
   },
 });

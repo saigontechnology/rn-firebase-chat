@@ -1,12 +1,6 @@
 # rn-firebase-chat
 
-RN Firebase Chat
-
-## Installation
-
-```sh
-npm install rn-firebase-chat
-```
+A React Native real-time chat library backed by Firebase Firestore, providing ready-to-use UI components, message encryption, typing indicators, and more.
 
 ## Installation
 
@@ -28,7 +22,7 @@ If you're using Expo, please follow the dedicated setup guide to configure `plug
 
 ## Usage
 
-- Wrap your app with `ChatProvider`
+### 1. Wrap your app with `ChatProvider`
 
 ```javascript
 import { ChatProvider } from 'rn-firebase-chat';
@@ -48,7 +42,7 @@ function App() {
 }
 ```
 
-- Setup navigation for `ListConversationScreen` and `ChatScreen`
+### 2. Set up navigation
 
 ```javascript
 export const ChatNavigator = () => (
@@ -58,6 +52,8 @@ export const ChatNavigator = () => (
   </Stack.Navigator>
 );
 ```
+
+### 3. Conversation list screen
 
 ```javascript
 import React, { useCallback } from 'react';
@@ -73,6 +69,8 @@ export const ListChatScreen: React.FC = () => {
   return <ListConversationScreen onPress={handleItemPress} />;
 };
 ```
+
+### 4. Chat screen
 
 ```javascript
 import React from 'react';
@@ -91,13 +89,27 @@ export const ChatScreen: React.FC = () => {
 };
 ```
 
+## Features
+
+### Reply to Messages
+
+Swipe a message to the left to quote it as a reply. The reply context appears above the input toolbar. Tapping the quoted preview inside a bubble scrolls to the original message.
+
+This is enabled by default — no extra props required.
+
+### Edit Messages
+
+Long-press one of your own messages that has **not yet been seen** by the other participant to enter edit mode. An editing banner appears above the input showing the original text. Submitting the updated text calls `updateMessage` which patches the Firestore document and sets `isEdited: true` on the message.
+
+This is enabled by default — no extra props required.
+
+> **Note:** Editing is restricted to messages owned by the current user whose `status` is not `seen`.
+
 ## Addons
 
-Additional features for chat are:
+### Image/Video Picker and Camera
 
-#### Image/Video Picker and Camera
-
-This feature will require additional libraries:
+This feature requires additional libraries:
 
 - Using [npm](https://www.npmjs.com/#getting-started):
 
@@ -111,17 +123,15 @@ npm install react-native-video react-native-vision-camera react-native-image-pic
 yarn add react-native-video react-native-vision-camera react-native-image-picker
 ```
 
-Then using our Addons component in ChatScreen
+Then use the addon components inside `ChatScreen`:
 
 ```javascript
 import React from 'react'
-import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
-import {CameraView, useCamera} from 'rn-firebase-chat/src/addons/camera'
-
-...
+import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat'
+import { CameraView, useCamera } from 'rn-firebase-chat/src/addons/camera'
 
 export const ChatScreen: React.FC = () => {
-  const {onPressCamera, onPressGallery} = useCamera()
+  const { onPressCamera, onPressGallery } = useCamera()
   return (
     <BaseChatScreen
       memberIds={[partnerInfo.id]}
@@ -133,11 +143,10 @@ export const ChatScreen: React.FC = () => {
         onPressGallery,
       }}
     >
-    {({onSend}) => (<CameraView onSend={onSend} /> )}
+      {({ onSend }) => <CameraView onSend={onSend} />}
     </BaseChatScreen>
   )
 }
-
 ```
 
 ## Contributing

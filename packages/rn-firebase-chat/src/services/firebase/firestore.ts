@@ -391,7 +391,10 @@ export class FirestoreServices {
    * send message to collection conversation and update latest message to users
    * @param text is message
    */
-  sendMessage = async (message: MessageProps): Promise<void> => {
+  sendMessage = async (
+    message: MessageProps,
+    replyMessage?: MessageProps['replyMessage']
+  ): Promise<void> => {
     if (!this.conversationId) {
       console.error(
         'Please create conversation before send the first message!'
@@ -426,10 +429,12 @@ export class FirestoreServices {
       message.type === MessageTypes.video
     ) {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
+      if (replyMessage) messageData.replyMessage = replyMessage;
       await this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
+      if (replyMessage) messageData.replyMessage = replyMessage;
 
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey && text?.trim()) {
@@ -497,6 +502,93 @@ export class FirestoreServices {
     }
   };
 
+  /**
+   * Update an existing message
+   */
+  updateMessage = async (message: MessageProps): Promise<void> => {
+    if (!this.conversationId || !message.id) {
+      console.error('Conversation ID and Message ID are required to update');
+      return;
+    }
+
+    const { text } = message;
+    let updatedText = text;
+
+    // Sanitize and validate
+    const sanitizedText = sanitizeUserInput(text);
+    const messageValidation = validateMessage(sanitizedText);
+    if (!messageValidation.isValid) {
+      console.error('Invalid message:', messageValidation.errors);
+      return;
+    }
+
+    updatedText = sanitizedText;
+
+    /** Encrypt the message if enabled */
+    if (this.enableEncrypt && this.encryptKey && updatedText.trim()) {
+      try {
+        const encryptedText = this.encryptFunctionProp
+          ? await this.encryptFunctionProp(updatedText)
+          : await encryptData(updatedText, this.encryptKey);
+
+        if (encryptedText) {
+          updatedText = encryptedText;
+        }
+      } catch (error) {
+        console.error('Failed to encrypt updated message:', error);
+        throw new Error('Message encryption failed');
+      }
+    }
+
+    try {
+      const messageRef = firestore()
+        .collection(
+          this.getUrlWithPrefix(
+            `${FireStoreCollection.conversations}/${this.conversationId}/${FireStoreCollection.messages}`
+          )
+        )
+        .doc(message.id);
+
+      // Attempt to update the message document itself.
+      // We use .set with merge: true for maximum compatibility with varying security rules.
+      await messageRef.set(
+        { text: updatedText, isEdited: true },
+        { merge: true }
+      );
+
+      // Attempt to update the top-level conversation preview.
+      // This is wrapped in its own try/catch because client-side rules often
+      // forbid direct updates to conversation metadata even if sub-collections are allowed.
+      try {
+        const conversationRef = firestore()
+          .collection(this.getUrlWithPrefix(FireStoreCollection.conversations))
+          .doc(this.conversationId);
+
+        const conversationDoc = await conversationRef.get();
+        const conversationData = conversationDoc.data();
+
+        if (
+          conversationData?.latestMessage?.text &&
+          conversationData.latestMessage.senderId === this.userId
+        ) {
+          // Update top-level latestMessage text if the edited message was indeed the latest one
+          await conversationRef.update({
+            'latestMessage.text': updatedText,
+            'updatedAt': getServerTimestamp(),
+          });
+        }
+      } catch (convError) {
+        console.warn(
+          'Message updated successfully, but conversation preview could not be refreshed (likely restricted by security rules):',
+          convError
+        );
+      }
+    } catch (e) {
+      console.error('Error updating message:', e);
+      throw e;
+    }
+  };
+
   changeReadMessage = async (_messageId: string, userId?: string) => {
     if (!userId || !this.conversationId) {
       return;
@@ -540,7 +632,8 @@ export class FirestoreServices {
           const userInfo =
             data.senderId === this.userInfo?.id
               ? this.userInfo
-              : (this.partners?.[doc.data().senderId] as IUserInfo);
+              : ((this.partners?.[doc.data().senderId] as IUserInfo) ??
+                this.userInfo);
           return formatMessageData(
             data,
             userInfo,
@@ -589,7 +682,8 @@ export class FirestoreServices {
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
-            : (this.partners?.[doc.data().senderId] as IUserInfo);
+            : ((this.partners?.[doc.data().senderId] as IUserInfo) ??
+              this.userInfo);
         return formatMessageData(
           data,
           userInfo,
