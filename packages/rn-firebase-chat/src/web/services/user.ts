@@ -1,4 +1,12 @@
-import { collection, doc, getDoc, getDocs, setDoc, QuerySnapshot, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  QuerySnapshot,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { getFirebaseFirestore } from './firebase';
 import { FireStoreCollection, IUserInfo, UserProfileProps } from '../types';
 
@@ -28,7 +36,8 @@ export class UserService {
    */
   async createUserIfNotExists(
     userId: string,
-    userData?: Partial<IUserInfo & Pick<UserProfileProps, 'status'>> & Record<string, unknown>
+    userData?: Partial<IUserInfo & Pick<UserProfileProps, 'status'>> &
+      Record<string, unknown>
   ): Promise<void> {
     try {
       // setDoc with merge:true creates the document if absent, or merges fields if present.
@@ -58,7 +67,9 @@ export class UserService {
    */
   async getUserById(userId: string): Promise<IUserInfo | null> {
     try {
-      const userDoc = await getDoc(doc(this.db, FireStoreCollection.users, userId));
+      const userDoc = await getDoc(
+        doc(this.db, FireStoreCollection.users, userId)
+      );
       if (!userDoc.exists()) return null;
       const data = userDoc.data() as Partial<IUserInfo> | undefined;
       return { id: userDoc.id, name: data?.name || '', avatar: data?.avatar };
@@ -73,11 +84,17 @@ export class UserService {
    */
   async getAllUsers(): Promise<IUserInfo[]> {
     try {
-      const snapshot: QuerySnapshot = await getDocs(collection(this.db, FireStoreCollection.users));
+      const snapshot: QuerySnapshot = await getDocs(
+        collection(this.db, FireStoreCollection.users)
+      );
       const users: IUserInfo[] = [];
       snapshot.forEach((docSnap) => {
         const data = docSnap.data() as Partial<IUserInfo> | undefined;
-        users.push({ id: docSnap.id, name: data?.name || '', avatar: data?.avatar });
+        users.push({
+          id: docSnap.id,
+          name: data?.name || '',
+          avatar: data?.avatar,
+        });
       });
       return users;
     } catch (error) {
@@ -88,5 +105,3 @@ export class UserService {
 }
 
 export default UserService;
-
-

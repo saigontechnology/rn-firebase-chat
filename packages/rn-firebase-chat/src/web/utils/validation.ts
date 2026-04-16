@@ -26,7 +26,9 @@ export const validateMessage = (message: Partial<MessageProps>): boolean => {
 };
 
 // Validate conversation data
-export const validateConversation = (conversation: Partial<ConversationProps>): boolean => {
+export const validateConversation = (
+  conversation: Partial<ConversationProps>
+): boolean => {
   return Boolean(
     conversation.id &&
     conversation.members &&
@@ -38,12 +40,18 @@ export const validateConversation = (conversation: Partial<ConversationProps>): 
 
 // Validate user ID
 export const validateUserId = (userId: string): boolean => {
-  return Boolean(userId && typeof userId === 'string' && userId.trim().length > 0);
+  return Boolean(
+    userId && typeof userId === 'string' && userId.trim().length > 0
+  );
 };
 
 // Validate conversation ID
 export const validateConversationId = (conversationId: string): boolean => {
-  return Boolean(conversationId && typeof conversationId === 'string' && conversationId.trim().length > 0);
+  return Boolean(
+    conversationId &&
+    typeof conversationId === 'string' &&
+    conversationId.trim().length > 0
+  );
 };
 
 // Validate email format
@@ -53,7 +61,10 @@ export const validateEmail = (email: string): boolean => {
 };
 
 // Validate file extension
-export const validateFileExtension = (filename: string, allowedExtensions: string[]): boolean => {
+export const validateFileExtension = (
+  filename: string,
+  allowedExtensions: string[]
+): boolean => {
   if (!filename || !allowedExtensions || allowedExtensions.length === 0) {
     return false;
   }
@@ -63,24 +74,32 @@ export const validateFileExtension = (filename: string, allowedExtensions: strin
 };
 
 // Validate file size
-export const validateFileSize = (fileSize: number, maxSize: number): boolean => {
+export const validateFileSize = (
+  fileSize: number,
+  maxSize: number
+): boolean => {
   return fileSize > 0 && fileSize <= maxSize;
 };
 
 // Validate message text length
-export const validateMessageLength = (text: string, maxLength: number = 1000): boolean => {
+export const validateMessageLength = (
+  text: string,
+  maxLength: number = 1000
+): boolean => {
   return Boolean(text && text.length <= maxLength);
 };
 
 // Validate array of user IDs
 export const validateUserIds = (userIds: string[]): boolean => {
-  return Array.isArray(userIds) &&
+  return (
+    Array.isArray(userIds) &&
     userIds.length > 0 &&
-    userIds.every(id => validateUserId(id));
+    userIds.every((id) => validateUserId(id))
+  );
 };
 
 // Validate date
-export const validateDate = (date: any): boolean => {
+export const validateDate = (date: unknown): boolean => {
   return date instanceof Date && !isNaN(date.getTime());
 };
 
@@ -97,7 +116,9 @@ export const sanitizeText = (text: string): string => {
 };
 
 // Validate and sanitize conversation name
-export const validateConversationName = (name: string): { isValid: boolean; sanitized: string } => {
+export const validateConversationName = (
+  name: string
+): { isValid: boolean; sanitized: string } => {
   const sanitized = sanitizeText(name);
   const isValid = sanitized.length >= 1 && sanitized.length <= 100;
 

@@ -250,7 +250,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         ? `group_${currentUser.name},${selectedPartners.map((p) => p.name).join(',')}`
         : selectedPartners.find((p) => p.id !== currentUser.id)?.name ||
           selectedName,
-    [isGroup, currentUser.id, selectedPartners, selectedName]
+    [isGroup, currentUser.id, currentUser.name, selectedPartners, selectedName]
   );
 
   const { messages, loading, error, sendMessage, updateMessage, markAsRead } =
@@ -480,7 +480,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         console.error('Failed to start chat', e);
       }
     },
-    [currentUser?.id, currentUser?.name]
+    [currentUser?.id, currentUser?.name, currentUser?.avatar]
   );
 
   const handleFileUpload = useCallback(

@@ -9,7 +9,6 @@ const sizeClasses = {
   large: 'w-16 h-16 text-lg',
 };
 
-
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   user,
   size = 'small',
@@ -17,11 +16,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 }) => {
   const initials = user.name
     ? user.name
-      .split(' ')
-      .map(name => name.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+        .split(' ')
+        .map((name) => name.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
     : '?';
 
   // Deterministic color from user name/id (matching rn-firebase-chat)

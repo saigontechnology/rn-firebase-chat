@@ -22,7 +22,11 @@ export const generateKey = (
   cost: number,
   length: number
 ): Promise<string> =>
-  provider.generateEncryptionKey(password, { salt, iterations: cost, keyLength: length });
+  provider.generateEncryptionKey(password, {
+    salt,
+    iterations: cost,
+    keyLength: length,
+  });
 
 /** High-level key generation matching rn-firebase-chat's generateEncryptionKey. */
 export const generateEncryptionKey = (
@@ -31,5 +35,7 @@ export const generateEncryptionKey = (
 ): Promise<string> => provider.generateEncryptionKey(encryptKey, options);
 
 /** Safe decrypt with plaintext fallback — handles mixed encrypted/plaintext history. */
-export const decryptedMessageData = (text: string, key: string): Promise<string> =>
-  provider.decryptedMessageData(text, key);
+export const decryptedMessageData = (
+  text: string,
+  key: string
+): Promise<string> => provider.decryptedMessageData(text, key);

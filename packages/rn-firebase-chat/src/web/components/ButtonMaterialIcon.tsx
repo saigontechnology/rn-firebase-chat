@@ -28,7 +28,7 @@ export const ButtonMaterialIcon = React.forwardRef<
     return (
       <button
         ref={ref}
-        type={(rest as any).type || 'button'}
+        type={rest.type || 'button'}
         {...rest}
         className={`icon-material-btn ${className}`}
         style={{

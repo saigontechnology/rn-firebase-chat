@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGallery } from './useGallery';
-import { GalleryViewProps } from './types';
+import { GalleryViewProps, MediaFile } from './types';
 import './GalleryView.css';
 
 export const GalleryView: React.FC<GalleryViewProps> = ({
@@ -35,7 +35,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     }
   };
 
-  const handleFileClick = (file: any) => {
+  const handleFileClick = (file: MediaFile) => {
     openViewer(file);
     onFileSelect?.(file);
   };
@@ -127,7 +127,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
       {files.length > maxItems && (
         <div className="gallery-footer">
-          <p>Showing {maxItems} of {files.length} files</p>
+          <p>
+            Showing {maxItems} of {files.length} files
+          </p>
         </div>
       )}
     </div>

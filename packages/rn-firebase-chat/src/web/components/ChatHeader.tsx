@@ -12,7 +12,11 @@ export interface ChatHeaderProps {
   onBack?: () => void;
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ name, partner, onBack }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({
+  name,
+  partner,
+  onBack,
+}) => {
   return (
     <div className="chat-panel-header">
       <div className="chat-target">
@@ -21,8 +25,19 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ name, partner, onBack })
           onClick={onBack}
           aria-label="Back to conversations"
         >
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
 
@@ -35,8 +50,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ name, partner, onBack })
       </div>
 
       <div className="chat-actions">
-        <ButtonMaterialIcon className="icon-btn" title="Voice call" icon="call" />
-        <ButtonMaterialIcon className="icon-btn" title="Video call" icon="videocam" />
+        <ButtonMaterialIcon
+          className="icon-btn"
+          title="Voice call"
+          icon="call"
+        />
+        <ButtonMaterialIcon
+          className="icon-btn"
+          title="Video call"
+          icon="videocam"
+        />
       </div>
     </div>
   );

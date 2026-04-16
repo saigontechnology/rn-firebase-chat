@@ -3,7 +3,10 @@ import { DocumentSnapshot } from 'firebase/firestore';
 import { ChatService } from '../services/chat';
 import { Message, UseMessagesReturn } from '../types';
 
-export const useMessages = (roomId: string, initialLimit: number = 50): UseMessagesReturn => {
+export const useMessages = (
+  roomId: string,
+  initialLimit: number = 50
+): UseMessagesReturn => {
   const chatService = ChatService.getInstance();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -34,12 +37,22 @@ export const useMessages = (roomId: string, initialLimit: number = 50): UseMessa
           text: msg.text || '',
           userId: typeof msg.senderId === 'string' ? msg.senderId : '',
           createdAt: msg.createdAt ? msg.createdAt : Date.now(),
-          type: msg.image ? 'image' : msg.audio ? 'file' : msg.video ? 'file' : msg.system ? 'system' : 'text',
+          type: msg.image
+            ? 'image'
+            : msg.audio
+              ? 'file'
+              : msg.video
+                ? 'file'
+                : msg.system
+                  ? 'system'
+                  : 'text',
           readBy: msg.readBy ?? {},
-          metadata: msg.image ? {
-            imageUrl: msg.image,
-            fileType: 'image'
-          } : undefined,
+          metadata: msg.image
+            ? {
+                imageUrl: msg.image,
+                fileType: 'image',
+              }
+            : undefined,
         }));
 
         setMessages(convertedMessages);
@@ -80,22 +93,37 @@ export const useMessages = (roomId: string, initialLimit: number = 50): UseMessa
         text: msg.text || '',
         userId: typeof msg.senderId === 'string' ? msg.senderId : '',
         createdAt: msg.createdAt ? msg.createdAt : Date.now(),
-        type: msg.image ? 'image' : msg.audio ? 'file' : msg.video ? 'file' : msg.system ? 'system' : 'text',
+        type: msg.image
+          ? 'image'
+          : msg.audio
+            ? 'file'
+            : msg.video
+              ? 'file'
+              : msg.system
+                ? 'system'
+                : 'text',
         readBy: msg.readBy ?? {},
-        metadata: msg.image ? {
-          imageUrl: msg.image,
-          fileType: 'image'
-        } : undefined,
+        metadata: msg.image
+          ? {
+              imageUrl: msg.image,
+              fileType: 'image',
+            }
+          : undefined,
       }));
 
-      setMessages(prevMessages => [...prevMessages, ...convertedOlderMessages]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        ...convertedOlderMessages,
+      ]);
 
       // If we received fewer messages than the limit, there are no more
       if (olderMessages.length < initialLimit) {
         setHasMore(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more messages');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load more messages'
+      );
     } finally {
       setLoading(false);
     }

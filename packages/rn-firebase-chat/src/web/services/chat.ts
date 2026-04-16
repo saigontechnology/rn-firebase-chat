@@ -250,7 +250,7 @@ export class ChatService {
           : {}),
       };
 
-      const messageRef = await addDoc(
+      await addDoc(
         collection(this.db, this.CONVERSATIONS, conversationId, 'messages'),
         messageData
       );
@@ -427,8 +427,8 @@ export class ChatService {
       await updateDoc(doc(this.db, this.CONVERSATIONS, conversationId), {
         [`unRead.${userId}`]: 0,
       });
-    } catch (error: any) {
-      if (error?.code === 'not-found') {
+    } catch (error: unknown) {
+      if ((error as { code?: string })?.code === 'not-found') {
         // Conversation document doesn't exist yet, we can safely ignore
         return;
       }

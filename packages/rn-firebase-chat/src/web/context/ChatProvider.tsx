@@ -6,18 +6,18 @@ import React, {
   useRef,
   useState,
   useMemo,
-} from "react";
-import { initializeFirebase, firebaseService } from "../services/firebase";
+} from 'react';
+import { initializeFirebase, firebaseService } from '../services/firebase';
 import {
   FirebaseConfig,
   IUser,
   EncryptionOptions,
   EncryptionFunctions,
   StorageProvider,
-} from "../types";
-import UserService from "../services/user";
-import { generateEncryptionKey } from "../utils/encryption";
-import { generateBadWordsRegex } from "../utils/security";
+} from '../types';
+import UserService from '../services/user';
+import { generateEncryptionKey } from '../utils/encryption';
+import { generateBadWordsRegex } from '../utils/security';
 
 export interface ChatContextValue {
   currentUser: IUser;
@@ -61,11 +61,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   firebaseConfig,
   encryptionKey,
   enableEncrypt = true,
-  encryptionOptions = { salt: "saigontechnology@2026" },
+  encryptionOptions = { salt: 'saigontechnology@2026' },
   encryptionFuncProps,
   blackListWords,
   storageProvider,
-  prefix = "",
+  prefix = '',
 }) => {
   const userServiceRef = useRef(UserService.getInstance());
   const [derivedKey, setDerivedKey] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       try {
         initializeFirebase(firebaseConfig);
       } catch (error) {
-        console.error("Failed to initialize Firebase:", error);
+        console.error('Failed to initialize Firebase:', error);
       }
     };
 
@@ -93,8 +93,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 
   useEffect(() => {
     if (currentUser?.id) {
-      const userPayload: { name: string; avatar?: string } = { name: currentUser.name ?? '' };
-      if (currentUser.avatar !== undefined) userPayload.avatar = currentUser.avatar;
+      const userPayload: { name: string; avatar?: string } = {
+        name: currentUser.name ?? '',
+      };
+      if (currentUser.avatar !== undefined)
+        userPayload.avatar = currentUser.avatar;
       userServiceRef.current.createUserIfNotExists(currentUser.id, userPayload);
     }
   }, [currentUser]);
@@ -105,7 +108,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       return;
     }
 
-    const password = encryptionKey || "saigontechnology@2026";
+    const password = encryptionKey || 'saigontechnology@2026';
 
     // Use custom key generation if provided
     if (encryptionFuncProps?.generateKeyFunctionProp) {
@@ -113,7 +116,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         .generateKeyFunctionProp(password)
         .then(setDerivedKey)
         .catch((err) => {
-          console.error("Custom key generation failed:", err);
+          console.error('Custom key generation failed:', err);
           setDerivedKey(null);
         });
       return;
@@ -157,7 +160,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
 export const useChatContext = (): ChatContextValue => {
   const context = useContext(ChatContext);
   if (context === null) {
-    throw new Error("useChatContext must be used within a ChatProvider");
+    throw new Error('useChatContext must be used within a ChatProvider');
   }
   return context;
 };

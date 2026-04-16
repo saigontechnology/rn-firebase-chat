@@ -5,5 +5,5 @@ export type {
   UseFileUploadProps,
   UseFileUploadReturn,
   UploadedFile,
-  FileUploadOptions
+  FileUploadOptions,
 } from './types';

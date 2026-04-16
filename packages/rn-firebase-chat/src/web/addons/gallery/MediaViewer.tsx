@@ -56,22 +56,11 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   const renderMediaContent = () => {
     switch (file.type) {
       case 'image':
-        return (
-          <img
-            src={file.url}
-            alt={file.name}
-            className="media-content"
-          />
-        );
+        return <img src={file.url} alt={file.name} className="media-content" />;
 
       case 'video':
         return (
-          <video
-            src={file.url}
-            controls
-            className="media-content"
-            autoPlay
-          />
+          <video src={file.url} controls className="media-content" autoPlay />
         );
 
       case 'audio':
@@ -81,11 +70,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
               <h3>{file.name}</h3>
               <p>Audio File</p>
             </div>
-            <audio
-              src={file.url}
-              controls
-              autoPlay
-            />
+            <audio src={file.url} controls autoPlay />
           </div>
         );
 
@@ -155,9 +140,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
         <div className="media-info">
           <h3>{file.name}</h3>
-          {file.size && (
-            <p>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-          )}
+          {file.size && <p>{(file.size / 1024 / 1024).toFixed(2)} MB</p>}
         </div>
       </div>
     </div>

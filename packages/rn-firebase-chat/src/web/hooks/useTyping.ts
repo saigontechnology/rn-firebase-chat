@@ -31,32 +31,39 @@ export const useTyping = (
     if (!externalTypingData) return;
     const users: TypingUser[] = Object.entries(externalTypingData)
       .filter(([uid, isTyping]) => uid !== userId && isTyping)
-      .map(([uid]) => ({ uid, displayName: `User ${uid}`, timestamp: Date.now() }));
+      .map(([uid]) => ({
+        uid,
+        displayName: `User ${uid}`,
+        timestamp: Date.now(),
+      }));
     setTypingUsers(users);
   }, [externalTypingData, userId]);
 
-  const setTyping = useCallback((isTyping: boolean): void => {
-    if (!userId || !roomId) return;
+  const setTyping = useCallback(
+    (isTyping: boolean): void => {
+      if (!userId || !roomId) return;
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
-
-    if (isTyping) {
-      if (!isTypingRef.current) {
-        chatService.updateTypingStatus(roomId, userId, true);
-        isTypingRef.current = true;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
       }
-      typingTimeoutRef.current = setTimeout(() => {
+
+      if (isTyping) {
+        if (!isTypingRef.current) {
+          chatService.updateTypingStatus(roomId, userId, true);
+          isTypingRef.current = true;
+        }
+        typingTimeoutRef.current = setTimeout(() => {
+          chatService.updateTypingStatus(roomId, userId, false);
+          isTypingRef.current = false;
+        }, typingTimeoutSeconds);
+      } else {
         chatService.updateTypingStatus(roomId, userId, false);
         isTypingRef.current = false;
-      }, typingTimeoutSeconds);
-    } else {
-      chatService.updateTypingStatus(roomId, userId, false);
-      isTypingRef.current = false;
-    }
-  }, [roomId, userId, typingTimeoutSeconds, chatService]);
+      }
+    },
+    [roomId, userId, typingTimeoutSeconds, chatService]
+  );
 
   // Cleanup on unmount
   useEffect(() => {

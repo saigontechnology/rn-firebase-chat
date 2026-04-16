@@ -10,13 +10,16 @@ export const useGallery = ({
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const openViewer = useCallback((file: MediaFile) => {
-    const index = files.findIndex(f => f.id === file.id);
-    setCurrentIndex(index !== -1 ? index : 0);
-    setSelectedFile(file);
-    setIsViewerOpen(true);
-    onFileSelect?.(file);
-  }, [files, onFileSelect]);
+  const openViewer = useCallback(
+    (file: MediaFile) => {
+      const index = files.findIndex((f) => f.id === file.id);
+      setCurrentIndex(index !== -1 ? index : 0);
+      setSelectedFile(file);
+      setIsViewerOpen(true);
+      onFileSelect?.(file);
+    },
+    [files, onFileSelect]
+  );
 
   const closeViewer = useCallback(() => {
     setIsViewerOpen(false);
@@ -41,21 +44,25 @@ export const useGallery = ({
     onFileSelect?.(files[prevIndex]);
   }, [files, currentIndex, onFileSelect]);
 
-  const deleteFile = useCallback((fileId: string) => {
-    onFileDelete?.(fileId);
+  const deleteFile = useCallback(
+    (fileId: string) => {
+      onFileDelete?.(fileId);
 
-    // If the deleted file was selected, close viewer or select next file
-    if (selectedFile && selectedFile.id === fileId) {
-      const remainingFiles = files.filter(f => f.id !== fileId);
-      if (remainingFiles.length === 0) {
-        closeViewer();
-      } else {
-        const nextIndex = currentIndex < remainingFiles.length ? currentIndex : 0;
-        setCurrentIndex(nextIndex);
-        setSelectedFile(remainingFiles[nextIndex]);
+      // If the deleted file was selected, close viewer or select next file
+      if (selectedFile && selectedFile.id === fileId) {
+        const remainingFiles = files.filter((f) => f.id !== fileId);
+        if (remainingFiles.length === 0) {
+          closeViewer();
+        } else {
+          const nextIndex =
+            currentIndex < remainingFiles.length ? currentIndex : 0;
+          setCurrentIndex(nextIndex);
+          setSelectedFile(remainingFiles[nextIndex]);
+        }
       }
-    }
-  }, [files, selectedFile, currentIndex, onFileDelete, closeViewer]);
+    },
+    [files, selectedFile, currentIndex, onFileDelete, closeViewer]
+  );
 
   return {
     selectedFile,

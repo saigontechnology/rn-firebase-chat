@@ -54,7 +54,7 @@ export const ChatNewModal = forwardRef<ChatNewModalRef, ChatNewModalProps>(
         try {
           const userService = UserService.getInstance();
           const users = await userService.getAllUsers();
-          setAllUsers(users as any);
+          setAllUsers(users as IUser[]);
         } catch (e) {
           console.error('Failed to load users', e);
         }

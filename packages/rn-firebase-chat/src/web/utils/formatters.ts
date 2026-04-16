@@ -9,7 +9,10 @@ export const formatTimestamp = (
   date: Date | string | number,
   format: 'time' | 'date' | 'datetime' | 'relative' = 'relative'
 ): string => {
-  const timestamp = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
+  const timestamp =
+    typeof date === 'string' || typeof date === 'number'
+      ? new Date(date)
+      : date;
 
   if (!timestamp || isNaN(timestamp.getTime())) {
     return '';
@@ -23,7 +26,10 @@ export const formatTimestamp = (
 
   switch (format) {
     case 'time':
-      return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return timestamp.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
     case 'date':
       return timestamp.toLocaleDateString();
@@ -88,7 +94,9 @@ export const convertToLatestMessage = (
 });
 
 // Format latest message for conversation list
-export const formatLatestMessage = (latestMessage: LatestMessageProps): string => {
+export const formatLatestMessage = (
+  latestMessage: LatestMessageProps
+): string => {
   if (!latestMessage) return '';
 
   const senderName = latestMessage.name || 'Unknown';
@@ -145,7 +153,7 @@ export const formatConversationName = (
 
   // For direct conversations, use other participant's name
   if (members.length === 2) {
-    const otherMember = members.find(id => id !== currentUserId);
+    const otherMember = members.find((id) => id !== currentUserId);
     return formatUserDisplayName(otherMember, 'Direct Chat');
   }
 

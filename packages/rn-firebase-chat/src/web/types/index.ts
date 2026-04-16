@@ -216,7 +216,7 @@ export enum FireStoreCollection {
   messages = 'messages',
 }
 
-export type FirestoreReference = any; // Will be properly typed when Firebase is available
+export type FirestoreReference = unknown; // Will be properly typed when Firebase is available
 
 // Connection status
 export type ConnectionStatus =

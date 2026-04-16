@@ -7,5 +7,5 @@ export type {
   UseGalleryProps,
   UseGalleryReturn,
   MediaFile,
-  MediaMetadata
+  MediaMetadata,
 } from './types';

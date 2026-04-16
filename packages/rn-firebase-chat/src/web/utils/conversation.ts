@@ -6,7 +6,10 @@
  * @param groupId Optional groupId string
  * @returns conversationId string
  */
-export function generateConversationId(userIds: string[], groupId?: string): string {
+export function generateConversationId(
+  userIds: string[],
+  groupId?: string
+): string {
   if (groupId && typeof groupId === 'string' && groupId.trim().length > 0) {
     return groupId;
   }

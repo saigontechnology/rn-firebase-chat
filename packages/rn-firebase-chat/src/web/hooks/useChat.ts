@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatService } from '../services/chat';
-import { Message, IMessage, IUser, UseChatReturn, MediaType, ReplyMessagePreview } from '../types';
+import {
+  Message,
+  IMessage,
+  IUser,
+  UseChatReturn,
+  MediaType,
+  ReplyMessagePreview,
+} from '../types';
 import { useChatContext } from '../context/ChatProvider';
 import { encryptData, decryptedMessageData } from '../utils/encryption';
 
@@ -11,25 +18,40 @@ export interface UseChatProps {
   name?: string;
 }
 
-const convertMessages = async (rawMessages: IMessage[], key: string | null): Promise<Message[]> =>
+const convertMessages = async (
+  rawMessages: IMessage[],
+  key: string | null
+): Promise<Message[]> =>
   Promise.all(
     rawMessages.map(async (msg) => ({
       id: msg.id,
-      text: key ? await decryptedMessageData(msg.text || '', key) : (msg.text || ''),
+      text: key
+        ? await decryptedMessageData(msg.text || '', key)
+        : msg.text || '',
       userId: typeof msg.senderId === 'string' ? msg.senderId : '',
       createdAt: msg.createdAt ? msg.createdAt : Date.now(),
-      type: msg.system ? 'system' :
-        msg.image ? 'image' :
-          msg.audio || msg.video ? 'file' :
-            'text',
+      type: msg.system
+        ? 'system'
+        : msg.image
+          ? 'image'
+          : msg.audio || msg.video
+            ? 'file'
+            : 'text',
       readBy: msg.readBy ?? {},
       isEdited: msg.isEdited,
       replyMessage: msg.replyMessage,
-      metadata: msg.image ? { imageUrl: msg.image, fileType: 'image' } : undefined,
+      metadata: msg.image
+        ? { imageUrl: msg.image, fileType: 'image' }
+        : undefined,
     }))
   );
 
-export const useChat = ({ user, conversationId, memberIds, name }: UseChatProps): UseChatReturn => {
+export const useChat = ({
+  user,
+  conversationId,
+  memberIds,
+  name,
+}: UseChatProps): UseChatReturn => {
   const chatService = ChatService.getInstance();
   const { derivedKey, enableEncrypt, encryptionFuncProps } = useChatContext();
 
@@ -65,13 +87,16 @@ export const useChat = ({ user, conversationId, memberIds, name }: UseChatProps)
     setLoading(true);
     setError(null);
 
-    const unsubscribe = chatService.subscribeToMessages(conversationId, async (newMessages) => {
-      rawMessagesRef.current = newMessages;
-      const key = enableEncrypt ? derivedKeyRef.current : null;
-      const converted = await convertMessages(newMessages, key);
-      setMessages(converted);
-      setLoading(false);
-    });
+    const unsubscribe = chatService.subscribeToMessages(
+      conversationId,
+      async (newMessages) => {
+        rawMessagesRef.current = newMessages;
+        const key = enableEncrypt ? derivedKeyRef.current : null;
+        const converted = await convertMessages(newMessages, key);
+        setMessages(converted);
+        setLoading(false);
+      }
+    );
 
     return () => {
       unsubscribe?.();
@@ -79,81 +104,107 @@ export const useChat = ({ user, conversationId, memberIds, name }: UseChatProps)
   }, [conversationId, chatService, enableEncrypt]);
 
   // Send a text message
-  const sendMessage = useCallback(async (text: string, replyMessage?: ReplyMessagePreview) => {
-    try {
-      if (!conversationId) {
-        throw new Error('No conversation selected');
-      }
-
-      let encryptedText = text;
-
-      if (enableEncrypt) {
-        // Use custom encrypt function if provided (matching rn-firebase-chat)
-        if (encryptionFuncProps?.encryptFunctionProp) {
-          encryptedText = await encryptionFuncProps.encryptFunctionProp(text);
-        } else if (derivedKeyRef.current) {
-          encryptedText = await encryptData(text, derivedKeyRef.current);
+  const sendMessage = useCallback(
+    async (text: string, replyMessage?: ReplyMessagePreview) => {
+      try {
+        if (!conversationId) {
+          throw new Error('No conversation selected');
         }
+
+        let encryptedText = text;
+
+        if (enableEncrypt) {
+          // Use custom encrypt function if provided (matching rn-firebase-chat)
+          if (encryptionFuncProps?.encryptFunctionProp) {
+            encryptedText = await encryptionFuncProps.encryptFunctionProp(text);
+          } else if (derivedKeyRef.current) {
+            encryptedText = await encryptData(text, derivedKeyRef.current);
+          }
+        }
+
+        const messageData = {
+          text: encryptedText,
+          type: MediaType.text,
+          senderId: user?.id?.toString(),
+          readBy: {
+            [user?.id]: true,
+          },
+          path: '',
+          extension: '',
+        };
+
+        await chatService.sendMessage(conversationId, messageData, {
+          memberIds,
+          name: user?.name || 'Current User',
+          otherName: name,
+          replyMessage,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to send message');
+        throw err;
       }
-
-      const messageData = {
-        text: encryptedText,
-        type: MediaType.text,
-        senderId: user?.id?.toString(),
-        readBy: {
-          [user?.id]: true,
-        },
-        path: '',
-        extension: '',
-      };
-
-      await chatService.sendMessage(conversationId, messageData, {
-        memberIds,
-        name: user?.name || 'Current User',
-        otherName: name,
-        replyMessage,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-      throw err;
-    }
-  }, [conversationId, user?.id, user?.name, chatService, memberIds, name, enableEncrypt, encryptionFuncProps]);
+    },
+    [
+      conversationId,
+      user?.id,
+      user?.name,
+      chatService,
+      memberIds,
+      name,
+      enableEncrypt,
+      encryptionFuncProps,
+    ]
+  );
 
   // Update (edit) a message — sets isEdited flag (matching rn-firebase-chat)
-  const updateMessage = useCallback(async (messageId: string, text: string) => {
-    try {
-      if (!conversationId) {
-        throw new Error('No conversation selected');
-      }
-
-      let encryptedText = text;
-      if (enableEncrypt) {
-        if (encryptionFuncProps?.encryptFunctionProp) {
-          encryptedText = await encryptionFuncProps.encryptFunctionProp(text);
-        } else if (derivedKeyRef.current) {
-          encryptedText = await encryptData(text, derivedKeyRef.current);
+  const updateMessage = useCallback(
+    async (messageId: string, text: string) => {
+      try {
+        if (!conversationId) {
+          throw new Error('No conversation selected');
         }
-      }
 
-      await chatService.updateMessage(conversationId, messageId, encryptedText);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update message');
-      throw err;
-    }
-  }, [conversationId, chatService, enableEncrypt, encryptionFuncProps]);
+        let encryptedText = text;
+        if (enableEncrypt) {
+          if (encryptionFuncProps?.encryptFunctionProp) {
+            encryptedText = await encryptionFuncProps.encryptFunctionProp(text);
+          } else if (derivedKeyRef.current) {
+            encryptedText = await encryptData(text, derivedKeyRef.current);
+          }
+        }
+
+        await chatService.updateMessage(
+          conversationId,
+          messageId,
+          encryptedText
+        );
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to update message'
+        );
+        throw err;
+      }
+    },
+    [conversationId, chatService, enableEncrypt, encryptionFuncProps]
+  );
 
   // Delete a message
-  const deleteMessage = useCallback(async (messageId: string) => {
-    try {
-      if (!conversationId) {
-        throw new Error('No conversation selected');
+  const deleteMessage = useCallback(
+    async (messageId: string) => {
+      try {
+        if (!conversationId) {
+          throw new Error('No conversation selected');
+        }
+        await chatService.deleteMessage(conversationId, messageId);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to delete message'
+        );
+        throw err;
       }
-      await chatService.deleteMessage(conversationId, messageId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete message');
-      throw err;
-    }
-  }, [conversationId, chatService]);
+    },
+    [conversationId, chatService]
+  );
 
   // Mark conversation as read — resets current user's unRead to 0 (matching rn-firebase-chat changeReadMessage)
   const markAsRead = useCallback(async () => {

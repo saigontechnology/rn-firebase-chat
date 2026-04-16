@@ -70,7 +70,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         }, 1000);
       }
     },
-    [onTyping, isTyping, maxInputLength]
+    [onTyping, isTyping, maxInputLength, setMessage]
   );
 
   const handleSend = useCallback(() => {
@@ -94,7 +94,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       // Focus back to input
       textareaRef.current?.focus();
     }
-  }, [message, disabled, onSendMessage, isTyping, onTyping]);
+  }, [message, disabled, onSendMessage, isTyping, onTyping, setMessage]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
