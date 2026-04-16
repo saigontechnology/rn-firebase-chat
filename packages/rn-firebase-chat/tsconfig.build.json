@@ -11,13 +11,23 @@
     "declaration": true,
     "declarationMap": false,
     "sourceMap": false,
+    "rootDir": "./src",
     "outDir": "./lib",
+    "declarationDir": "./lib/typescript",
     "removeComments": true,
     "noEmit": false,
     "emitDeclarationOnly": false,
     "composite": false,
     "incremental": true,
-    "tsBuildInfoFile": "./lib/.tsbuildinfo"
+    "tsBuildInfoFile": "./lib/.tsbuildinfo",
+    "paths": {
+      "@saigontechnology/firebase-chat-shared": [
+        "../../packages/shared/lib/typescript/index.d.ts"
+      ],
+      "@saigontechnology/firebase-chat-shared/rnProvider": [
+        "../../packages/shared/lib/typescript/encryption/rnProvider.d.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*"

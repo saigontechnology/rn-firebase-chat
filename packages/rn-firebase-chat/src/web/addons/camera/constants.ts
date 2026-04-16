@@ -1,4 +1,4 @@
-import { MessageTypes } from '../../interfaces';
+import { MessageTypes } from '../../../interfaces';
 
 export const initialMediaState = {
   type: MessageTypes.image,

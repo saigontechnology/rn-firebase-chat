@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo run:android --active-arch-only",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo build:web"
   },
   "dependencies": {
     "@react-native-firebase/app": "^23.8.8",
@@ -15,18 +16,28 @@
     "@react-native-firebase/storage": "^23.8.8",
     "@react-navigation/native": "^7.2.0",
     "@react-navigation/native-stack": "^7.14.8",
+    "clsx": "^2.1.1",
+    "date-fns": "^2.30.0",
+    "framer-motion": "^11.18.2",
+    "react-hot-toast": "^2.4.1",
+    "react-textarea-autosize": "^8.5.9",
     "expo": "~55.0.12",
     "expo-build-properties": "^55.0.12",
     "expo-status-bar": "~55.0.4",
+    "firebase": "^10.14.1",
     "randomcolor": "^0.6.2",
     "react": "19.2.0",
+    "react-dom": "19.2.0",
     "react-native": "0.83.4",
     "react-native-aes-crypto": "^3.3.0",
     "react-native-screens": "^4.23.0",
+    "react-native-web": "~0.19.13",
     "rn-firebase-chat": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "@types/react-dom": "~19.2.2",
+    "dotenv": "^16.1.4",
     "typescript": "~5.9.2"
   },
   "private": true

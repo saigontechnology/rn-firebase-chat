@@ -1,11 +1,26 @@
 {
   "name": "rn-firebase-chat",
   "version": "0.7.2",
-  "description": "React Native Firebase Chat",
+  "description": "React Native and Web Firebase Chat library with real-time messaging, user authentication, and modern UI components",
   "type": "module",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
+  "style": "lib/styles.css",
+  "exports": {
+    ".": {
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js",
+      "types": "./lib/typescript/index.d.ts"
+    },
+    "./web": {
+      "import": "./lib/module/web.js",
+      "require": "./lib/commonjs/web.js",
+      "types": "./lib/typescript/web.d.ts"
+    },
+    "./styles": "./lib/styles.css",
+    "./web/styles.css": "./lib/styles.css"
+  },
   "files": [
     "lib",
     "README.md",
@@ -14,10 +29,11 @@
   "scripts": {
     "test": "jest",
     "test:ci": "jest --maxWorkers=2 --coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "../../node_modules/.bin/tsc --noEmit",
     "typecheck:build": "tsc --project tsconfig.build.json --noEmit",
     "typecheck:example": "tsc --project ../../example/tsconfig.json --noEmit",
-    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
+    "build:types": "../../node_modules/.bin/tsc --project tsconfig.build.json --emitDeclarationOnly --noEmitOnError false --skipLibCheck",
+    "build:css": "../../node_modules/.bin/postcss src/web/styles/index.css -o lib/styles.css",
     "clean:maps": "find lib -name '*.map' -delete",
     "lint": "../../node_modules/.bin/eslint \"**/*.{js,ts,tsx}\"",
     "prepack": "bob build --target commonjs && bob build --target module && (bob build --target typescript || true) && pnpm clean:maps",
@@ -31,6 +47,8 @@
     "react-native",
     "ios",
     "android",
+    "web",
+    "react",
     "chat",
     "firebase",
     "firestore",
@@ -98,6 +116,17 @@
     "react-native-video": "^6.15.0",
     "react-native-vision-camera": "^4.7.0",
     "release-it": "^19.0.3",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^14.3.1",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.16",
+    "firebase": "^10.14.1",
+    "identity-obj-proxy": "^3.0.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^3.3.6",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.0.0"
   },
@@ -107,6 +136,7 @@
     "@react-native-firebase/storage": "*",
     "randomcolor": "*",
     "react": "*",
+    "react-dom": "*",
     "react-native": "*",
     "react-native-aes-crypto": "*",
     "react-native-gesture-handler": "*",
@@ -128,6 +158,24 @@
     },
     "react-native-vision-camera": {
       "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "clsx": {
+      "optional": true
+    },
+    "date-fns": {
+      "optional": true
+    },
+    "framer-motion": {
+      "optional": true
+    },
+    "react-hot-toast": {
+      "optional": true
+    },
+    "react-textarea-autosize": {
+      "optional": true
     }
   },
   "engines": {
@@ -140,14 +188,16 @@
     ],
     "moduleNameMapper": {
       "^@saigontechnology/firebase-chat-shared/rnProvider$": "<rootDir>/../../packages/shared/src/encryption/rnProvider.ts",
-      "^@saigontechnology/firebase-chat-shared$": "<rootDir>/../../packages/shared/src/index.ts"
+      "^@saigontechnology/firebase-chat-shared$": "<rootDir>/../../packages/shared/src/index.ts",
+      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
     },
     "transformIgnorePatterns": [
       "<rootDir>/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)",
       ".*/node_modules/.pnpm/[^/]*/node_modules/(?!(react-native|@react-native|react-native-.*|@react-native-.*)/)"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.cjs"
+      "<rootDir>/jest.setup.cjs",
+      "<rootDir>/src/setupTests.ts"
     ]
   },
   "commitlint": {

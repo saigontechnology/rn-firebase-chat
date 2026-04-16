@@ -1,6 +1,6 @@
 import { Keyboard } from 'react-native';
 import { cameraRef } from './CameraView';
-import { MessageTypes } from '../../interfaces';
+import { MessageTypes } from '../../../interfaces';
 import { convertExtension } from './utilities';
 import { ImagePickerValue } from './interface';
 

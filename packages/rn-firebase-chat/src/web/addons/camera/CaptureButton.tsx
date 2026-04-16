@@ -4,7 +4,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Camera, PhotoFile, VideoFile } from 'react-native-vision-camera';
 import type { OnOffType } from './interface';
 import { CAPTURE_BUTTON_SIZE } from './constants';
-import { MessageTypes } from '../../interfaces';
+import { MessageTypes } from '../../../interfaces';
 
 const BORDER_WIDTH = CAPTURE_BUTTON_SIZE * 0.1;
 

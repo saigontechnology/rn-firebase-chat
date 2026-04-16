@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import type { PhotoFile, VideoFile } from 'react-native-vision-camera';
-import { LazyVideo } from '../../chat/components/LazyVideo';
+import { LazyVideo } from '../../../chat/components/LazyVideo';
 import { CaptureCameraButton } from './CaptureButton';
 import type {
   CameraViewMethods,
@@ -29,14 +29,14 @@ import {
   MessageTypes,
   type MessageProps,
   type MediaType,
-} from '../../interfaces';
+} from '../../../interfaces';
 import {
   generateRandomUUID,
   getAbsoluteFilePath,
   getMediaTypeFromExtension,
-} from '../../utilities';
-import Images from '../../asset';
-import { useChatContext } from '../../hooks';
+} from '../../../utilities';
+import Images from '../../../asset';
+import { useChatContext } from '../../../hooks';
 
 export type CameraViewProps = {
   onSend: (message: MessageProps) => void;

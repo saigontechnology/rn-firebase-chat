@@ -2,7 +2,7 @@ import { useCallback, useState, useRef } from 'react';
 import { Keyboard, Alert, Vibration, Platform } from 'react-native';
 
 import { cameraRef } from './CameraView';
-import { MessageTypes } from '../../interfaces';
+import { MessageTypes } from '../../../interfaces';
 import {
   convertExtension,
   validateFileSize,

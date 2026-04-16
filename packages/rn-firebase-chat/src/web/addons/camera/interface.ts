@@ -1,6 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
 
-import type { ImagePickerValue } from '../../interfaces';
+import type { ImagePickerValue } from '../../../interfaces';
 export type { ImagePickerValue };
 
 export type OnOffType = 'off' | 'on';

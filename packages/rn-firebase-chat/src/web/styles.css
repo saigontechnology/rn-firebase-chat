@@ -1,0 +1,16 @@
+/* Main CSS entry point for React Firebase Chat library */
+
+/* Material Symbols */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0');
+
+/* Core styles */
+@import './styles/index.css';
+
+/* Component styles */
+@import './components/ChatScreen.css';
+
+/* Addon styles */
+@import './addons/camera/CameraView.css';
+@import './addons/fileUpload/FileUploader.css';
+@import './addons/gallery/GalleryView.css';
+@import './addons/gallery/MediaViewer.css'; 
