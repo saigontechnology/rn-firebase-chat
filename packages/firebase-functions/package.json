@@ -1,0 +1,25 @@
+{
+  "name": "@saigontechnology/firebase-functions",
+  "version": "1.0.0",
+  "description": "CLI scripts and Cloud Functions for Firebase Firestore",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "push-message": "node src/push-test-message.mjs",
+    "build": "../../node_modules/.bin/tsc",
+    "watch": "../../node_modules/.bin/tsc --watch",
+    "serve": "pnpm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

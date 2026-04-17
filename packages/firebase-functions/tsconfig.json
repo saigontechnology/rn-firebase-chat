@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "compileOnSave": true,
+  "include": ["src"],
+  "exclude": ["src/push-test-message.mjs"]
+}

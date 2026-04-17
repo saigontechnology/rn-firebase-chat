@@ -13,6 +13,20 @@ export interface ReplyToMessage {
   userName: string;
 }
 
+export interface QuickReplyValue {
+  title: string;
+  value: string;
+  /** Optional message override shown in the chat bubble when selected */
+  messageId?: string;
+}
+
+export interface QuickReplies {
+  type: 'radio' | 'checkbox';
+  values: QuickReplyValue[];
+  /** Keep chips visible after selection (checkbox only) */
+  keepIt?: boolean;
+}
+
 export interface LatestMessageProps {
   readBy: Record<string, boolean>;
   senderId: string;
@@ -36,6 +50,7 @@ export interface MessageProps extends BaseEntity {
   createdAt: number | object;
   replyMessage?: ReplyToMessage;
   isEdited?: boolean;
+  quickReplies?: QuickReplies;
 }
 
 export interface SendMessageProps {
@@ -49,6 +64,7 @@ export interface SendMessageProps {
   // Callers pass Date.now() or a Firestore FieldValue server timestamp
   createdAt?: number | object;
   replyMessage?: ReplyToMessage;
+  quickReplies?: QuickReplies;
 }
 
 export type ImagePickerValue = {

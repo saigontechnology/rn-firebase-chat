@@ -23,7 +23,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bob build",
+    "build": "../../node_modules/.bin/bob build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "jest"
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
+    "react-native-builder-bob": "^0.40.12",
     "typescript": "^5.3.0"
   },
   "react-native-builder-bob": {
@@ -52,7 +53,7 @@
     "targets": [
       "commonjs",
       "module",
-      "typescript"
+      ["typescript", { "tsc": "../../node_modules/.bin/tsc" }]
     ]
   }
 }

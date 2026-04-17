@@ -12,7 +12,10 @@
     "release:ci": "pnpm --filter=rn-firebase-chat release:ci",
     "release:check": "pnpm --filter=rn-firebase-chat release:check",
     "example": "pnpm -C example",
-    "bootstrap": "pnpm install && pnpm -C example"
+    "bootstrap": "pnpm install && pnpm -C example",
+    "functions:build": "pnpm --filter firebase-functions build",
+    "functions:deploy": "pnpm --filter firebase-functions build && firebase deploy --only functions",
+    "functions:emulate": "pnpm --filter firebase-functions build && firebase emulators:start --only functions,firestore"
   },
   "devDependencies": {
     "turbo": "^2.5.4"

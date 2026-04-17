@@ -237,13 +237,21 @@ export function useChatScreen<TMessage>({
       }
 
       // Optimistic update — format and prepend immediately
+      // Ensure _id is set; quick-reply messages arrive without one and
+      // GiftedChat's keyExtractor calls _id.toString() unconditionally.
+      // _id is a GiftedChat-specific field not in the shared MessageProps type,
+      // so we use a cast to set it without a TS error here.
+      const rawAny = raw as unknown as Record<string, unknown>;
+      const rawWithId: MessageProps = rawAny['_id'] || raw.id
+        ? raw
+        : { ...raw, ...{ _id: Date.now().toString() } } as MessageProps;
       const regexBlacklist = service.getRegexBlacklist();
       const messageToDisplay = {
-        ...raw,
+        ...rawWithId,
         replyMessage,
         text: regexBlacklist
-          ? raw.text.replace(regexBlacklist, (m) => '*'.repeat(m.length))
-          : raw.text,
+          ? rawWithId.text.replace(regexBlacklist, (m) => '*'.repeat(m.length))
+          : rawWithId.text,
       };
       const formatted = await formatMessageRef.current(messageToDisplay);
       setMessages((prev) => [formatted, ...prev]);

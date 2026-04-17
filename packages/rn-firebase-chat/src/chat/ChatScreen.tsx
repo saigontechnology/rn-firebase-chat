@@ -16,6 +16,7 @@ import {
   type BubbleProps,
   type IMessage,
   type ReplyMessage,
+  type Reply,
 } from 'react-native-gifted-chat';
 
 import MessageStatusView from './components/MessageStatus';
@@ -74,6 +75,11 @@ interface ChatScreenProps extends GiftedChatMessageProps {
   typingTimeoutSeconds?: number;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
+  /**
+   * Called when a quick reply chip is tapped.
+   * If omitted, the selected reply value is automatically sent as a text message.
+   */
+  onQuickReply?: (replies: Reply[]) => void;
   /** Render prop children to access onSend function */
   children?: RenderChildren;
 }
@@ -94,6 +100,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   enableTyping = true,
   typingTimeoutSeconds = DEFAULT_TYPING_TIMEOUT_SECONDS,
   messageStatusEnable = true,
+  onQuickReply,
   children,
   ...props
 }) => {
@@ -170,7 +177,28 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const onSend = useCallback(
     async (message: MessageProps) => {
       if (editingMessage) {
-        await updateMessage({ ...editingMessage, text: message.text });
+        const sharedMessage: SharedMessageProps = {
+          id: String(editingMessage._id),
+          text: message.text,
+          senderId: String(editingMessage.user._id),
+          readBy: editingMessage.readBy || {},
+          status: editingMessage.status,
+          type: editingMessage.type,
+          path: editingMessage.path,
+          extension: editingMessage.extension,
+          createdAt: editingMessage.createdAt,
+          replyMessage: editingMessage.replyMessage
+            ? {
+                id: editingMessage.replyMessage._id,
+                text: editingMessage.replyMessage.text,
+                userId: String(editingMessage.replyMessage.user._id),
+                userName: editingMessage.replyMessage.user.name,
+              }
+            : undefined,
+          isEdited: editingMessage.isEdited,
+          quickReplies: editingMessage.quickReplies,
+        };
+        await updateMessage(sharedMessage);
         setEditingMessage(null);
       } else {
         const replyMsg = replyMessage
@@ -186,7 +214,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             }
           : undefined;
 
-        await sendMessage(message, replyMsg);
+        const sharedMessage: SharedMessageProps = {
+          id: String(message._id),
+          text: message.text,
+          senderId: String(message.user._id),
+          readBy: {},
+          createdAt: message.createdAt,
+          status: MessageStatus.sent,
+        };
+
+        await sendMessage(sharedMessage, replyMsg);
         setReplyMessage(null);
       }
       setInputText('');
@@ -204,6 +241,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       sendMessageNotification,
       timeoutSendNotify,
     ]
+  );
+
+  const handleQuickReply = useCallback(
+    (replies: Reply[]) => {
+      if (onQuickReply) {
+        onQuickReply(replies);
+        return;
+      }
+      const reply = replies[0];
+      if (!reply?.value || !userInfo?.id) return;
+      const sharedMessage: SharedMessageProps = {
+        id: '',
+        text: reply.value,
+        senderId: userInfo.id,
+        readBy: {},
+        status: MessageStatus.sent,
+        createdAt: new Date(),
+      };
+      sendMessage(sharedMessage);
+    },
+    [onQuickReply, sendMessage, userInfo]
   );
 
   const changeUserConversationTyping = useCallback(
@@ -405,6 +463,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         }}
         messagesContainerRef={messagesContainerRef as never}
         renderAccessory={renderAccessory}
+        onQuickReply={handleQuickReply}
       />
       <SelectedImageModal
         imageUrl={isImgVideoUrl}

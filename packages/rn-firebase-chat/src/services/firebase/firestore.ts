@@ -37,18 +37,23 @@ import {
   type MessageProps,
   type SendMessageProps,
 } from '../../interfaces';
-import type { StorageProvider } from '../../interfaces/storage';
-
-type PropsWithEncryption = {
-  enableEncrypt?: true;
-  encryptionOptions: EncryptionOptions;
-  encryptKey?: string;
-};
+import type {
+  ChatScreenService,
+  MessageProps as SharedMessageProps,
+  ReplyToMessage,
+  StorageProvider,
+} from '@saigontechnology/firebase-chat-shared';
 
 type PropsWithoutEncryption = {
   enableEncrypt: false;
   encryptionOptions?: never;
   encryptKey?: never;
+};
+
+type PropsWithEncryption = {
+  enableEncrypt: true;
+  encryptionOptions: EncryptionOptions;
+  encryptKey: string;
 };
 
 type FirestoreEncryptionProps = PropsWithEncryption | PropsWithoutEncryption;
@@ -64,7 +69,7 @@ type FirestoreBaseProps = {
 
 export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
 
-export class FirestoreServices {
+export class FirestoreServices implements ChatScreenService {
   private static instance: FirestoreServices;
 
   /** User configuration */
@@ -392,8 +397,8 @@ export class FirestoreServices {
    * @param text is message
    */
   sendMessage = async (
-    message: MessageProps,
-    replyMessage?: MessageProps['replyMessage']
+    message: SharedMessageProps,
+    replyMessage?: ReplyToMessage
   ): Promise<void> => {
     if (!this.conversationId) {
       console.error(
@@ -421,6 +426,18 @@ export class FirestoreServices {
       message.text = sanitizeUserInput(message.text);
     }
 
+    // Convert replyMessage from ReplyToMessage to ReplyMessage format
+    const convertedReplyMessage = replyMessage
+      ? {
+          _id: replyMessage.id,
+          text: replyMessage.text,
+          user: {
+            _id: replyMessage.userId,
+            name: replyMessage.userName,
+          },
+        }
+      : undefined;
+
     const { text, type, path, extension } = message;
     let messageData;
 
@@ -429,12 +446,14 @@ export class FirestoreServices {
       message.type === MessageTypes.video
     ) {
       messageData = formatSendMessage(this.userId, text, type, path, extension);
-      if (replyMessage) messageData.replyMessage = replyMessage;
+      if (convertedReplyMessage)
+        messageData.replyMessage = convertedReplyMessage;
       await this.sendMessageWithFile(messageData);
     } else {
       /** Format message */
       messageData = formatSendMessage(this.userId, text);
-      if (replyMessage) messageData.replyMessage = replyMessage;
+      if (convertedReplyMessage)
+        messageData.replyMessage = convertedReplyMessage;
 
       /** Encrypt the message before store to firestore */
       if (this.enableEncrypt && this.encryptKey && text?.trim()) {
@@ -487,11 +506,12 @@ export class FirestoreServices {
           }
         });
 
-        /** Update top-level conversations doc so listenConversationUpdate fires */
+        /** Update top-level conversations doc so listenConversationUpdate fires.
+         *  Use set+merge so this never throws not-found when the doc is absent. */
         firestore()
           .collection(this.getUrlWithPrefix(FireStoreCollection.conversations))
           .doc(this.conversationId!)
-          .update(conversationUpdate)
+          .set(conversationUpdate, { merge: true })
           .catch((error) =>
             console.error('Error updating conversation:', error)
           );
@@ -505,7 +525,7 @@ export class FirestoreServices {
   /**
    * Update an existing message
    */
-  updateMessage = async (message: MessageProps): Promise<void> => {
+  updateMessage = async (message: SharedMessageProps): Promise<void> => {
     if (!this.conversationId || !message.id) {
       console.error('Conversation ID and Message ID are required to update');
       return;
@@ -604,8 +624,10 @@ export class FirestoreServices {
     }
   };
 
-  getMessageHistory = async (maxPageSize: number) => {
-    const listMessage: Awaited<MessageProps>[] = [];
+  getMessageHistory = async (
+    maxPageSize: number
+  ): Promise<SharedMessageProps[]> => {
+    const listMessage: SharedMessageProps[] = [];
 
     if (!this.userInfo) {
       return listMessage;
@@ -627,20 +649,35 @@ export class FirestoreServices {
       );
 
       const results = await Promise.all(
-        querySnapshot.docs.map((doc) => {
+        querySnapshot.docs.map(async (doc) => {
           const data = { ...doc.data(), id: doc.id };
           const userInfo =
             data.senderId === this.userInfo?.id
               ? this.userInfo
               : ((this.partners?.[doc.data().senderId] as IUserInfo) ??
                 this.userInfo);
-          return formatMessageData(
+          const formatted = await formatMessageData(
             data,
             userInfo,
             this.regexBlacklist,
             this.encryptKey,
             this.decryptFunctionProp
           );
+
+          // Convert local MessageProps to SharedMessageProps
+          const sharedMessage: SharedMessageProps = {
+            ...formatted,
+            replyMessage: formatted.replyMessage
+              ? {
+                  id: formatted.replyMessage._id || '',
+                  text: formatted.replyMessage.text,
+                  userId: String(formatted.replyMessage.user?._id || ''),
+                  userName: formatted.replyMessage.user?.name || '',
+                }
+              : undefined,
+          };
+
+          return sharedMessage;
         })
       );
       listMessage.push(...results);
@@ -655,8 +692,10 @@ export class FirestoreServices {
     return listMessage;
   };
 
-  getMoreMessage = async (maxPageSize: number) => {
-    const listMessage: Awaited<MessageProps>[] = [];
+  getMoreMessage = async (
+    maxPageSize: number
+  ): Promise<SharedMessageProps[]> => {
+    const listMessage: SharedMessageProps[] = [];
 
     if (!this.userInfo || !this.messageCursor) {
       return listMessage;
@@ -677,20 +716,35 @@ export class FirestoreServices {
       InteractionManager.runAfterInteractions(resolve)
     );
     const results = await Promise.all(
-      querySnapshot.docs.map((doc) => {
+      querySnapshot.docs.map(async (doc) => {
         const data = { ...doc.data(), id: doc.id };
         const userInfo =
           data.senderId === this.userInfo?.id
             ? this.userInfo
             : ((this.partners?.[doc.data().senderId] as IUserInfo) ??
               this.userInfo);
-        return formatMessageData(
+        const formatted = await formatMessageData(
           data,
           userInfo,
           this.regexBlacklist,
           this.encryptKey,
           this.decryptFunctionProp
         );
+
+        // Convert local MessageProps to SharedMessageProps
+        const sharedMessage: SharedMessageProps = {
+          ...formatted,
+          replyMessage: formatted.replyMessage
+            ? {
+                id: formatted.replyMessage._id || '',
+                text: formatted.replyMessage.text,
+                userId: String(formatted.replyMessage.user?._id || ''),
+                userName: formatted.replyMessage.user?.name || '',
+              }
+            : undefined,
+        };
+
+        return sharedMessage;
       })
     );
     listMessage.push(...results);
@@ -703,7 +757,7 @@ export class FirestoreServices {
   };
 
   receiveMessageListener = (
-    callBack: (message: MessageProps) => void
+    callBack: (message: SharedMessageProps) => void
   ): (() => void) => {
     return firestore()
       .collection(
@@ -722,7 +776,7 @@ export class FirestoreServices {
           );
         if (!added.length) return;
         Promise.all(
-          added.map((change: FirebaseFirestoreTypes.DocumentChange) => {
+          added.map(async (change: FirebaseFirestoreTypes.DocumentChange) => {
             const data = {
               ...change.doc.data(),
               id: change.doc.id,
@@ -731,13 +785,28 @@ export class FirestoreServices {
               data.senderId === this.userInfo?.id
                 ? this.userInfo
                 : (this.partners?.[change.doc.data().senderId] as IUserInfo);
-            return formatMessageData(
+            const formatted = await formatMessageData(
               data,
               userInfo,
               this.regexBlacklist,
               this.encryptKey,
               this.decryptFunctionProp
             );
+
+            // Convert local MessageProps to SharedMessageProps
+            const sharedMessage: SharedMessageProps = {
+              ...formatted,
+              replyMessage: formatted.replyMessage
+                ? {
+                    id: formatted.replyMessage._id || '',
+                    text: formatted.replyMessage.text,
+                    userId: String(formatted.replyMessage.user?._id || ''),
+                    userName: formatted.replyMessage.user?.name || '',
+                  }
+                : undefined,
+            };
+
+            return sharedMessage;
           })
         ).then((messages) => messages.forEach(callBack));
       });

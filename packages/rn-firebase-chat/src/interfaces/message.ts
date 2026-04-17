@@ -3,9 +3,25 @@
  */
 
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-import type { IMessage } from 'react-native-gifted-chat';
+import type { IMessage, Reply, ReplyMessage } from 'react-native-gifted-chat';
 import type { BaseEntity } from './base';
 import { type MessageStatus, MessageTypes } from './conversation';
+
+export interface QuickReplyValue {
+  title: string;
+  value: string;
+  /** Optional message override shown in the chat bubble when selected */
+  messageId?: string;
+}
+
+export interface QuickReplies {
+  type: 'radio' | 'checkbox';
+  values: QuickReplyValue[];
+  /** Keep chips visible after selection (checkbox only) */
+  keepIt?: boolean;
+}
+
+export type { Reply };
 
 type TimestampField = number | FirebaseFirestoreTypes.FieldValue;
 
@@ -33,12 +49,9 @@ interface MessageProps extends BaseEntity, IMessage {
   path?: string;
   extension?: string;
   createdAt: Date | number;
-  replyMessage?: Partial<IMessage> & {
-    id?: string;
-    userId?: string;
-    userName?: string;
-  };
+  replyMessage?: ReplyMessage;
   isEdited?: boolean;
+  quickReplies?: QuickReplies;
 }
 
 interface SendMessageProps {
@@ -52,7 +65,8 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
-  replyMessage?: MessageProps['replyMessage'];
+  replyMessage?: ReplyMessage;
+  quickReplies?: QuickReplies;
 }
 
 type MediaType = 'image' | 'video' | 'text' | 'voice' | undefined;
@@ -70,4 +84,5 @@ export {
   type MediaType,
   type TimestampField,
   type ImagePickerValue,
+
 };
