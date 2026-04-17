@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
   Platform,
   type StyleProp,
   StyleSheet,
@@ -288,6 +287,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     );
   };
 
+  const headerHeight = useHeaderHeight();
+
   const onLongPressMessage = useCallback(
     (_context: unknown, message: MessageProps) => {
       // Only allow editing confirmed messages (Firestore id present), owned by current user, not yet seen
@@ -330,8 +331,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     );
   }, [editingMessage]);
 
-  const keyboardVerticalOffset = useHeaderHeight();
-
   if (isLoadingMessages) {
     return (
       <SafeAreaView
@@ -348,66 +347,65 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       style={[styles.container, StyleSheet.flatten(style)]}
       edges={['bottom']}
     >
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        <GiftedChat<IMessage>
-          {...props}
-          messagesContainerStyle={styles.messagesContainer}
-          messages={messages as unknown as IMessage[]}
-          onSend={(msgs) => onSend(msgs[0] as MessageProps)}
-          user={{
-            _id: userInfo?.id || '',
-            ...userInfo,
-          }}
-          keyboardAvoidingViewProps={{ keyboardVerticalOffset }}
-          loadEarlierMessagesProps={{
-            isAvailable: true,
-            isLoading: hasMoreMessages,
-            onPress: loadEarlier,
-          }}
-          renderComposer={inputToolbar}
-          isTyping={isTyping}
-          isScrollToBottomEnabled
-          renderBubble={
-            renderBubble as (props: BubbleProps<IMessage>) => React.ReactNode
-          }
-          reply={{
-            swipe: {
-              isEnabled: true,
-              direction: 'left',
-              onSwipe: setReplyMessage,
+      <GiftedChat
+        messagesContainerStyle={styles.messagesContainer}
+        messages={messages}
+        onSend={(msgs) => onSend(msgs[0] as MessageProps)}
+        user={{
+          _id: userInfo?.id || '',
+          ...userInfo,
+        }}
+        keyboardAvoidingViewProps={{
+          keyboardVerticalOffset: Platform.OS === 'ios' ? headerHeight : 0,
+          ...props.keyboardAvoidingViewProps,
+        }}
+        loadEarlierMessagesProps={{
+          isAvailable: true,
+          isLoading: hasMoreMessages,
+          onPress: loadEarlier,
+        }}
+        renderComposer={inputToolbar}
+        isTyping={isTyping}
+        {...props}
+        isScrollToBottomEnabled
+        renderBubble={
+          renderBubble as unknown as React.ComponentProps<
+            typeof GiftedChat
+          >['renderBubble']
+        }
+        reply={{
+          swipe: {
+            isEnabled: true,
+            direction: 'left',
+            onSwipe: setReplyMessage,
+          },
+          message: replyMessage,
+          onClear: () => setReplyMessage(null),
+          onPress: (msg) => scrollToMessage(msg._id),
+          messageStyle: {
+            containerStyleLeft: styles.replyContainerLeft,
+            containerStyleRight: styles.replyContainerRight,
+            textStyleLeft: styles.replyTextLeft,
+            textStyleRight: styles.replyTextRight,
+            ...props.reply?.messageStyle,
+          },
+          previewStyle: {
+            containerStyle: {
+              backgroundColor: '#E9E9EB',
             },
-            message: replyMessage,
-            onClear: () => setReplyMessage(null),
-            onPress: (msg) => scrollToMessage(msg._id),
-            messageStyle: {
-              containerStyleLeft: styles.replyContainerLeft,
-              containerStyleRight: styles.replyContainerRight,
-              textStyleLeft: styles.replyTextLeft,
-              textStyleRight: styles.replyTextRight,
-              ...props.reply?.messageStyle,
-            },
-            previewStyle: {
-              containerStyle: {
-                backgroundColor: '#E9E9EB',
-              },
-              ...props.reply?.previewStyle,
-            },
-            ...props.reply,
-          }}
-          onLongPressMessage={onLongPressMessage as never}
-          text={inputText}
-          textInputProps={{
-            ...props.textInputProps,
-            onChangeText: onInputTextChanged,
-          }}
-          messagesContainerRef={messagesContainerRef as never}
-          renderAccessory={renderAccessory}
-        />
-      </KeyboardAvoidingView>
+            ...props.reply?.previewStyle,
+          },
+          ...props.reply,
+        }}
+        onLongPressMessage={onLongPressMessage as never}
+        text={inputText}
+        textInputProps={{
+          ...props.textInputProps,
+          onChangeText: onInputTextChanged,
+        }}
+        messagesContainerRef={messagesContainerRef as never}
+        renderAccessory={renderAccessory}
+      />
       <SelectedImageModal
         imageUrl={isImgVideoUrl}
         onClose={() => setImgVideoUrl('')}
