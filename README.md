@@ -1,144 +1,115 @@
 # rn-firebase-chat
 
-RN Firebase Chat
+A real-time chat library for React Native backed by Firebase Firestore, built on `react-native-gifted-chat`.
 
 ## Installation
 
 ```sh
 npm install rn-firebase-chat
+# or
+yarn add rn-firebase-chat
 ```
 
-## Installation
-
-- Using [npm](https://www.npmjs.com/#getting-started):
+### React Native peer dependencies
 
 ```sh
-npm install rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller --save
+npm install \
+  @react-native-firebase/app \
+  @react-native-firebase/firestore \
+  react-native-gifted-chat \
+  react-native-keyboard-controller \
+  react-native-safe-area-context \
+  react-native-gesture-handler \
+  react-native-reanimated \
+  react-native-worklets \
+  react-native-aes-crypto \
 ```
 
-- Using [Yarn](https://yarnpkg.com/):
+Optional (file upload, camera, video):
 
 ```sh
-yarn add rn-firebase-chat @react-native-firebase/app @react-native-firebase/firestore @react-native-firebase/storage randomcolor react-native-aes-crypto react-native-gifted-chat react-native-keyboard-controller
+npm install react-native-image-picker react-native-vision-camera react-native-video
+# Firebase Storage is required only when using file upload
+npm install @react-native-firebase/storage
 ```
 
-If you're using Expo, please follow the dedicated setup guide to configure `plugins` in your `app.config.ts` and add Firebase files for Android and iOS:
+> If you're using Expo, follow the [Expo Configuration Guide](./README.expo.md) to configure plugins and add Firebase files for Android/iOS.
 
-- See: [Expo Configuration Guide](./README.expo.md)
+---
 
-## Usage
+## React Native usage
 
-- Wrap your app with `ChatProvider`
+### 1. Wrap your app with `ChatProvider`
 
-```javascript
+```tsx
 import { ChatProvider } from 'rn-firebase-chat';
-
-const userInfo = {
-  id: 'abc123',
-  name: 'John Doe',
-  avatar: 'https://example.com/avatar.jpg',
-};
 
 function App() {
   return (
-    <ChatProvider userInfo={userInfo}>
+    <ChatProvider
+      userInfo={{ id: 'abc123', name: 'John Doe', avatar: 'https://example.com/avatar.jpg' }}
+    >
       <AppNavigation />
     </ChatProvider>
   );
 }
 ```
 
-- Setup navigation for `ListConversationScreen` and `ChatScreen`
+### 2. Set up navigation
 
-```javascript
+```tsx
 export const ChatNavigator = () => (
   <Stack.Navigator>
-    <Stack.Screen name={RouteKey.ListChatScreen} component={ListChatScreen} />
-    <Stack.Screen name={RouteKey.ChatScreen} component={ChatScreen} />
+    <Stack.Screen name="ConversationList" component={ListChatScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
   </Stack.Navigator>
 );
 ```
 
-```javascript
-import React, { useCallback } from 'react';
-import { ListConversationScreen } from 'rn-firebase-chat';
-import { navigate } from '../../navigation/NavigationService';
-import RouteKey from '../../navigation/RouteKey';
+### 3. Render the screens
 
-export const ListChatScreen: React.FC = () => {
+```tsx
+import { ListConversationScreen } from 'rn-firebase-chat';
+
+export const ListChatScreen = () => {
   const handleItemPress = useCallback((data) => {
-    navigate(RouteKey.ChatScreen, data);
+    navigate('Chat', data);
   }, []);
 
   return <ListConversationScreen onPress={handleItemPress} />;
 };
 ```
 
-```javascript
-import React from 'react';
+```tsx
 import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat';
 
-const partnerInfo = {
-  id: 'ayz123',
-  name: 'Tony',
-  avatar: 'https://example.com/tony.jpg',
-};
+const partner = { id: 'xyz123', name: 'Tony', avatar: 'https://example.com/tony.jpg' };
 
-export const ChatScreen: React.FC = () => {
+export const ChatScreen = () => (
+  <BaseChatScreen memberIds={[partner.id]} partners={[partner]} />
+);
+```
+
+### Camera & gallery addon (optional)
+
+```tsx
+import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat';
+import { CameraView, useCamera } from 'rn-firebase-chat/src/addons/camera';
+
+export const ChatScreen = () => {
+  const { onPressCamera, onPressGallery } = useCamera();
   return (
-    <BaseChatScreen memberIds={[partnerInfo.id]} partners={[partnerInfo]} />
+    <BaseChatScreen
+      memberIds={[partner.id]}
+      partners={[partner]}
+      inputToolbarProps={{ hasCamera: true, hasGallery: true, onPressCamera, onPressGallery }}
+    >
+      {({ onSend }) => <CameraView onSend={onSend} />}
+    </BaseChatScreen>
   );
 };
 ```
-
-## Addons
-
-Additional features for chat are:
-
-#### Image/Video Picker and Camera
-
-This feature will require additional libraries:
-
-- Using [npm](https://www.npmjs.com/#getting-started):
-
-```sh
-npm install react-native-video react-native-vision-camera react-native-image-picker --save
-```
-
-- Using [Yarn](https://yarnpkg.com/):
-
-```sh
-yarn add react-native-video react-native-vision-camera react-native-image-picker
-```
-
-Then using our Addons component in ChatScreen
-
-```javascript
-import React from 'react'
-import {ChatScreen as BaseChatScreen} from 'rn-firebase-chat'
-import {CameraView, useCamera} from 'rn-firebase-chat/src/addons/camera'
-
-...
-
-export const ChatScreen: React.FC = () => {
-  const {onPressCamera, onPressGallery} = useCamera()
-  return (
-    <BaseChatScreen
-      memberIds={[partnerInfo.id]}
-      partners={[partnerInfo]}
-      inputToolbarProps={{
-        hasCamera: true,
-        hasGallery: true,
-        onPressCamera,
-        onPressGallery,
-      }}
-    >
-    {({onSend}) => (<CameraView onSend={onSend} /> )}
-    </BaseChatScreen>
-  )
-}
-
-```
+---
 
 ## Contributing
 
@@ -147,7 +118,3 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

@@ -20,16 +20,13 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Lint files
-        run: yarn lint
-
-      - name: Typecheck files
-        run: yarn typecheck
+        run: pnpm turbo run lint --filter=rn-firebase-chat
 
       - name: Run unit tests
-        run: yarn test --maxWorkers=2 --coverage
+        run: pnpm turbo run test:ci --filter=rn-firebase-chat
 
       - name: Build package
-        run: yarn prepack
+        run: pnpm turbo run prepack --filter=rn-firebase-chat
 
       - name: Setup Git user
         run: |
@@ -40,7 +37,7 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
       - name: Release
-        run: yarn release --ci
+        run: pnpm --filter=rn-firebase-chat release:ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

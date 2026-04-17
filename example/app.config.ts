@@ -15,7 +15,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.sts.demo.chatapp',
-    googleServicesFile: './ios/GoogleService-Info.plist',
+    googleServicesFile: './ios/rnfirebasechatexample/GoogleService-Info.plist',
   },
   android: {
     package: 'com.sts.demo.chatapp',

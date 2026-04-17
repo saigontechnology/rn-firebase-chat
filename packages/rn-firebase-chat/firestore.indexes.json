@@ -1,0 +1,22 @@
+{
+  "indexes": [
+     {
+      "collectionId": "conversations",
+      "fields": [
+        {
+          "fieldPath": "members",
+          "mode": "ARRAY_CONTAINS_ANY"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "mode": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "mode": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
