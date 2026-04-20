@@ -63,7 +63,7 @@ const formatMessageData = async (
         ...message.replyMessage,
         _id: message.replyMessage.id || message.replyMessage._id,
         text: await convertTextMessage(
-          message.replyMessage.text,
+          message.replyMessage.text ?? '',
           regexPattern,
           encryptKey,
           decryptMessageFunc

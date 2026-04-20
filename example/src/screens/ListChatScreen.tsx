@@ -34,7 +34,7 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
       chatDispatch?.(setConversation(data));
       navigation.navigate(RouteKey.ChatScreen, {
         conversationId: data.id,
-        name: data.name,
+        name: data.names?.[currentUserId],
         otherUserId: data.members?.find((id: string) => id !== currentUserId),
       });
     },

@@ -78,7 +78,7 @@ export default function App() {
         <Stack.Navigator>
           <Stack.Screen
             name={RouteKey.ListChatScreen}
-            options={{ title: userInfo.name }}
+            options={{ title: "Chats" }}
           >
             {() => <ListChatScreen currentUserId={userInfo.id} />}
           </Stack.Screen>

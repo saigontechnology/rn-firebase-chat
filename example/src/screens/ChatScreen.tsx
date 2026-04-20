@@ -9,11 +9,11 @@ type Route = RouteProp<RootStackParamList, typeof RouteKey.ChatScreen>;
 
 export const ChatScreen: React.FC = () => {
   const route = useRoute<Route>();
-  const { otherUserId } = route.params;
+  const { name, otherUserId } = route.params;
 
   const partner = {
     id: otherUserId ?? '',
-    name: 'User ' + (otherUserId ?? '').slice(0, 6),
+    name: name ?? 'User ' + (otherUserId ?? '').slice(0, 6),
     avatar: 'https://i.pravatar.cc/150?img=2',
   };
 

@@ -15,6 +15,7 @@ import {
   GiftedChat,
   type ComposerProps,
   type BubbleProps,
+  type IMessage,
   type ReplyMessage,
 } from 'react-native-gifted-chat';
 
@@ -50,7 +51,7 @@ export type ChatScreenChildrenProps = {
 type RenderChildren = (props: ChatScreenChildrenProps) => React.ReactNode;
 
 type GiftedChatMessageProps = Omit<
-  React.ComponentProps<typeof GiftedChat<MessageProps>>,
+  React.ComponentProps<typeof GiftedChat<IMessage>>,
   'messages' | 'user'
 >;
 
@@ -115,7 +116,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const scrollToMessage = useCallback((messageId: string | number) => {
     // Basic implementation: find index and scroll
     // GiftedChat FlatList can be accessed via ref
-    console.log('Scroll to message:', messageId);
+    //console.log('Scroll to message:', messageId);
   }, []);
 
   /** RN-specific formatMessage: decrypts + adds GiftedChat fields (_id, user, createdAt). */
@@ -243,7 +244,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [renderComposer, onSend, inputToolbarProps]
   );
 
-  const renderBubble = (bubble: BubbleProps<MessageProps>) => {
+  const renderBubble = (bubble: BubbleProps<IMessage>) => {
     const isMyLatestMessage =
       !Object.keys(bubble.nextMessage ?? {}).length &&
       bubble.position === 'right';
@@ -270,7 +271,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
     return (
       <CustomBubble
-        bubbleMessage={bubble}
+        bubbleMessage={bubble as never}
         onSelectedMessage={() => {
           //TODO: handle image/video press
         }}
@@ -352,10 +353,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <GiftedChat<MessageProps>
+        <GiftedChat<IMessage>
           {...props}
           messagesContainerStyle={styles.messagesContainer}
-          messages={messages as unknown as MessageProps[]}
+          messages={messages as unknown as IMessage[]}
           onSend={(msgs) => onSend(msgs[0] as MessageProps)}
           user={{
             _id: userInfo?.id || '',
@@ -371,9 +372,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           isTyping={isTyping}
           isScrollToBottomEnabled
           renderBubble={
-            renderBubble as (
-              props: BubbleProps<MessageProps>
-            ) => React.ReactNode
+            renderBubble as (props: BubbleProps<IMessage>) => React.ReactNode
           }
           reply={{
             swipe: {
@@ -385,38 +384,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             onClear: () => setReplyMessage(null),
             onPress: (msg) => scrollToMessage(msg._id),
             messageStyle: {
-              containerStyleLeft: {
-                backgroundColor: '#0084FF',
-                borderLeftColor: '#AAAAAA',
-                borderLeftWidth: 3,
-                borderRadius: 10,
-              },
-              containerStyleRight: {
-                backgroundColor: '#E9E9EB',
-                borderLeftColor: '#AAAAAA',
-                borderLeftWidth: 3,
-                borderRadius: 10,
-              },
-              textStyleLeft: {
-                color: '#222222',
-              },
-              textStyleRight: {
-                color: '#222222',
-              },
+              containerStyleLeft: styles.replyContainerLeft,
+              containerStyleRight: styles.replyContainerRight,
+              textStyleLeft: styles.replyTextLeft,
+              textStyleRight: styles.replyTextRight,
+              ...props.reply?.messageStyle,
             },
             previewStyle: {
               containerStyle: {
                 backgroundColor: '#E9E9EB',
               },
+              ...props.reply?.previewStyle,
             },
+            ...props.reply,
           }}
-          onLongPressMessage={onLongPressMessage}
+          onLongPressMessage={onLongPressMessage as never}
           text={inputText}
           textInputProps={{
             ...props.textInputProps,
             onChangeText: onInputTextChanged,
           }}
-          messagesContainerRef={messagesContainerRef}
+          messagesContainerRef={messagesContainerRef as never}
           renderAccessory={renderAccessory}
         />
       </KeyboardAvoidingView>
@@ -480,5 +468,29 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#999',
     fontWeight: '300',
+  },
+  replyContainerLeft: {
+    backgroundColor: '#0084FF',
+    borderRightWidth: 3,
+    borderRightColor: '#222222',
+    marginLeft: 4,
+    marginTop: 4,
+  },
+  replyContainerRight: {
+    backgroundColor: '#E9E9EB',
+    borderLeftWidth: 3,
+    borderLeftColor: '#222222',
+    marginRight: 4,
+    marginTop: 4,
+  },
+  replyTextLeft: {
+    color: '#E9E9EB',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  replyTextRight: {
+    color: '#222222',
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

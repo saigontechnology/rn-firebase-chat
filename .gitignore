@@ -72,3 +72,5 @@ coverage/
 example/android/app/google-services.json
 example/package-lock.json
 example/ios/rnfirebasechatexample/GoogleService-Info.plist
+example/.env
+*service-account.json
