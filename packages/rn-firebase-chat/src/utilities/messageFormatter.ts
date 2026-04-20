@@ -61,7 +61,7 @@ const formatMessageData = async (
   const formattedReply = message.replyMessage
     ? {
         ...message.replyMessage,
-        _id: message.replyMessage.id || message.replyMessage._id,
+        _id: message.replyMessage._id,
         text: await convertTextMessage(
           message.replyMessage.text ?? '',
           regexPattern,
