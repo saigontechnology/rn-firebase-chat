@@ -3,7 +3,15 @@ import type { MessageStatus, MessageTypes } from './conversation';
 
 // Union of concrete media types used in Firestore docs.
 // undefined means the field is absent (plain-text message).
-export type MediaType = 'image' | 'video' | 'text' | undefined;
+export type MediaType = 'image' | 'video' | 'text' | 'voice' | undefined;
+
+/** Matches the flat Firestore replyMessage document shape. */
+export interface ReplyToMessage {
+  id: string;
+  text: string;
+  userId: string;
+  userName: string;
+}
 
 export interface LatestMessageProps {
   readBy: Record<string, boolean>;
@@ -26,6 +34,8 @@ export interface MessageProps extends BaseEntity {
   extension?: string;
   // number for client timestamps; object covers Firestore FieldValue (server timestamp) on write
   createdAt: number | object;
+  replyMessage?: ReplyToMessage;
+  isEdited?: boolean;
 }
 
 export interface SendMessageProps {
@@ -38,6 +48,7 @@ export interface SendMessageProps {
   extension?: string;
   // Callers pass Date.now() or a Firestore FieldValue server timestamp
   createdAt?: number | object;
+  replyMessage?: ReplyToMessage;
 }
 
 export type ImagePickerValue = {

@@ -53,11 +53,36 @@ const convertTextMessage = async (
  */
 const formatMessageData = async (
   message: MessageProps,
-  userInfo: IUserInfo,
+  userInfo: IUserInfo | undefined,
   regexPattern?: RegExp,
   encryptKey?: string,
   decryptMessageFunc?: (text: string) => Promise<string>
 ): Promise<MessageProps> => {
+  const formattedReply = message.replyMessage
+    ? {
+        ...message.replyMessage,
+        _id: message.replyMessage.id || message.replyMessage._id,
+        text: await convertTextMessage(
+          message.replyMessage.text ?? '',
+          regexPattern,
+          encryptKey,
+          decryptMessageFunc
+        ),
+        user: message.replyMessage.user
+          ? {
+              ...message.replyMessage.user,
+              _id:
+                (
+                  message.replyMessage.user as {
+                    id?: string;
+                    _id?: string | number;
+                  }
+                ).id || message.replyMessage.user._id,
+            }
+          : undefined,
+      }
+    : undefined;
+
   return {
     ...message,
     text: await convertTextMessage(
@@ -76,10 +101,11 @@ const formatMessageData = async (
           ).toMillis()
         : (message.createdAt as number | Date) || getCurrentTimestamp(),
     user: {
-      _id: userInfo.id,
-      name: userInfo.name,
-      avatar: userInfo.avatar,
+      _id: userInfo?.id ?? '',
+      name: userInfo?.name,
+      avatar: userInfo?.avatar,
     },
+    replyMessage: formattedReply,
   } as MessageProps;
 };
 

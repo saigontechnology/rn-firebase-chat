@@ -33,6 +33,12 @@ interface MessageProps extends BaseEntity, IMessage {
   path?: string;
   extension?: string;
   createdAt: Date | number;
+  replyMessage?: Partial<IMessage> & {
+    id?: string;
+    userId?: string;
+    userName?: string;
+  };
+  isEdited?: boolean;
 }
 
 interface SendMessageProps {
@@ -46,9 +52,10 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  replyMessage?: MessageProps['replyMessage'];
 }
 
-type MediaType = 'image' | 'video' | 'text' | undefined;
+type MediaType = 'image' | 'video' | 'text' | 'voice' | undefined;
 
 type ImagePickerValue = {
   type: MessageTypes.image | MessageTypes.video;

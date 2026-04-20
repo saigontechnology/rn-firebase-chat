@@ -19,7 +19,7 @@
     "typecheck:example": "tsc --project ../../example/tsconfig.json --noEmit",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "clean:maps": "find lib -name '*.map' -delete",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint": "../../node_modules/.bin/eslint \"**/*.{js,ts,tsx}\"",
     "prepack": "bob build --target commonjs && bob build --target module && (bob build --target typescript || true) && pnpm clean:maps",
     "prepare": "bob build --target commonjs && bob build --target module && (bob build --target typescript || true) && pnpm clean:maps",
     "release": "release-it",

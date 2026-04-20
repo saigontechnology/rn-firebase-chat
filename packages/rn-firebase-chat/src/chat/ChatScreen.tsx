@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,6 +6,8 @@ import {
   StyleSheet,
   View,
   type ViewStyle,
+  Text,
+  Pressable,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,15 +15,18 @@ import {
   GiftedChat,
   type ComposerProps,
   type BubbleProps,
+  type IMessage,
+  type ReplyMessage,
 } from 'react-native-gifted-chat';
 
-import MessageStatus from './components/MessageStatus';
+import MessageStatusView from './components/MessageStatus';
 import { FirestoreServices } from '../services/firebase';
 import type {
   CustomConversationInfo,
   IUserInfo,
   MessageProps,
 } from '../interfaces';
+import { MessageStatus } from '../interfaces';
 import { formatMessageData } from '../utilities';
 import SelectedImageModal from './components/SelectedImage';
 import MessageSkeleton from './components/MessageSkeleton';
@@ -45,7 +50,12 @@ export type ChatScreenChildrenProps = {
 
 type RenderChildren = (props: ChatScreenChildrenProps) => React.ReactNode;
 
-interface ChatScreenProps extends React.ComponentProps<typeof GiftedChat> {
+type GiftedChatMessageProps = Omit<
+  React.ComponentProps<typeof GiftedChat<IMessage>>,
+  'messages' | 'user'
+>;
+
+interface ChatScreenProps extends GiftedChatMessageProps {
   style?: StyleProp<ViewStyle>;
   memberIds: string[];
   partners: IUserInfo[];
@@ -92,7 +102,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const conversation = useChatSelector(getConversation);
   const firebaseInstance = useRef(FirestoreServices.getInstance()).current;
   const timeoutMessageRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isImgVideoUrl, setImgVideoUrl] = React.useState('');
+  const [isImgVideoUrl, setImgVideoUrl] = useState('');
+  const [replyMessage, setReplyMessage] = useState<ReplyMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<MessageProps | null>(
+    null
+  );
+  const [inputText, setInputText] = useState('');
+
+  const messagesContainerRef = useRef<{
+    scrollToIndex?: (params: { index: number }) => void;
+  } | null>(null);
+
+  const scrollToMessage = useCallback((messageId: string | number) => {
+    // Basic implementation: find index and scroll
+    // GiftedChat FlatList can be accessed via ref
+    //console.log('Scroll to message:', messageId);
+  }, []);
 
   /** RN-specific formatMessage: decrypts + adds GiftedChat fields (_id, user, createdAt). */
   const formatMessage = useCallback(
@@ -121,6 +146,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     isTyping,
     userUnreadMessage,
     sendMessage,
+    updateMessage,
     loadEarlier,
   } = useChatScreen<MessageProps>({
     userInfo,
@@ -144,13 +170,41 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const onSend = useCallback(
     async (message: MessageProps) => {
-      await sendMessage(message);
+      if (editingMessage) {
+        await updateMessage({ ...editingMessage, text: message.text });
+        setEditingMessage(null);
+      } else {
+        const replyMsg = replyMessage
+          ? {
+              id: String(
+                (replyMessage as ReplyMessage & { id?: string }).id ||
+                  replyMessage._id ||
+                  ''
+              ),
+              text: replyMessage.text,
+              userId: String(replyMessage.user?._id || ''),
+              userName: replyMessage.user?.name || '',
+            }
+          : undefined;
+
+        await sendMessage(message, replyMsg);
+        setReplyMessage(null);
+      }
+      setInputText('');
+
       if (timeoutMessageRef.current) clearTimeout(timeoutMessageRef.current);
       timeoutMessageRef.current = setTimeout(() => {
         sendMessageNotification?.();
       }, timeoutSendNotify);
     },
-    [sendMessage, sendMessageNotification, timeoutSendNotify]
+    [
+      sendMessage,
+      updateMessage,
+      editingMessage,
+      replyMessage,
+      sendMessageNotification,
+      timeoutSendNotify,
+    ]
   );
 
   const changeUserConversationTyping = useCallback(
@@ -168,6 +222,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     typingTimeoutSeconds
   );
 
+  const onInputTextChanged = useCallback(
+    (newText: string) => {
+      setInputText(newText);
+      handleTextChange(newText);
+    },
+    [handleTextChange]
+  );
+
   const inputToolbar = useCallback(
     (composeProps: ComposerProps) => {
       if (renderComposer) return renderComposer(composeProps);
@@ -182,7 +244,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [renderComposer, onSend, inputToolbarProps]
   );
 
-  const renderBubble = (bubble: BubbleProps<MessageProps>) => {
+  const renderBubble = (bubble: BubbleProps<IMessage>) => {
     const isMyLatestMessage =
       !Object.keys(bubble.nextMessage ?? {}).length &&
       bubble.position === 'right';
@@ -193,7 +255,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         return (
           <View>
             {customBubble}
-            <MessageStatus
+            <MessageStatusView
               userUnreadMessage={userUnreadMessage}
               customContainerStyle={props.customContainerStyle}
               customTextStyle={props.customTextStyle}
@@ -209,7 +271,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
     return (
       <CustomBubble
-        bubbleMessage={bubble}
+        bubbleMessage={bubble as never}
         onSelectedMessage={() => {
           //TODO: handle image/video press
         }}
@@ -225,6 +287,48 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       />
     );
   };
+
+  const onLongPressMessage = useCallback(
+    (_context: unknown, message: MessageProps) => {
+      // Only allow editing confirmed messages (Firestore id present), owned by current user, not yet seen
+      if (
+        message.id &&
+        message.user._id === userInfo?.id &&
+        message.status !== MessageStatus.seen
+      ) {
+        setEditingMessage(message);
+        setInputText(message.text);
+        setReplyMessage(null);
+      }
+    },
+    [userInfo?.id]
+  );
+
+  const renderAccessory = useCallback(() => {
+    if (!editingMessage) return null;
+    return (
+      <View style={styles.editingBanner}>
+        <View style={styles.editingBannerContent}>
+          <View style={styles.editingIndicator} />
+          <View style={styles.editingTextContainer}>
+            <Text style={styles.editingTitle}>Editing Message</Text>
+            <Text style={styles.editingMessageText} numberOfLines={1}>
+              {editingMessage.text}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => {
+              setEditingMessage(null);
+              setInputText('');
+            }}
+            style={styles.closeButton}
+          >
+            <Text style={styles.closeButtonText}>✕</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }, [editingMessage]);
 
   const keyboardVerticalOffset = useHeaderHeight();
 
@@ -249,9 +353,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <GiftedChat
+        <GiftedChat<IMessage>
+          {...props}
           messagesContainerStyle={styles.messagesContainer}
-          messages={messages}
+          messages={messages as unknown as IMessage[]}
           onSend={(msgs) => onSend(msgs[0] as MessageProps)}
           user={{
             _id: userInfo?.id || '',
@@ -264,15 +369,43 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             onPress: loadEarlier,
           }}
           renderComposer={inputToolbar}
-          textInputProps={{ onChangeText: handleTextChange }}
           isTyping={isTyping}
-          {...props}
           isScrollToBottomEnabled
           renderBubble={
-            renderBubble as unknown as React.ComponentProps<
-              typeof GiftedChat
-            >['renderBubble']
+            renderBubble as (props: BubbleProps<IMessage>) => React.ReactNode
           }
+          reply={{
+            swipe: {
+              isEnabled: true,
+              direction: 'left',
+              onSwipe: setReplyMessage,
+            },
+            message: replyMessage,
+            onClear: () => setReplyMessage(null),
+            onPress: (msg) => scrollToMessage(msg._id),
+            messageStyle: {
+              containerStyleLeft: styles.replyContainerLeft,
+              containerStyleRight: styles.replyContainerRight,
+              textStyleLeft: styles.replyTextLeft,
+              textStyleRight: styles.replyTextRight,
+              ...props.reply?.messageStyle,
+            },
+            previewStyle: {
+              containerStyle: {
+                backgroundColor: '#E9E9EB',
+              },
+              ...props.reply?.previewStyle,
+            },
+            ...props.reply,
+          }}
+          onLongPressMessage={onLongPressMessage as never}
+          text={inputText}
+          textInputProps={{
+            ...props.textInputProps,
+            onChangeText: onInputTextChanged,
+          }}
+          messagesContainerRef={messagesContainerRef as never}
+          renderAccessory={renderAccessory}
         />
       </KeyboardAvoidingView>
       <SelectedImageModal
@@ -291,5 +424,73 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     backgroundColor: '#F5F5F5',
+  },
+  editingBanner: {
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  editingBannerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editingIndicator: {
+    width: 4,
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 2,
+    marginRight: 10,
+  },
+  editingTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  editingTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginBottom: 2,
+  },
+  editingMessageText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  closeButton: {
+    padding: 8,
+    marginLeft: 10,
+  },
+  closeButtonText: {
+    fontSize: 20,
+    color: '#999',
+    fontWeight: '300',
+  },
+  replyContainerLeft: {
+    backgroundColor: '#0084FF',
+    borderRightWidth: 3,
+    borderRightColor: '#222222',
+    marginLeft: 4,
+    marginTop: 4,
+  },
+  replyContainerRight: {
+    backgroundColor: '#E9E9EB',
+    borderLeftWidth: 3,
+    borderLeftColor: '#222222',
+    marginRight: 4,
+    marginTop: 4,
+  },
+  replyTextLeft: {
+    color: '#E9E9EB',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  replyTextRight: {
+    color: '#222222',
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

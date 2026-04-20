@@ -1,7 +1,12 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle, Text } from 'react-native';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
-import { Bubble, type BubbleProps } from 'react-native-gifted-chat';
+import {
+  Bubble,
+  type BubbleProps,
+  type IMessage,
+  Time,
+} from 'react-native-gifted-chat';
 import {
   CustomImageVideoBubble,
   CustomImageVideoBubbleProps,
@@ -9,7 +14,7 @@ import {
 import MessageStatus from '../MessageStatus';
 
 interface CustomBubbleProps {
-  bubbleMessage: BubbleProps<MessageProps>;
+  bubbleMessage: BubbleProps<IMessage>;
   position: 'left' | 'right';
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
@@ -21,6 +26,26 @@ interface CustomBubbleProps {
   messageStatusEnable: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.JSX.Element;
 }
+
+/**
+ * Returns whether the bubble is at the top, middle, bottom, or is a single
+ * message in a group (consecutive messages from the same sender).
+ * Used to mirror GiftedChat's own corner-radius logic for the inner reply container.
+ */
+const getGroupPosition = (
+  currentMsg: IMessage | undefined,
+  prevMsg: IMessage | undefined,
+  nextMsg: IMessage | undefined
+): 'top' | 'middle' | 'bottom' | 'single' => {
+  const samePrev =
+    !!prevMsg?.user && prevMsg.user._id === currentMsg?.user?._id;
+  const sameNext =
+    !!nextMsg?.user && nextMsg.user._id === currentMsg?.user?._id;
+  if (!samePrev && sameNext) return 'top';
+  if (samePrev && sameNext) return 'middle';
+  if (samePrev && !sameNext) return 'bottom';
+  return 'single';
+};
 
 export const CustomBubble: React.FC<CustomBubbleProps> = ({
   bubbleMessage,
@@ -34,6 +59,10 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   messageStatusEnable,
   customMessageStatus,
 }) => {
+  const currentMessage = bubbleMessage.currentMessage as
+    | MessageProps
+    | undefined;
+
   const bubbleWrapperStyle = {
     left: {
       backgroundColor: '#E9E9EB',
@@ -60,6 +89,43 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     },
   };
 
+  // Mirror the bubble's own top-corner logic: the "chain side" corner gets
+  // flattened when a bubble is in the middle or bottom of a group.
+  const groupPos = getGroupPosition(
+    bubbleMessage.currentMessage,
+    bubbleMessage.previousMessage,
+    bubbleMessage.nextMessage
+  );
+  const isGrouped = groupPos === 'middle' || groupPos === 'bottom';
+  const replyTopLeftRadius = position === 'left' && isGrouped ? 4 : 18;
+  const replyTopRightRadius = position === 'right' && isGrouped ? 4 : 18;
+
+  const bubbleProps: BubbleProps<IMessage> = {
+    ...bubbleMessage,
+    messageReply: {
+      ...bubbleMessage.messageReply,
+      ...(position === 'left'
+        ? {
+            containerStyleLeft: [
+              bubbleMessage.messageReply?.containerStyleLeft,
+              {
+                borderTopLeftRadius: replyTopLeftRadius,
+                borderTopRightRadius: replyTopRightRadius,
+              },
+            ],
+          }
+        : {
+            containerStyleRight: [
+              bubbleMessage.messageReply?.containerStyleRight,
+              {
+                borderTopLeftRadius: replyTopLeftRadius,
+                borderTopRightRadius: replyTopRightRadius,
+              },
+            ],
+          }),
+    },
+  };
+
   const renderMessageStatus = (
     isMyLatestMsg: boolean,
     msgStatusEnable: boolean,
@@ -79,7 +145,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     );
   };
 
-  const renderBubble = (currentMessage: MessageProps) => {
+  const renderBubble = (msg: MessageProps) => {
     const isMyLatestMessage =
       !Object.keys(bubbleMessage.nextMessage ?? {}).length &&
       position === 'right';
@@ -89,18 +155,18 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
       customMessageStatus
     );
 
-    switch (currentMessage?.type) {
+    switch (msg?.type) {
       case MessageTypes.image:
       case MessageTypes.video:
         return (
           <View>
             <Bubble
-              {...bubbleMessage}
+              {...bubbleProps}
               renderCustomView={() =>
-                currentMessage && (
+                msg && (
                   <CustomImageVideoBubble
                     {...customImageVideoBubbleProps}
-                    message={currentMessage}
+                    message={msg}
                     onSelectImgVideoUrl={() => {
                       //TODO: handle image/video press
                     }}
@@ -119,9 +185,29 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
         return (
           <View>
             <Bubble
-              {...bubbleMessage}
+              {...bubbleProps}
               wrapperStyle={bubbleWrapperStyle}
               textStyle={bubbleTextStyle}
+              renderTime={(timeProps) => (
+                <View style={styles.timeContainer}>
+                  {msg.isEdited && (
+                    <Text
+                      style={[
+                        styles.editedText,
+                        {
+                          color:
+                            position === 'left'
+                              ? '#666'
+                              : 'rgba(255,255,255,0.7)',
+                        },
+                      ]}
+                    >
+                      (Edited)
+                    </Text>
+                  )}
+                  <Time {...timeProps} />
+                </View>
+              )}
             />
             {ViewMessageStatus}
           </View>
@@ -132,8 +218,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
 
   return (
     <View style={styles.container}>
-      {bubbleMessage.currentMessage &&
-        renderBubble(bubbleMessage.currentMessage)}
+      {currentMessage && renderBubble(currentMessage)}
     </View>
   );
 };
@@ -141,5 +226,14 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexShrink: 1,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 5,
+  },
+  editedText: {
+    fontSize: 10,
+    marginRight: 4,
   },
 });

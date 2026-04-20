@@ -23,7 +23,8 @@ export interface ChatScreenService {
     name?: string,
     image?: string
   ): Promise<ConversationProps>;
-  sendMessage(message: MessageProps): Promise<void>;
+  sendMessage(message: MessageProps, replyMessage?: MessageProps['replyMessage']): Promise<void>;
+  updateMessage(message: MessageProps): Promise<void>;
   getRegexBlacklist(): RegExp | undefined;
   userConversationListener(
     callback: (data: ChatScreenConversationData | undefined) => void
@@ -62,7 +63,9 @@ export interface UseChatScreenReturn<TMessage> {
   isTyping: boolean;
   userUnreadMessage: boolean;
   /** Send a raw MessageProps — formats optimistically and writes to Firestore. */
-  sendMessage: (raw: MessageProps) => Promise<void>;
+  sendMessage: (raw: MessageProps, replyMessage?: MessageProps['replyMessage']) => Promise<void>;
+  /** Update an existing message. */
+  updateMessage: (raw: MessageProps) => Promise<void>;
   /** Load the next page of older messages and prepend them. */
   loadEarlier: () => Promise<void>;
 }
@@ -208,7 +211,7 @@ export function useChatScreen<TMessage>({
   // sendMessage
   // ------------------------------------------------------------------
   const sendMessage = useCallback(
-    async (raw: MessageProps) => {
+    async (raw: MessageProps, replyMessage?: MessageProps['replyMessage']) => {
       isLoadingRef.current = false;
 
       // Create conversation on first message if needed
@@ -235,15 +238,47 @@ export function useChatScreen<TMessage>({
 
       // Optimistic update — format and prepend immediately
       const regexBlacklist = service.getRegexBlacklist();
-      const messageToDisplay = regexBlacklist
-        ? { ...raw, text: raw.text.replace(regexBlacklist, (m) => '*'.repeat(m.length)) }
-        : raw;
+      const messageToDisplay = {
+        ...raw,
+        replyMessage,
+        text: regexBlacklist
+          ? raw.text.replace(regexBlacklist, (m) => '*'.repeat(m.length))
+          : raw.text,
+      };
       const formatted = await formatMessageRef.current(messageToDisplay);
       setMessages((prev) => [formatted, ...prev]);
 
-      await service.sendMessage(raw);
+      await service.sendMessage(raw, replyMessage);
     },
     [service, customConversationInfo]
+  );
+
+  // ------------------------------------------------------------------
+  // updateMessage
+  // ------------------------------------------------------------------
+  const updateMessage = useCallback(
+    async (raw: MessageProps) => {
+      // Optimistic update
+      const regexBlacklist = service.getRegexBlacklist();
+      const messageToDisplay = {
+        ...raw,
+        text: regexBlacklist
+          ? raw.text.replace(regexBlacklist, (m) => '*'.repeat(m.length))
+          : raw.text,
+      };
+      const formatted = await formatMessageRef.current(messageToDisplay);
+
+      setMessages((prev) =>
+        prev.map((m) => {
+          const mId = (m as any)._id || (m as any).id;
+          const rawId = raw.id || (raw as any)._id;
+          return mId === rawId ? formatted : m;
+        })
+      );
+
+      await service.updateMessage(raw);
+    },
+    [service]
   );
 
   // ------------------------------------------------------------------
@@ -271,6 +306,7 @@ export function useChatScreen<TMessage>({
     isTyping,
     userUnreadMessage,
     sendMessage,
+    updateMessage,
     loadEarlier,
   };
 }
