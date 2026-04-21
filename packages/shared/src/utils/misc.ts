@@ -1,9 +1,15 @@
+import { TYPING_EXPIRY_MS } from '../constants';
+
 export const isOtherUserTyping = (
-  typingData: Record<string, boolean>,
+  typingData: Record<string, number>,
   currentUserId: string
 ): boolean => {
+  const now = Date.now();
   return Object.keys(typingData).some(
-    (userId) => userId !== currentUserId && typingData[userId] === true
+    (userId) =>
+      userId !== currentUserId &&
+      typingData[userId]! > 0 &&
+      now - typingData[userId]! < TYPING_EXPIRY_MS
   );
 };
 

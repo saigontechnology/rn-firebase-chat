@@ -25,12 +25,12 @@ export interface ConversationProps extends BaseEntity {
   name?: string;
   names?: Record<string, string>;
   image?: string;
-  typing?: Record<string, boolean>;
+  typing?: Record<string, number>;
   unRead?: Record<string, number | string>;
 }
 
 export interface ConversationData {
   unRead?: Record<string, number | string>;
-  typing?: Record<string, boolean>;
+  typing?: Record<string, number>;
   messages?: FirebaseFirestoreTypes.CollectionReference<MessageProps>;
 }

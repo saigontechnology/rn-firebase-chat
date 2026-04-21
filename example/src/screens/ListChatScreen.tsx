@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import {
   ListConversationScreen,
-  FirestoreServices,
   setConversation,
   useChatContext,
 } from 'rn-firebase-chat';
@@ -42,38 +41,24 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId, currentUserName
     [navigation, chatDispatch, currentUserId]
   );
 
-  const handleStartChat = useCallback(async () => {
+  const handleStartChat = useCallback(() => {
     const targetId = otherUserId.trim();
     if (!targetId) {
       Alert.alert('Enter the other user\'s UID first');
       return;
     }
-    try {
-      const firestoreServices = FirestoreServices.getInstance();
-      const conversationId = [currentUserId, targetId].sort().join('_');
-      const conversation = await firestoreServices.createConversation(
-        conversationId,
-        [targetId],
-        undefined,
-        undefined,
-        {
-          [currentUserId]: targetId,
-          [targetId]: currentUserName,
-        }
-      );
-      chatDispatch?.(setConversation(conversation));
-      navigation.navigate(RouteKey.ChatScreen, {
-        conversationId,
-        name: targetId,
-        otherUserId: targetId,
-      });
-    } catch {
-      Alert.alert(
-        'Error',
-        'Could not start chat. Please check your connection and try again.'
-      );
-    }
-  }, [otherUserId, currentUserId, currentUserName, navigation, chatDispatch]);
+    const conversationId = [currentUserId, targetId].sort().join('_');
+    navigation.navigate(RouteKey.ChatScreen, {
+      conversationId,
+      name: targetId,
+      otherUserId: targetId,
+      memberIds: [targetId],
+      names: {
+        [currentUserId]: targetId,
+        [targetId]: currentUserName,
+      },
+    });
+  }, [otherUserId, currentUserId, currentUserName, navigation]);
 
   return (
     <View style={styles.container}>

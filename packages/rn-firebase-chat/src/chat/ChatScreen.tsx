@@ -111,11 +111,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messagesContainerRef = useRef<{
     scrollToIndex?: (params: { index: number }) => void;
   } | null>(null);
+  const messagesRef = useRef<MessageProps[]>([]);
 
   const scrollToMessage = useCallback((messageId: string | number) => {
-    // Basic implementation: find index and scroll
-    // GiftedChat FlatList can be accessed via ref
-    //console.log('Scroll to message:', messageId);
+    const index = messagesRef.current.findIndex((m) => m._id === messageId);
+    if (index >= 0) {
+      messagesContainerRef.current?.scrollToIndex?.({ index });
+    }
   }, []);
 
   /** RN-specific formatMessage: decrypts + adds GiftedChat fields (_id, user, createdAt). */
@@ -160,6 +162,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     onStartLoad,
     onLoadEnd,
   });
+
+  messagesRef.current = messages;
 
   // Clean up on unmount
   useEffect(() => {
