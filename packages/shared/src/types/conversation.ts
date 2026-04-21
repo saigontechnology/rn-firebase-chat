@@ -32,13 +32,14 @@ export interface ConversationProps extends BaseEntity {
   updatedAt: number | object;
   members: string[];
   name?: string;
+  names?: Record<string, string>;
   image?: string;
   typing?: Record<string, boolean>;
-  unRead?: Record<string, string | number>;
+  unRead?: Record<string, number | string>;
 }
 
 export interface ConversationData {
-  unRead?: Record<string, string | number>;
+  unRead?: Record<string, number | string>;
   typing?: Record<string, boolean>;
 }
 

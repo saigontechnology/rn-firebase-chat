@@ -6,7 +6,6 @@ import firestore, {
   query,
   where,
 } from '@react-native-firebase/firestore';
-import { InteractionManager } from 'react-native';
 import {
   encryptData,
   decryptData,
@@ -315,17 +314,17 @@ export class FirestoreServices {
     conversationId: string,
     memberIds: string[],
     name?: string,
-    image?: string
+    image?: string,
+    names?: Record<string, string>
   ): Promise<ConversationProps> => {
     const conversationData: Partial<ConversationProps> = {
       members: [this.userId, ...memberIds],
-      name,
       updatedAt: getServerTimestamp(),
     };
 
-    if (image) {
-      conversationData.image = image;
-    }
+    if (name) conversationData.name = name;
+    if (names) conversationData.names = names;
+    if (image) conversationData.image = image;
 
     const conversationsCollection = firestore().collection<
       Partial<ConversationProps>
@@ -472,26 +471,31 @@ export class FirestoreServices {
           latestText
         );
 
-        /** Build unRead update using dot-notation field paths so each key is
-         *  written atomically without overwriting other members' counters.
-         *  sender → 0, all other members → increment by 1 */
-        const conversationUpdate: Record<string, unknown> = {
-          latestMessage: latestMessageData,
-          updatedAt: getServerTimestamp(),
+        const unReadUpdate: Record<string, unknown> = {
           [`unRead.${this.userId}`]: 0,
         };
         this.memberIds.forEach((memberId) => {
           if (memberId !== this.userId) {
-            conversationUpdate[`unRead.${memberId}`] =
+            unReadUpdate[`unRead.${memberId}`] =
               firestore.FieldValue.increment(1);
           }
         });
 
-        /** Update top-level conversations doc so listenConversationUpdate fires */
-        firestore()
+        const conversationRef = firestore()
           .collection(this.getUrlWithPrefix(FireStoreCollection.conversations))
-          .doc(this.conversationId!)
-          .update(conversationUpdate)
+          .doc(this.conversationId!);
+
+        /** set+merge for top-level fields (latestMessage, updatedAt),
+         *  then update() for unRead so dot-notation paths resolve as nested fields. */
+        conversationRef
+          .set(
+            {
+              latestMessage: latestMessageData,
+              updatedAt: getServerTimestamp(),
+            },
+            { merge: true }
+          )
+          .then(() => conversationRef.update(unReadUpdate))
           .catch((error) =>
             console.error('Error updating conversation:', error)
           );
@@ -622,10 +626,6 @@ export class FirestoreServices {
         .limit(maxPageSize)
         .get();
 
-      await new Promise<void>((resolve) =>
-        InteractionManager.runAfterInteractions(resolve)
-      );
-
       const results = await Promise.all(
         querySnapshot.docs.map((doc) => {
           const data = { ...doc.data(), id: doc.id };
@@ -673,9 +673,7 @@ export class FirestoreServices {
       .startAfter(this.messageCursor)
       .get();
 
-    await new Promise<void>((resolve) =>
-      InteractionManager.runAfterInteractions(resolve)
-    );
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const results = await Promise.all(
       querySnapshot.docs.map((doc) => {
         const data = { ...doc.data(), id: doc.id };
@@ -824,9 +822,6 @@ export class FirestoreServices {
         .orderBy('updatedAt', 'desc')
         .get()
         .then(async (querySnapshot) => {
-          await new Promise<void>((resolve) =>
-            InteractionManager.runAfterInteractions(resolve)
-          );
           const messages = await Promise.all(
             querySnapshot.docs.map(async (doc) => {
               const data = { ...doc.data(), id: doc.id };

@@ -60,6 +60,7 @@ export interface UseChatScreenReturn<TMessage> {
   messages: TMessage[];
   isLoadingMessages: boolean;
   hasMoreMessages: boolean;
+  isLoadingEarlier: boolean;
   isTyping: boolean;
   userUnreadMessage: boolean;
   /** Send a raw MessageProps — formats optimistically and writes to Firestore. */
@@ -89,6 +90,7 @@ export function useChatScreen<TMessage>({
   const [messages, setMessages] = useState<TMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [userUnreadMessage, setUserUnreadMessage] = useState(false);
 
@@ -168,7 +170,7 @@ export function useChatScreen<TMessage>({
       if (!userId) return;
 
       const unReads = data?.unRead ?? {};
-      const myUnread = unReads[userId];
+      const myUnread = (unReads as Record<string, number | string>)[userId];
       const hasUnread = Object.entries(unReads).some(([, v]) => v !== myUnread);
       setUserUnreadMessage(hasUnread);
 
@@ -288,14 +290,17 @@ export function useChatScreen<TMessage>({
     if (isLoadingRef.current || !conversationIdRef.current) return;
 
     isLoadingRef.current = true;
+    setIsLoadingEarlier(true);
     try {
       const raw = await service.getMoreMessage(maxPageSizeRef.current);
       const formatted = await Promise.all(raw.map((m) => formatMessageRef.current(m)));
       setHasMoreMessages(raw.length === maxPageSizeRef.current);
-      isLoadingRef.current = raw.length !== maxPageSizeRef.current;
       setMessages((prev) => [...prev, ...formatted]);
     } catch {
+      // intentionally empty
+    } finally {
       isLoadingRef.current = false;
+      setIsLoadingEarlier(false);
     }
   }, [service]);
 
@@ -303,6 +308,7 @@ export function useChatScreen<TMessage>({
     messages,
     isLoadingMessages,
     hasMoreMessages,
+    isLoadingEarlier,
     isTyping,
     userUnreadMessage,
     sendMessage,

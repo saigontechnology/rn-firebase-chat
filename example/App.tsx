@@ -6,7 +6,17 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  LogBox,
 } from 'react-native';
+
+// Silence Firebase modular deprecation warnings for this example app
+globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
+
+// iOS UIKit internal warning because new React Native architecture (Fabric/JSI) on iOS
+LogBox.ignoreLogs([
+  '[UIKitCore] RCTScrollViewComponentView',
+]);
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ChatProvider } from 'rn-firebase-chat';
@@ -80,7 +90,7 @@ export default function App() {
             name={RouteKey.ListChatScreen}
             options={{ title: "Chats" }}
           >
-            {() => <ListChatScreen currentUserId={userInfo.id} />}
+            {() => <ListChatScreen currentUserId={userInfo.id} currentUserName={userInfo.name} />}
           </Stack.Screen>
           <Stack.Screen
             name={RouteKey.ChatScreen}

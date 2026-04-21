@@ -22,9 +22,10 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 interface Props {
   currentUserId: string;
+  currentUserName: string;
 }
 
-export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
+export const ListChatScreen: React.FC<Props> = ({ currentUserId, currentUserName }) => {
   const navigation = useNavigation<Nav>();
   const { chatDispatch } = useChatContext();
   const [otherUserId, setOtherUserId] = useState('');
@@ -53,12 +54,17 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
       const conversation = await firestoreServices.createConversation(
         conversationId,
         [targetId],
-        'Chat'
+        undefined,
+        undefined,
+        {
+          [currentUserId]: targetId,
+          [targetId]: currentUserName,
+        }
       );
       chatDispatch?.(setConversation(conversation));
       navigation.navigate(RouteKey.ChatScreen, {
         conversationId,
-        name: 'Chat',
+        name: targetId,
         otherUserId: targetId,
       });
     } catch {
@@ -67,7 +73,7 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
         'Could not start chat. Please check your connection and try again.'
       );
     }
-  }, [otherUserId, currentUserId, navigation, chatDispatch]);
+  }, [otherUserId, currentUserId, currentUserName, navigation, chatDispatch]);
 
   return (
     <View style={styles.container}>
