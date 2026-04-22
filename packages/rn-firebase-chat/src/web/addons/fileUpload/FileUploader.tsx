@@ -15,6 +15,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   className = '',
   disabled = false,
   children,
+  customUploadFn,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -32,6 +33,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     },
     onError,
     maxFileSize,
+    customUploadFn,
   });
 
   const validateFiles = useCallback(

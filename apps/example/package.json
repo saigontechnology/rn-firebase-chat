@@ -30,9 +30,11 @@
     "react-dom": "19.2.0",
     "react-native": "0.83.4",
     "react-native-aes-crypto": "^3.3.0",
+    "react-native-image-picker": "^8.2.1",
     "react-native-screens": "^4.23.0",
     "react-native-web": "~0.19.13",
-    "rn-firebase-chat": "workspace:*"
+    "rn-firebase-chat": "workspace:*",
+    "@saigontechnology/chat-storage-providers": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

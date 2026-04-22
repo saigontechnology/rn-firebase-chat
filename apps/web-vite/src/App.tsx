@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { WebChatProvider, ChatScreen, UserService } from 'rn-firebase-chat/web';
+import { WebChatProvider, ChatScreen, UserService, CloudinaryStorageProvider } from 'rn-firebase-chat/web';
 import type { IUser } from 'rn-firebase-chat/web';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const cloudinaryProvider = new CloudinaryStorageProvider({
+    cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ?? '',
+    uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ?? '',
+    folder: import.meta.env.VITE_CLOUDINARY_FOLDER ?? 'chat',
+    apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY ?? '',
+    apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET ?? '',
+  });
 
   useEffect(() => {
     const auth = getAuth();
@@ -38,9 +46,9 @@ export default function App() {
   return (
     <div style={styles.root}>
       {/* Encryption uses the default key — matches App.web.tsx and the RN example app. */}
-      <WebChatProvider currentUser={currentUser}>
+      <WebChatProvider currentUser={currentUser} storageProvider={cloudinaryProvider}>
         <div style={styles.chatWrapper}>
-          <ChatScreen style={styles.chatScreen} />
+          <ChatScreen style={styles.chatScreen} showFileUpload />
         </div>
       </WebChatProvider>
     </div>

@@ -23,27 +23,47 @@ const convertMessages = async (
   key: string | null
 ): Promise<Message[]> =>
   Promise.all(
-    rawMessages.map(async (msg) => ({
-      id: msg.id,
-      text: key
-        ? await decryptedMessageData(msg.text || '', key)
-        : msg.text || '',
-      userId: typeof msg.senderId === 'string' ? msg.senderId : '',
-      createdAt: msg.createdAt ? msg.createdAt : Date.now(),
-      type: msg.system
+    rawMessages.map(async (msg) => {
+      // sendMessageWithFile writes `type` + `path`; older paths used msg.image/video/audio.
+      const mediaUrl = msg.path || msg.image || msg.video || msg.audio;
+      const rawType = msg.type;
+      const resolvedType: Message['type'] = msg.system
         ? 'system'
-        : msg.image
+        : rawType === 'image' || msg.image
           ? 'image'
-          : msg.audio || msg.video
+          : rawType === 'video' ||
+              rawType === 'voice' ||
+              rawType === 'file' ||
+              msg.video ||
+              msg.audio
             ? 'file'
-            : 'text',
-      readBy: msg.readBy ?? {},
-      isEdited: msg.isEdited,
-      replyMessage: msg.replyMessage,
-      metadata: msg.image
-        ? { imageUrl: msg.image, fileType: 'image' }
-        : undefined,
-    }))
+            : 'text';
+
+      let metadata: Message['metadata'] | undefined;
+      if (resolvedType === 'image' && mediaUrl) {
+        metadata = { imageUrl: mediaUrl, fileType: 'image' };
+      } else if (resolvedType === 'file' && mediaUrl) {
+        metadata = {
+          imageUrl: mediaUrl, // reuse so downstream components with legacy check still work
+          fileName: mediaUrl.split('/').pop() ?? undefined,
+          fileType: msg.extension,
+        };
+      }
+
+      return {
+        id: msg.id,
+        text: key
+          ? await decryptedMessageData(msg.text || '', key)
+          : msg.text || '',
+        userId: typeof msg.senderId === 'string' ? msg.senderId : '',
+        createdAt: msg.createdAt ? msg.createdAt : Date.now(),
+        type: resolvedType,
+        readBy: msg.readBy ?? {},
+        isEdited: msg.isEdited,
+        replyMessage: msg.replyMessage,
+        metadata,
+      };
+    })
   );
 
 export const useChat = ({
@@ -122,23 +142,17 @@ export const useChat = ({
           }
         }
 
+        const senderId = user?.id?.toString() ?? '';
         const messageData = {
           text: encryptedText,
           type: MediaType.text,
-          senderId: user?.id?.toString(),
-          readBy: {
-            [user?.id]: true,
-          },
+          senderId,
+          readBy: { [senderId]: true },
           path: '',
           extension: '',
         };
 
-        await chatService.sendMessage(conversationId, messageData, {
-          memberIds,
-          name: user?.name || 'Current User',
-          otherName: name,
-          replyMessage,
-        });
+        await chatService.sendMessage(messageData, replyMessage);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to send message');
         throw err;
@@ -173,11 +187,11 @@ export const useChat = ({
           }
         }
 
-        await chatService.updateMessage(
-          conversationId,
-          messageId,
-          encryptedText
-        );
+        await chatService.updateMessage({
+          id: messageId,
+          text: encryptedText,
+          createdAt: 0, // unused by updateMessage — only id + text are read
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'Failed to update message'

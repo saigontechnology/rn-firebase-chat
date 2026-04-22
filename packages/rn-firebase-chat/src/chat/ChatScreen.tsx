@@ -279,6 +279,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onSelectedMessage={() => {
           //TODO: handle image/video press
         }}
+        onSelectImgVideoUrl={setImgVideoUrl}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
         userUnreadMessage={userUnreadMessage}

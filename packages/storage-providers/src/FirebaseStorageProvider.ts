@@ -2,12 +2,19 @@ import type {
   StorageProvider,
   UploadResult,
   StorageFile,
-} from '../../interfaces/storage';
-import { FirebaseStorageTypes } from '@react-native-firebase/storage';
+} from '@saigontechnology/firebase-chat-shared';
+import type { FirebaseStorageTypes } from '@react-native-firebase/storage';
 
 /**
  * Firebase Storage implementation of StorageProvider.
- * Requires @react-native-firebase/storage to be installed.
+ * Requires @react-native-firebase/storage to be installed as a peer dependency.
+ *
+ * Usage:
+ * ```ts
+ * import { FirebaseStorageProvider } from '@saigontechnology/chat-storage-providers';
+ *
+ * <ChatProvider storageProvider={new FirebaseStorageProvider()}>
+ * ```
  */
 export class FirebaseStorageProvider implements StorageProvider {
   private storage: () => FirebaseStorageTypes.Module;

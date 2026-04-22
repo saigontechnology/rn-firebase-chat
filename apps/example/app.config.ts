@@ -43,6 +43,16 @@ const config: ExpoConfig = {
       process.env.FIREBASE_MESSAGING_SENDER_ID ?? process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? '',
     firebaseAppId:
       process.env.FIREBASE_APP_ID ?? process.env.EXPO_PUBLIC_FIREBASE_APP_ID ?? '',
+    cloudinaryCloudName:
+      process.env.CLOUDINARY_CLOUD_NAME ?? process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '',
+    cloudinaryUploadPreset:
+      process.env.CLOUDINARY_UPLOAD_PRESET ?? process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '',
+    cloudinaryFolder:
+      process.env.CLOUDINARY_FOLDER ?? process.env.EXPO_PUBLIC_CLOUDINARY_FOLDER ?? 'chat',
+    cloudinaryApiKey:
+      process.env.CLOUDINARY_API_KEY ?? process.env.EXPO_PUBLIC_CLOUDINARY_API_KEY ?? '',
+    cloudinaryApiSecret:
+      process.env.CLOUDINARY_API_SECRET ?? process.env.EXPO_PUBLIC_CLOUDINARY_API_SECRET ?? '',
   },
   plugins: [
     '@react-native-firebase/app',

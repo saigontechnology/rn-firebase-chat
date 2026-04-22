@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ConversationProps, CustomConversationInfo, IUserInfo, MessageProps } from '../../types';
+import type {
+  ConversationProps,
+  CustomConversationInfo,
+  IUserInfo,
+  MessageProps,
+} from '../../types';
 import { isOtherUserTyping } from '../../utils/misc';
 
 // ---------------------------------------------------------------------------
@@ -12,7 +17,11 @@ export interface ChatScreenConversationData {
 }
 
 export interface ChatScreenService {
-  setConversationInfo(conversationId: string, memberIds: string[], partners: IUserInfo[]): void;
+  setConversationInfo(
+    conversationId: string,
+    memberIds: string[],
+    partners: IUserInfo[]
+  ): void;
   clearConversationInfo(): void;
   getMessageHistory(maxPageSize: number): Promise<MessageProps[]>;
   getMoreMessage(maxPageSize: number): Promise<MessageProps[]>;
@@ -24,7 +33,10 @@ export interface ChatScreenService {
     image?: string,
     names?: Record<string, string>
   ): Promise<ConversationProps>;
-  sendMessage(message: MessageProps, replyMessage?: MessageProps['replyMessage']): Promise<void>;
+  sendMessage(
+    message: MessageProps,
+    replyMessage?: MessageProps['replyMessage']
+  ): Promise<void>;
   updateMessage(message: MessageProps): Promise<void>;
   getRegexBlacklist(): RegExp | undefined;
   userConversationListener(
@@ -65,7 +77,10 @@ export interface UseChatScreenReturn<TMessage> {
   isTyping: boolean;
   userUnreadMessage: boolean;
   /** Send a raw MessageProps — formats optimistically and writes to Firestore. */
-  sendMessage: (raw: MessageProps, replyMessage?: MessageProps['replyMessage']) => Promise<void>;
+  sendMessage: (
+    raw: MessageProps,
+    replyMessage?: MessageProps['replyMessage']
+  ) => Promise<void>;
   /** Update an existing message. */
   updateMessage: (raw: MessageProps) => Promise<void>;
   /** Load the next page of older messages and prepend them. */
@@ -141,7 +156,9 @@ export function useChatScreen<TMessage>({
     service
       .getMessageHistory(maxPageSizeRef.current)
       .then(async (raw) => {
-        const formatted = await Promise.all(raw.map((m) => formatMessageRef.current(m)));
+        const formatted = await Promise.all(
+          raw.map((m) => formatMessageRef.current(m))
+        );
         setMessages(formatted);
         setIsLoadingMessages(false);
         setHasMoreMessages(raw.length === maxPageSizeRef.current);
@@ -204,7 +221,8 @@ export function useChatScreen<TMessage>({
     if (!resolvedConversationId) return;
 
     const unsubscribe = service.receiveMessageListener(async (raw) => {
-      if (userInfoRef.current && raw.senderId === userInfoRef.current.id) return;
+      if (userInfoRef.current && raw.senderId === userInfoRef.current.id)
+        return;
 
       const formatted = await formatMessageRef.current(raw);
       setMessages((prev) => [formatted, ...prev]);
@@ -285,8 +303,10 @@ export function useChatScreen<TMessage>({
 
       setMessages((prev) =>
         prev.map((m) => {
-          const mId = (m as any)._id || (m as any).id;
-          const rawId = raw.id || (raw as any)._id;
+          const mWithLegacy = m as MessageProps & { _id?: string };
+          const rawWithLegacy = raw as MessageProps & { _id?: string };
+          const mId = mWithLegacy._id || mWithLegacy.id;
+          const rawId = rawWithLegacy.id || rawWithLegacy._id;
           return mId === rawId ? formatted : m;
         })
       );
@@ -306,7 +326,9 @@ export function useChatScreen<TMessage>({
     setIsLoadingEarlier(true);
     try {
       const raw = await service.getMoreMessage(maxPageSizeRef.current);
-      const formatted = await Promise.all(raw.map((m) => formatMessageRef.current(m)));
+      const formatted = await Promise.all(
+        raw.map((m) => formatMessageRef.current(m))
+      );
       setHasMoreMessages(raw.length === maxPageSizeRef.current);
       setMessages((prev) => [...prev, ...formatted]);
     } catch {

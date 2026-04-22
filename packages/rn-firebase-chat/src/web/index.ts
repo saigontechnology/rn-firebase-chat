@@ -5,6 +5,10 @@ export * from './types/index';
 export * from './services/firebase';
 export * from './services/chat';
 export * from './services/user';
+export {
+  WebFirebaseStorageProvider,
+  CloudinaryStorageProvider,
+} from '@saigontechnology/chat-storage-providers';
 export * from './components/ChatScreen';
 export * from './components/ChatHeader';
 export * from './components/MessageList';

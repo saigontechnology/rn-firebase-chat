@@ -14,6 +14,7 @@ import { useChat } from '../hooks/useChat';
 import { useTyping } from '../hooks/useTyping';
 import {
   Message,
+  MediaType,
   ReplyMessagePreview,
   IUser,
   ConversationProps,
@@ -132,15 +133,26 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     derivedKeyRef.current = derivedKey;
   }, [derivedKey]);
 
-  // Configure ChatService with prefix, blacklist, and storageProvider
+  // Configure ChatService with userInfo, prefix, blacklist, and storageProvider.
+  // userInfo MUST be set before setConversationInfo/sendMessage run — those
+  // methods access this.userId which throws if userInfo is missing.
   useEffect(() => {
     const chatService = ChatService.getInstance();
+    if (currentUser) {
+      chatService.configuration({
+        userInfo: {
+          id: `${currentUser.id}`,
+          name: currentUser.name ?? '',
+          avatar: currentUser.avatar,
+        },
+      });
+    }
     chatService.setPrefix(prefix);
     chatService.setBlackListRegex(blackListRegex);
     if (storageProvider) {
       chatService.setStorageProvider(storageProvider);
     }
-  }, [prefix, blackListRegex, storageProvider]);
+  }, [currentUser, prefix, blackListRegex, storageProvider]);
 
   // Resolve effective conversationId from customConversationInfo
   const effectiveConversationId = customConversationInfo?.id || conversationId;
@@ -215,6 +227,31 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     ],
     [currentUser.id, selectedPartners]
   );
+
+  // Keep ChatService.conversationId in sync with the UI-selected conversation so
+  // stateful methods (sendMessage, sendMessageWithFile, etc.) know where to write.
+  useEffect(() => {
+    const convId = selectedConversationId || effectiveConversationId;
+    const chatService = ChatService.getInstance();
+    if (convId) {
+      const myId = `${currentUser.id}`;
+      const others = memberIds.filter((id) => id !== myId);
+      const partnersForService = selectedPartners.map((p) => ({
+        id: p.id,
+        name: p.name ?? '',
+        avatar: p.avatar,
+      }));
+      chatService.setConversationInfo(convId, others, partnersForService);
+    } else {
+      chatService.clearConversationInfo();
+    }
+  }, [
+    selectedConversationId,
+    effectiveConversationId,
+    memberIds,
+    selectedPartners,
+    currentUser.id,
+  ]);
 
   const partnerUserMap = useMemo(() => {
     const map = new Map<string, IUser>();
@@ -485,15 +522,54 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const handleFileUpload = useCallback(
     async (files: File[]) => {
-      console.log('Files uploaded:', files);
       setShowUploader(false);
+      const convId = selectedConversationId || effectiveConversationId;
+      if (!convId) return;
 
-      for (const file of files) {
-        const text = `File uploaded: ${file.name}`;
-        await handleSendMessage(text);
+      // Attach the active reply (if any) to the first file only, then clear it
+      // so subsequent files in the batch don't re-quote the same message.
+      const replyToAttach = replyMessage ?? undefined;
+      if (replyMessage) setReplyMessage(null);
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) continue;
+        try {
+          const { downloadURL } = await ChatService.getInstance().uploadFile(
+            file,
+            convId
+          );
+          const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+          const type = file.type.startsWith('image/')
+            ? MediaType.image
+            : file.type.startsWith('video/')
+              ? MediaType.video
+              : MediaType.file;
+
+          await ChatService.getInstance().sendMessage(
+            {
+              text: '',
+              type,
+              path: downloadURL,
+              extension: ext,
+              senderId: currentUser.id.toString(),
+              readBy: { [currentUser.id]: true },
+            },
+            i === 0 ? replyToAttach : undefined
+          );
+        } catch (err) {
+          console.error('Failed to upload file:', err);
+        }
       }
     },
-    [handleSendMessage]
+    [
+      selectedConversationId,
+      effectiveConversationId,
+      currentUser,
+      memberIds,
+      replyMessage,
+      chatName,
+    ]
   );
 
   const handleSelectConversation = useCallback(
@@ -818,6 +894,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               accept="image/*,video/*,.pdf,.doc,.docx,.txt"
               multiple
               maxFiles={5}
+              customUploadFn={
+                storageProvider
+                  ? (file) =>
+                      ChatService.getInstance()
+                        .uploadFile(
+                          file,
+                          selectedConversationId ||
+                            effectiveConversationId ||
+                            ''
+                        )
+                        .then((r) => r.downloadURL)
+                  : undefined
+              }
             />
             <ButtonMaterialIcon
               className="close-uploader"

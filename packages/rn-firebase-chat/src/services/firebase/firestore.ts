@@ -71,6 +71,16 @@ type FirestoreBaseProps = {
   encryptionFuncProps?: EncryptionFunctions;
   prefix?: string;
   storageProvider?: StorageProvider;
+  /** Maximum allowed file size in bytes for sendMessageWithFile. Defaults to 25 MB. */
+  maxFileSizeBytes?: number;
+};
+
+const DEFAULT_MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 export type FirestoreProps = FirestoreBaseProps & FirestoreEncryptionProps;
@@ -85,6 +95,7 @@ export class FirestoreServices {
   encryptKey: string = '';
   regexBlacklist: RegExp | undefined;
   prefix = '';
+  maxFileSizeBytes: number = DEFAULT_MAX_FILE_SIZE_BYTES;
 
   /** Encryption function */
   generateKeyFunctionProp: ((key: string) => Promise<string>) | undefined;
@@ -149,6 +160,7 @@ export class FirestoreServices {
     userInfo,
     blackListWords,
     prefix,
+    maxFileSizeBytes,
   }: FirestoreBaseProps): Promise<void> => {
     if (userInfo) {
       if (!validateUserId(userInfo.id)) {
@@ -166,6 +178,10 @@ export class FirestoreServices {
 
     if (prefix) {
       this.prefix = prefix;
+    }
+
+    if (typeof maxFileSizeBytes === 'number' && maxFileSizeBytes > 0) {
+      this.maxFileSizeBytes = maxFileSizeBytes;
     }
   };
 
@@ -349,11 +365,17 @@ export class FirestoreServices {
   };
 
   sendMessageWithFile = async (message: SendMessageProps): Promise<void> => {
-    const { path, extension } = message;
+    const { path, extension, fileSize } = message;
 
     if (!path || !extension || this.conversationId === null) {
       console.error('Please provide path and extension');
       return;
+    }
+
+    if (typeof fileSize === 'number' && fileSize > this.maxFileSizeBytes) {
+      throw new Error(
+        `File size ${formatBytes(fileSize)} exceeds the ${formatBytes(this.maxFileSizeBytes)} limit`
+      );
     }
 
     try {
@@ -385,6 +407,41 @@ export class FirestoreServices {
         ),
         messageForStorage
       );
+
+      const latestText = messageForStorage.text ?? '';
+      const latestMessageData = formatLatestMessage(
+        this.userId,
+        this.userInfo?.name || '',
+        latestText,
+        message.type,
+        imgURL,
+        extension
+      );
+
+      const unReadUpdate: Record<string, unknown> = {
+        [`unRead.${this.userId}`]: 0,
+      };
+      this.memberIds.forEach((memberId) => {
+        if (memberId !== this.userId) {
+          unReadUpdate[`unRead.${memberId}`] = increment(1);
+        }
+      });
+
+      const conversationRef = doc(
+        this.db,
+        this.getUrlWithPrefix(FireStoreCollection.conversations),
+        this.conversationId!
+      );
+
+      setDoc(
+        conversationRef,
+        { latestMessage: latestMessageData, updatedAt: getServerTimestamp() },
+        { merge: true }
+      )
+        .then(() => updateDoc(conversationRef, unReadUpdate))
+        .catch((error) =>
+          console.error('Error updating conversation after file send:', error)
+        );
     } catch (error) {
       console.error('Error sending message with file:', error);
       throw error;

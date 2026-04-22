@@ -1,4 +1,3 @@
-export * from './storage';
 export * from './user';
 export * from './firestore';
-export { FirebaseStorageProvider } from './firebaseStorageProvider';
+export { FirebaseStorageProvider } from '@saigontechnology/chat-storage-providers';

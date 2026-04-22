@@ -10,6 +10,8 @@ export interface FileUploaderProps {
   className?: string;
   disabled?: boolean;
   children?: React.ReactNode;
+  /** Upload function — typically wraps a StorageProvider (Cloudinary, WebFirebase, etc.). */
+  customUploadFn?: (file: File) => Promise<string>;
 }
 
 export interface UseFileUploadProps {
@@ -18,7 +20,12 @@ export interface UseFileUploadProps {
   onError?: (error: Error) => void;
   maxFileSize?: number;
   allowedTypes?: string[];
-  storagePath?: string;
+  /**
+   * Upload function — required. Typically wraps a StorageProvider
+   * (WebFirebaseStorageProvider, CloudinaryStorageProvider, etc.) and
+   * returns the public download URL.
+   */
+  customUploadFn?: (file: File) => Promise<string>;
 }
 
 export interface UseFileUploadReturn {

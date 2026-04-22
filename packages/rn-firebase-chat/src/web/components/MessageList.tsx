@@ -23,11 +23,53 @@ interface MessageItemProps {
   onDelete?: (messageId: string) => void;
   onEdit?: (message: Message) => void;
   onReply?: (message: Message) => void;
+  onPreviewImage?: (url: string) => void;
   messageStatusEnable?: boolean;
   customMessageStatus?: (hasUnread: boolean) => React.ReactNode;
   sentMessageLabel?: string;
   seenMessageLabel?: string;
 }
+
+const ImagePreviewModal: React.FC<{ url: string; onClose: () => void }> = ({
+  url,
+  onClose,
+}) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close preview"
+        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl leading-none"
+      >
+        ×
+      </button>
+      <img
+        src={url}
+        alt="Preview"
+        className="max-w-[90vw] max-h-[90vh] object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+};
 
 const DateSeparator: React.FC<{ date: number }> = ({ date }) => {
   const label = isToday(date)
@@ -123,6 +165,7 @@ const MessageItem = React.memo(function MessageItem({
   onDelete,
   onEdit,
   onReply,
+  onPreviewImage,
   messageStatusEnable = true,
   customMessageStatus,
   sentMessageLabel = 'Sent',
@@ -151,6 +194,8 @@ const MessageItem = React.memo(function MessageItem({
       borderBottomLeftRadius: isLastInGroup ? base : small,
     };
   }, [isOwn, isFirstInGroup, isLastInGroup]);
+
+  const isMedia = message.type === 'image' || message.type === 'file';
 
   return (
     <div className="animate-fade-in">
@@ -188,12 +233,19 @@ const MessageItem = React.memo(function MessageItem({
             </span>
           )}
 
-          {/* Bubble */}
+          {/* Bubble — transparent (no padding / no background) for media so the
+              attachment renders cleanly without the colored text-bubble behind it. */}
           <div
-            className={`px-3 py-2 relative ${
-              isOwn ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-900'
-            }`}
-            style={bubbleRadius}
+            className={
+              isMedia
+                ? 'relative'
+                : `px-3 py-2 relative ${
+                    isOwn
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`
+            }
+            style={isMedia ? undefined : bubbleRadius}
           >
             {/* Mid-group timestamp — above the bubble, no layout impact */}
             {!isLastInGroup && (
@@ -216,8 +268,9 @@ const MessageItem = React.memo(function MessageItem({
                 <img
                   src={message.metadata.imageUrl}
                   alt="Shared image"
-                  className="max-w-full h-auto rounded-xl"
+                  className="max-w-full h-auto rounded-xl cursor-zoom-in"
                   loading="lazy"
+                  onClick={() => onPreviewImage?.(message.metadata!.imageUrl!)}
                 />
                 {message.text && <p className="text-sm">{message.text}</p>}
               </div>
@@ -359,20 +412,35 @@ export const MessageList: React.FC<
   const containerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [pageCount, setPageCount] = useState(1);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   // Saved scrollHeight before prepending older messages — used to restore position
   const prevScrollHeightRef = useRef(0);
+  // Tracks the id of the last rendered message so we can detect new arrivals.
+  const lastMessageIdRef = useRef<string | undefined>(undefined);
 
   // Reset pagination when conversation changes (messages go empty)
   useEffect(() => {
     if (messages.length === 0) setPageCount(1);
   }, [messages.length]);
 
-  // Scroll to bottom when a new message arrives and the user is already at the bottom
+  // Scroll to bottom when a new message arrives.
+  // - Own messages (text or file) always scroll — the sender should see what they just sent.
+  // - Messages from others only scroll if the user is already near the bottom.
   useEffect(() => {
-    if (autoScroll && containerRef.current) {
+    if (!containerRef.current || messages.length === 0) {
+      lastMessageIdRef.current = messages[messages.length - 1]?.id;
+      return;
+    }
+    const last = messages[messages.length - 1];
+    const isNewMessage = last?.id !== lastMessageIdRef.current;
+    lastMessageIdRef.current = last?.id;
+    if (!isNewMessage) return;
+
+    const isOwn = last?.userId === currentUser.id;
+    if (isOwn || autoScroll) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [messages, autoScroll]);
+  }, [messages, autoScroll, currentUser.id]);
 
   const displayedMessages = useMemo(() => {
     if (!maxPageSize) return messages;
@@ -498,6 +566,7 @@ export const MessageList: React.FC<
             onDelete={onMessageDelete}
             onEdit={onEdit}
             onReply={onReply}
+            onPreviewImage={setPreviewImageUrl}
             messageStatusEnable={messageStatusEnable}
             customMessageStatus={customMessageStatus}
             sentMessageLabel={unReadSentMessage}
@@ -505,6 +574,12 @@ export const MessageList: React.FC<
           />
         );
       })}
+      {previewImageUrl && (
+        <ImagePreviewModal
+          url={previewImageUrl}
+          onClose={() => setPreviewImageUrl(null)}
+        />
+      )}
     </div>
   );
 };

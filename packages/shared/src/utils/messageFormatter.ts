@@ -55,16 +55,22 @@ export const formatMessageData = async (
   regexPattern?: RegExp,
   encryptKey?: string,
   decryptMessageFunc?: (text: string) => Promise<string>
-): Promise<MessageProps & { _id: string; user: { _id: string; name: string; avatar: string } }> => {
+): Promise<
+  MessageProps & {
+    _id: string;
+    user: { _id: string; name: string; avatar: string };
+  }
+> => {
   const rawCreatedAt = message.createdAt as
     | number
     | { toMillis: () => number }
     | undefined;
 
   const createdAt =
-    rawCreatedAt && typeof (rawCreatedAt as { toMillis?: unknown }).toMillis === 'function'
+    rawCreatedAt &&
+    typeof (rawCreatedAt as { toMillis?: unknown }).toMillis === 'function'
       ? (rawCreatedAt as { toMillis: () => number }).toMillis()
-      : (rawCreatedAt as number | undefined) ?? getCurrentTimestamp();
+      : ((rawCreatedAt as number | undefined) ?? getCurrentTimestamp());
 
   return {
     ...message,

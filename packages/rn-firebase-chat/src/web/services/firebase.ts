@@ -1,14 +1,12 @@
 import { initializeApp, FirebaseApp, getApps } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { FirebaseConfig } from '../types';
 
 class FirebaseService {
   private app: FirebaseApp | null = null;
   private db: Firestore | null = null;
   private auth: Auth | null = null;
-  private storage: FirebaseStorage | null = null;
   private initialized = false;
 
   initialize(config: FirebaseConfig): void {
@@ -18,7 +16,6 @@ class FirebaseService {
     }
 
     try {
-      // Check if Firebase app already exists
       const existingApps = getApps();
       if (existingApps.length > 0) {
         this.app = existingApps[0] || null;
@@ -26,9 +23,8 @@ class FirebaseService {
         this.app = initializeApp(config);
       }
 
-      this.db = getFirestore(this.app);
-      this.auth = getAuth(this.app);
-      this.storage = getStorage(this.app);
+      this.db = getFirestore(this.app!);
+      this.auth = getAuth(this.app!);
       this.initialized = true;
 
       console.log('Firebase initialized successfully');
@@ -52,11 +48,12 @@ class FirebaseService {
     return this.auth;
   }
 
-  getStorage(): FirebaseStorage {
-    if (!this.storage) {
+  /** Returns the underlying FirebaseApp (useful for constructing WebFirebaseStorageProvider). */
+  getApp(): FirebaseApp {
+    if (!this.app) {
       throw new Error('Firebase not initialized. Call initialize() first.');
     }
-    return this.storage;
+    return this.app;
   }
 
   isInitialized(): boolean {
@@ -67,7 +64,6 @@ class FirebaseService {
     this.app = null;
     this.db = null;
     this.auth = null;
-    this.storage = null;
     this.initialized = false;
   }
 }
@@ -78,7 +74,7 @@ export const firebaseService = new FirebaseService();
 // Export individual getters for convenience
 export const getFirebaseAuth = () => firebaseService.getAuth();
 export const getFirebaseFirestore = () => firebaseService.getFirestore();
-export const getFirebaseStorage = () => firebaseService.getStorage();
+export const getFirebaseApp = () => firebaseService.getApp();
 
 // Export initialization function
 export const initializeFirebase = (config: FirebaseConfig) => {

@@ -25,6 +25,9 @@ export interface IMessage {
   pending?: boolean;
   senderId?: string;
   type?: MediaType;
+  /** Raw storage URL — written to Firestore and read back by subscribeToMessages. */
+  path?: string;
+  extension?: string;
   readBy?: Record<string, boolean>;
   isEdited?: boolean;
   replyMessage?: {

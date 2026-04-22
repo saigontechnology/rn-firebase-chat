@@ -1,6 +1,4 @@
 import { useState, useCallback } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { getFirebaseStorage } from '../../services/firebase';
 import {
   UseFileUploadProps,
   UseFileUploadReturn,
@@ -20,13 +18,11 @@ export const useFileUpload = ({
     '.docx',
     '.txt',
   ],
-  storagePath = 'chat-files',
+  customUploadFn,
 }: UseFileUploadProps = {}): UseFileUploadReturn => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  const storage = getFirebaseStorage();
 
   const validateFile = useCallback(
     (file: File): boolean => {
@@ -39,7 +35,7 @@ export const useFileUpload = ({
       // Check file type
       const isAllowed = allowedTypes.some((type) => {
         if (type.includes('*')) {
-          const baseType = type.split('/')[0];
+          const baseType = type.split('/')[0] ?? '';
           return file.type.startsWith(baseType);
         }
         return file.type === type || file.name.toLowerCase().endsWith(type);
@@ -123,51 +119,21 @@ export const useFileUpload = ({
         // Compress image if needed
         const processedFile = await compressImage(file, options);
 
-        // Create unique filename
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2);
-        const fileName = `${timestamp}-${randomString}-${processedFile.name}`;
+        // Use custom upload function when provided (e.g. Cloudinary provider)
+        if (customUploadFn) {
+          setProgress(50);
+          onUploadProgress?.(50);
+          const downloadURL = await customUploadFn(processedFile);
+          setUploading(false);
+          setProgress(100);
+          onUploadComplete?.(downloadURL);
+          return downloadURL;
+        }
 
-        const fileRef = ref(storage, `${storagePath}/${fileName}`);
-        const uploadTask = uploadBytesResumable(fileRef, processedFile);
-
-        return new Promise((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progressValue =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setProgress(progressValue);
-              onUploadProgress?.(progressValue);
-            },
-            (error) => {
-              setUploading(false);
-              setProgress(0);
-              const errorMessage = `Upload failed: ${error.message}`;
-              setError(errorMessage);
-              onError?.(new Error(errorMessage));
-              reject(error);
-            },
-            async () => {
-              try {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref
-                );
-                setUploading(false);
-                setProgress(100);
-                onUploadComplete?.(downloadURL);
-                resolve(downloadURL);
-              } catch (error) {
-                setUploading(false);
-                setProgress(0);
-                const errorMessage = 'Failed to get download URL';
-                setError(errorMessage);
-                onError?.(new Error(errorMessage));
-                reject(error);
-              }
-            }
-          );
-        });
+        throw new Error(
+          'No upload method configured. Provide a customUploadFn (e.g. wrapping ' +
+            'WebFirebaseStorageProvider or CloudinaryStorageProvider) to useFileUpload.'
+        );
       } catch (error) {
         setUploading(false);
         setProgress(0);
@@ -179,8 +145,7 @@ export const useFileUpload = ({
       }
     },
     [
-      storage,
-      storagePath,
+      customUploadFn,
       validateFile,
       compressImage,
       onUploadProgress,

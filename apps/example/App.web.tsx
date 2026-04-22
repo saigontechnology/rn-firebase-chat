@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import 'rn-firebase-chat/web/styles.css';
 import { initializeFirebase, IUser, UserService, WebChatProvider, ChatScreen } from 'rn-firebase-chat/web';
+import { CloudinaryStorageProvider } from '@saigontechnology/chat-storage-providers';
 
 // Inject Material Icons font for icon buttons
 if (typeof document !== 'undefined') {
@@ -54,6 +55,14 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const cloudinaryProvider = new CloudinaryStorageProvider({
+    cloudName: extra.cloudinaryCloudName || process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || '',
+    uploadPreset: extra.cloudinaryUploadPreset || process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '',
+    folder: extra.cloudinaryFolder || process.env.EXPO_PUBLIC_CLOUDINARY_FOLDER || 'chat',
+    apiKey: extra.cloudinaryApiKey || process.env.EXPO_PUBLIC_CLOUDINARY_API_KEY || '',
+    apiSecret: extra.cloudinaryApiSecret || process.env.EXPO_PUBLIC_CLOUDINARY_API_SECRET || '',
+  });
+
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -96,8 +105,8 @@ export default function App() {
       `}</style>
       <div style={{ width: '100%', minWidth: '100vw', minHeight: '100vh', overflow: 'hidden' }}>
         {currentUser ? (
-          <WebChatProvider currentUser={currentUser}>
-            <ChatScreen currentUser={currentUser} />
+          <WebChatProvider currentUser={currentUser} storageProvider={cloudinaryProvider}>
+            <ChatScreen currentUser={currentUser} showFileUpload/>
           </WebChatProvider>
         ) : null}
       </div>

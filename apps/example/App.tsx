@@ -18,6 +18,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ChatProvider } from 'rn-firebase-chat';
 import { getAuth, signInAnonymously } from '@react-native-firebase/auth';
+import Constants from 'expo-constants';
+import { CloudinaryStorageProvider } from '@saigontechnology/chat-storage-providers';
+
 import { ListChatScreen } from './src/screens/ListChatScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import type { RootStackParamList } from './src/navigation/RouteKey';
@@ -41,6 +44,15 @@ export default function App() {
       })
       .catch((e: unknown) => console.error('Auth failed:', e));
   }, []);
+
+  const extra = (Constants.expoConfig ?? Constants.manifest)?.extra ?? {};
+  const cloudinaryProvider = new CloudinaryStorageProvider({
+    cloudName: extra.cloudinaryCloudName ?? '',
+    uploadPreset: extra.cloudinaryUploadPreset ?? '',
+    folder: extra.cloudinaryFolder ?? 'chat',
+    apiKey: extra.cloudinaryApiKey ?? '',
+    apiSecret: extra.cloudinaryApiSecret ?? '',
+  });
 
   const handleJoin = () => {
     if (!uid) return;
@@ -79,7 +91,7 @@ export default function App() {
   }
 
   return (
-    <ChatProvider userInfo={userInfo}>
+    <ChatProvider userInfo={userInfo} storageProvider={cloudinaryProvider}>
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen

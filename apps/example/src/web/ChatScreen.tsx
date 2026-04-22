@@ -55,6 +55,7 @@ export default function ChatScreen({ currentUser }: Props) {
             <LibChatScreen
               conversationId={activeConversation}
               partners={[{ id: recipientId.trim(), name: recipientId.trim() }]}
+              showFileUpload
             />
           </WebChatProvider>
         </div>

@@ -73,6 +73,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
+    "@saigontechnology/chat-storage-providers": "workspace:*",
     "@saigontechnology/firebase-chat-shared": "workspace:*"
   },
   "devDependencies": {
@@ -81,7 +82,6 @@
     "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-firebase/app": "23.8.8",
     "@react-native-firebase/firestore": "23.8.8",
-    "@react-native-firebase/storage": "23.8.8",
     "@react-native/babel-preset": "^0.85.0",
     "@release-it/conventional-changelog": "^10.0.1",
     "@types/jest": "^30.0.0",
@@ -133,7 +133,6 @@
   "peerDependencies": {
     "@react-native-firebase/app": "*",
     "@react-native-firebase/firestore": "*",
-    "@react-native-firebase/storage": "*",
     "randomcolor": "*",
     "react": "*",
     "react-dom": "*",
@@ -147,9 +146,6 @@
     "react-native-safe-area-context": "*"
   },
   "peerDependenciesMeta": {
-    "@react-native-firebase/storage": {
-      "optional": true
-    },
     "react-native-image-picker": {
       "optional": true
     },
@@ -262,8 +258,8 @@
     "source": "src",
     "output": "lib",
     "targets": [
-      "commonjs",
-      "module",
+      ["commonjs", { "sourceMaps": false }],
+      ["module", { "sourceMaps": false }],
       "typescript"
     ]
   }

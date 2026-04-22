@@ -18,6 +18,7 @@ interface CustomBubbleProps {
   position: 'left' | 'right';
   customImageVideoBubbleProps?: CustomImageVideoBubbleProps;
   onSelectedMessage: (message: MessageProps) => void;
+  onSelectImgVideoUrl?: (url: string) => void;
   userUnreadMessage: boolean;
   customContainerStyle?: StyleProp<ViewStyle>;
   customTextStyle?: StyleProp<ViewStyle>;
@@ -51,6 +52,7 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
   bubbleMessage,
   position,
   customImageVideoBubbleProps,
+  onSelectImgVideoUrl,
   userUnreadMessage,
   customContainerStyle,
   customTextStyle,
@@ -71,6 +73,21 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
     right: {
       backgroundColor: '#0084FF',
       borderRadius: 18,
+    },
+  };
+
+  // Transparent wrapper for media (image/video/file) so the attachment renders
+  // without the colored text-bubble behind it.
+  const mediaBubbleWrapperStyle = {
+    left: {
+      backgroundColor: 'transparent',
+      padding: 0,
+      minHeight: 0,
+    },
+    right: {
+      backgroundColor: 'transparent',
+      padding: 0,
+      minHeight: 0,
     },
   };
 
@@ -167,14 +184,12 @@ export const CustomBubble: React.FC<CustomBubbleProps> = ({
                   <CustomImageVideoBubble
                     {...customImageVideoBubbleProps}
                     message={msg}
-                    onSelectImgVideoUrl={() => {
-                      //TODO: handle image/video press
-                    }}
+                    onSelectImgVideoUrl={(url) => onSelectImgVideoUrl?.(url)}
                     position={position}
                   />
                 )
               }
-              wrapperStyle={bubbleWrapperStyle}
+              wrapperStyle={mediaBubbleWrapperStyle}
               textStyle={bubbleTextStyle}
             />
             {ViewMessageStatus}

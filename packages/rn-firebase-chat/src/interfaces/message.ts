@@ -52,6 +52,8 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
+  /** Size of the file in bytes. When provided, sendMessageWithFile enforces maxFileSizeBytes. */
+  fileSize?: number;
   replyMessage?: MessageProps['replyMessage'];
 }
 

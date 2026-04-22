@@ -1,6 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { FirebaseConfig, initializeFirebase } from 'rn-firebase-chat/web';
+import {
+  FirebaseConfig,
+  initializeFirebase,
+  getFirebaseApp,
+  ChatService,
+  WebFirebaseStorageProvider,
+} from 'rn-firebase-chat/web';
 import App from './App';
 import 'rn-firebase-chat/styles';
 import './index.css';
@@ -18,6 +24,11 @@ const firebaseConfig: FirebaseConfig = {
 // (which calls getFirebaseFirestore() synchronously in its constructor) never
 // sees an uninitialized app. Auth and Firestore access happen inside App.
 initializeFirebase(firebaseConfig);
+
+// Wire the Firebase Web Storage provider so file uploads work.
+ChatService.getInstance().setStorageProvider(
+  new WebFirebaseStorageProvider(getFirebaseApp())
+);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
