@@ -2,7 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const projectRoot = __dirname;
-const monorepoRoot = path.resolve(projectRoot, '..');
+const monorepoRoot = path.resolve(projectRoot, '../..');
 const libraryRoot = path.resolve(monorepoRoot, 'packages', 'rn-firebase-chat');
 const sharedRoot = path.resolve(monorepoRoot, 'packages', 'shared');
 
