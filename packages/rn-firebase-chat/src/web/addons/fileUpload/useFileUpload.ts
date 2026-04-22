@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { getFirebaseStorage } from '../../../services/firebase';
+import { getFirebaseStorage } from '../../services/firebase';
 import {
   UseFileUploadProps,
   UseFileUploadReturn,

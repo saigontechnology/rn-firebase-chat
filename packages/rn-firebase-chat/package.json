@@ -31,7 +31,7 @@
     "test:ci": "jest --maxWorkers=2 --coverage",
     "typecheck": "../../node_modules/.bin/tsc --noEmit",
     "typecheck:build": "tsc --project tsconfig.build.json --noEmit",
-    "typecheck:example": "tsc --project ../../example/tsconfig.json --noEmit",
+    "typecheck:example": "tsc --project ../../apps/example/tsconfig.json --noEmit",
     "build:types": "../../node_modules/.bin/tsc --project tsconfig.build.json --emitDeclarationOnly --noEmitOnError false --skipLibCheck",
     "build:css": "../../node_modules/.bin/postcss src/web/styles/index.css -o lib/styles.css",
     "clean:maps": "find lib -name '*.map' -delete",

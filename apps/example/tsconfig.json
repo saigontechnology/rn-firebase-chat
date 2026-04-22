@@ -4,7 +4,7 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "rn-firebase-chat": ["../packages/rn-firebase-chat/src/index"]
+      "rn-firebase-chat": ["../../packages/rn-firebase-chat/src/index"]
     }
   }
 }
