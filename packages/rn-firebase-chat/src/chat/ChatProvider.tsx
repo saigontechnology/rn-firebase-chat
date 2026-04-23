@@ -7,6 +7,9 @@ import React, {
   useReducer,
 } from 'react';
 import { FirestoreServices, createUserProfile } from '../services/firebase';
+import { createRNFirestoreClient } from '../services/firebase/rn-adapter';
+import Aes from 'react-native-aes-crypto';
+import { RNAesCryptoProvider } from '@saigontechnology/firebase-chat-shared/rnProvider';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
@@ -17,6 +20,8 @@ import {
 } from '../reducer';
 
 const firestoreServices = FirestoreServices.getInstance();
+firestoreServices.setFirestoreClient(createRNFirestoreClient());
+firestoreServices.setCryptoProvider(new RNAesCryptoProvider(Aes));
 
 type ChatProviderProps = Omit<IChatContext, 'chatState' | 'chatDispatch'> & {
   chatState?: ChatState;
@@ -52,7 +57,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      createUserProfile(userInfo.id, userInfo.name)
+      createUserProfile(userInfo.id, userInfo.name, userInfo.avatar)
         .then(() => {
           firestoreServices.getListConversation().then((res) => {
             dispatch(setListConversation(res));

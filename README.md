@@ -1,8 +1,21 @@
 # rn-firebase-chat
 
-A real-time chat library for React Native backed by Firebase Firestore, built on `react-native-gifted-chat`.
+A real-time Firebase chat monorepo providing ready-to-use UI components for both **React Native** and **Web**.
 
-## Installation
+## Packages
+
+| Package                                                                    | Description                                              |
+| -------------------------------------------------------------------------- | -------------------------------------------------------- |
+| [`rn-firebase-chat`](./packages/rn-firebase-chat)                          | React Native chat UI backed by `@react-native-firebase`  |
+| [`@saigontechnology/react-firebase-chat`](./packages/react-firebase-chat)  | Web chat UI backed by the Firebase JS SDK                |
+| [`@saigontechnology/firebase-chat-shared`](./packages/shared)              | Shared business logic (FirestoreServices, useChatScreen) |
+| [`@saigontechnology/chat-storage-providers`](./packages/storage-providers) | Firebase Storage + Cloudinary adapters                   |
+
+---
+
+## React Native
+
+### Installation
 
 ```sh
 npm install rn-firebase-chat
@@ -10,7 +23,7 @@ npm install rn-firebase-chat
 yarn add rn-firebase-chat
 ```
 
-### React Native peer dependencies
+### Peer dependencies
 
 ```sh
 npm install \
@@ -21,33 +34,30 @@ npm install \
   react-native-safe-area-context \
   react-native-gesture-handler \
   react-native-reanimated \
-  react-native-worklets \
-  react-native-aes-crypto \
+  react-native-aes-crypto
 ```
 
 Optional (file upload, camera, video):
 
 ```sh
-npm install react-native-image-picker react-native-vision-camera react-native-video
-# Firebase Storage is required only when using file upload
-npm install @react-native-firebase/storage
+npm install @react-native-firebase/storage react-native-image-picker react-native-vision-camera
 ```
 
-> If you're using Expo, follow the [Expo Configuration Guide](./README.expo.md) to configure plugins and add Firebase files for Android/iOS.
+> If you're using Expo, see the [Expo Configuration Guide](./packages/rn-firebase-chat/README.expo.md).
 
----
-
-## React Native usage
-
-### 1. Wrap your app with `ChatProvider`
+### Usage
 
 ```tsx
-import { ChatProvider } from 'rn-firebase-chat';
+import { ChatProvider } from "rn-firebase-chat";
 
 function App() {
   return (
     <ChatProvider
-      userInfo={{ id: 'abc123', name: 'John Doe', avatar: 'https://example.com/avatar.jpg' }}
+      userInfo={{
+        id: "abc123",
+        name: "John Doe",
+        avatar: "https://example.com/avatar.jpg",
+      }}
     >
       <AppNavigation />
     </ChatProvider>
@@ -55,84 +65,95 @@ function App() {
 }
 ```
 
-### 2. Set up navigation
-
 ```tsx
-export const ChatNavigator = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="ConversationList" component={ListChatScreen} />
-    <Stack.Screen name="Chat" component={ChatScreen} />
-  </Stack.Navigator>
-);
-```
-
-### 3. Render the screens
-
-```tsx
-import { ListConversationScreen } from 'rn-firebase-chat';
+import { ListConversationScreen } from "rn-firebase-chat";
 
 export const ListChatScreen = () => {
   const handleItemPress = useCallback((data) => {
-    navigate('Chat', data);
+    navigate("Chat", data);
   }, []);
-
   return <ListConversationScreen onPress={handleItemPress} />;
 };
 ```
 
 ```tsx
-import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat';
+import { ChatScreen as BaseChatScreen } from "rn-firebase-chat";
 
-const partner = { id: 'xyz123', name: 'Tony', avatar: 'https://example.com/tony.jpg' };
+const partner = {
+  id: "xyz123",
+  name: "Tony",
+  avatar: "https://example.com/tony.jpg",
+};
 
 export const ChatScreen = () => (
   <BaseChatScreen memberIds={[partner.id]} partners={[partner]} />
 );
 ```
 
-### Camera & gallery addon (optional)
+---
 
-```tsx
-import { ChatScreen as BaseChatScreen } from 'rn-firebase-chat';
-import { CameraView, useCamera } from 'rn-firebase-chat/src/addons/camera';
+## Web
 
-export const ChatScreen = () => {
-  const { onPressCamera, onPressGallery } = useCamera();
-  return (
-    <BaseChatScreen
-      memberIds={[partner.id]}
-      partners={[partner]}
-      inputToolbarProps={{ hasCamera: true, hasGallery: true, onPressCamera, onPressGallery }}
-    >
-      {({ onSend }) => <CameraView onSend={onSend} />}
-    </BaseChatScreen>
-  );
-};
+### Installation
+
+```sh
+npm install @saigontechnology/react-firebase-chat
+# or
+yarn add @saigontechnology/react-firebase-chat
 ```
 
----
+### Peer dependencies
+
+```sh
+npm install firebase react react-dom
+```
+
+Optional (animations, toasts, auto-sizing textarea):
+
+```sh
+npm install framer-motion react-hot-toast react-textarea-autosize
+```
+
+### Usage
+
+```tsx
+import {
+  WebChatProvider,
+  ChatScreen,
+} from "@saigontechnology/react-firebase-chat";
+import "@saigontechnology/react-firebase-chat/styles.css";
+import { initializeFirebase } from "@saigontechnology/react-firebase-chat";
+
+initializeFirebase({ apiKey: "...", projectId: "..." /* ... */ });
+
+function App() {
+  const currentUser = { id: "abc123", name: "John Doe" };
+  return (
+    <WebChatProvider currentUser={currentUser}>
+      <ChatScreen />
+    </WebChatProvider>
+  );
+}
+```
+
+See [`apps/web-vite/`](./apps/web-vite/) for a working example.
 
 ## Features
 
-### Reply to messages
-
-Swipe a message left to quote it as a reply. The reply context appears above the input toolbar. Tapping the quoted preview inside a bubble scrolls to the original message.
-
-Enabled by default — no extra props required.
-
-### Edit messages
-
-Long-press one of your own messages that has **not yet been seen** by the other participant to enter edit mode. An editing banner appears above the input showing the original text. Submitting updates the Firestore document and sets `isEdited: true` on the message.
-
-Enabled by default — no extra props required.
-
-> Editing is restricted to messages owned by the current user whose `status` is not `seen`.
-
----
+- Real-time messaging via Firestore `onSnapshot`
+- Lazy conversation creation — Firestore document created on first send
+- Typing indicators with configurable timeout
+- Read receipts (`sent` → `received` → `seen`)
+- Reply to messages with scroll-to-original
+- Edit unseen messages
+- Optional AES message encryption
+- File / image / video upload (Firebase Storage or Cloudinary)
+- Conversation name sync — each user writes their own display name into `names[userId]`
+- Bad-word filtering via configurable word list
 
 ## Contributing
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+See the [contributing guide](./packages/rn-firebase-chat/CONTRIBUTING.md).
 
 ## License
 

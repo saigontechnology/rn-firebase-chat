@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Constants from 'expo-constants';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import 'rn-firebase-chat/web/styles.css';
-import { initializeFirebase, IUser, UserService, WebChatProvider, ChatScreen } from 'rn-firebase-chat/web';
+import '@saigontechnology/react-firebase-chat/styles.css';
+import { initializeFirebase, IUser, UserService, WebChatProvider, ChatScreen } from '@saigontechnology/react-firebase-chat';
 import { CloudinaryStorageProvider } from '@saigontechnology/chat-storage-providers';
 
 // Inject Material Icons font for icon buttons

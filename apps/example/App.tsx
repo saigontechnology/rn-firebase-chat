@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -7,30 +7,28 @@ import {
   Text,
   StyleSheet,
   LogBox,
-} from 'react-native';
+} from "react-native";
 
 // iOS UIKit internal warning because new React Native architecture (Fabric/JSI) on iOS
-LogBox.ignoreLogs([
-  '[UIKitCore] RCTScrollViewComponentView',
-]);
+LogBox.ignoreLogs(["[UIKitCore] RCTScrollViewComponentView"]);
 
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ChatProvider } from 'rn-firebase-chat';
-import { getAuth, signInAnonymously } from '@react-native-firebase/auth';
-import Constants from 'expo-constants';
-import { CloudinaryStorageProvider } from '@saigontechnology/chat-storage-providers';
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { ChatProvider, createUserProfile } from "rn-firebase-chat";
+import { getAuth, signInAnonymously } from "@react-native-firebase/auth";
+import Constants from "expo-constants";
+import { CloudinaryStorageProvider } from "@saigontechnology/chat-storage-providers";
 
-import { ListChatScreen } from './src/screens/ListChatScreen';
-import { ChatScreen } from './src/screens/ChatScreen';
-import type { RootStackParamList } from './src/navigation/RouteKey';
-import RouteKey from './src/navigation/RouteKey';
+import { ListChatScreen } from "./src/screens/ListChatScreen";
+import { ChatScreen } from "./src/screens/ChatScreen";
+import type { RootStackParamList } from "./src/navigation/RouteKey";
+import RouteKey from "./src/navigation/RouteKey";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [uid, setUid] = useState<string | null>(null);
-  const [nameInput, setNameInput] = useState('');
+  const [nameInput, setNameInput] = useState("");
   const [userInfo, setUserInfo] = useState<{
     id: string;
     name: string;
@@ -42,26 +40,25 @@ export default function App() {
       .then((credential) => {
         setUid(credential.user.uid);
       })
-      .catch((e: unknown) => console.error('Auth failed:', e));
+      .catch((e: unknown) => console.error("Auth failed:", e));
   }, []);
 
   const extra = (Constants.expoConfig ?? Constants.manifest)?.extra ?? {};
   const cloudinaryProvider = new CloudinaryStorageProvider({
-    cloudName: extra.cloudinaryCloudName ?? '',
-    uploadPreset: extra.cloudinaryUploadPreset ?? '',
-    folder: extra.cloudinaryFolder ?? 'chat',
-    apiKey: extra.cloudinaryApiKey ?? '',
-    apiSecret: extra.cloudinaryApiSecret ?? '',
+    cloudName: extra.cloudinaryCloudName ?? "",
+    uploadPreset: extra.cloudinaryUploadPreset ?? "",
+    folder: extra.cloudinaryFolder ?? "chat",
+    apiKey: extra.cloudinaryApiKey ?? "",
+    apiSecret: extra.cloudinaryApiSecret ?? "",
   });
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!uid) return;
-    const name = nameInput.trim() || 'User ' + uid.slice(0, 6);
-    setUserInfo({
-      id: uid,
-      name,
-      avatar: 'https://i.pravatar.cc/150?img=' + Math.floor(Math.random() * 70 + 1),
-    });
+    const name = nameInput.trim() || "User " + uid.slice(0, 6);
+    const avatar =
+      "https://i.pravatar.cc/150?img=" + Math.floor(Math.random() * 70 + 1);
+    setUserInfo({ id: uid, name, avatar });
+    await createUserProfile(uid, name, avatar);
   };
 
   if (!uid) {
@@ -98,12 +95,17 @@ export default function App() {
             name={RouteKey.ListChatScreen}
             options={{ title: "Chats" }}
           >
-            {() => <ListChatScreen currentUserId={userInfo.id} currentUserName={userInfo.name} />}
+            {() => (
+              <ListChatScreen
+                currentUserId={userInfo.id}
+                currentUserName={userInfo.name}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen
             name={RouteKey.ChatScreen}
             component={ChatScreen}
-            options={({ route }) => ({ title: route.params.name ?? 'Chat' })}
+            options={({ route }) => ({ title: route.params.name ?? "Chat" })}
           />
         </Stack.Navigator>
       </NavigationContainer>
@@ -114,15 +116,15 @@ export default function App() {
 const styles = StyleSheet.create({
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
-  label: { fontSize: 16, marginBottom: 12, color: '#333' },
+  label: { fontSize: 16, marginBottom: 12, color: "#333" },
   input: {
-    width: '100%',
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -130,10 +132,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
   },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  buttonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
 });

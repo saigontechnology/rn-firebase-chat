@@ -1,0 +1,114 @@
+{
+  "name": "@saigontechnology/react-firebase-chat",
+  "version": "1.1.0",                                                  
+  "description": "A comprehensive ReactJS Firebase Chat library with real-time messaging, user authentication, and modern UI components",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "style": "dist/styles.css",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles": "./dist/styles.css",
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist/**/*", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saigontechnology/rn-firebase-chat.git"
+  },
+  "author": "Saigon Technology Solutions",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/saigontechnology/rn-firebase-chat/issues"
+  },
+  "homepage": "https://github.com/saigontechnology/rn-firebase-chat#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "pnpm run clean && ../../node_modules/.bin/tsc --project tsconfig.build.json && pnpm run build:css",
+    "build:css": "../../node_modules/.bin/postcss src/styles/index.css -o dist/styles.css && ../../node_modules/.bin/postcss src/components/*.css -d dist/components && ../../node_modules/.bin/postcss 'src/addons/**/*.css' --base src/addons -d dist/addons",
+    "clean": "rm -rf dist",
+    "typecheck": "../../node_modules/.bin/tsc --noEmit",
+    "lint": "../../node_modules/.bin/eslint \"src/**/*.{ts,tsx}\"",
+    "prepack": "pnpm build",
+    "prepare": "pnpm build",
+    "release": "release-it",
+    "release:dry": "release-it --dry-run",
+    "release:ci": "release-it --ci",
+    "release:patch": "pnpm version patch && pnpm publish",
+    "release:minor": "pnpm version minor && pnpm publish",
+    "release:major": "pnpm version major && pnpm publish"
+  },
+  "keywords": [
+    "react",
+    "web",
+    "chat",
+    "firebase",
+    "firestore",
+    "messaging",
+    "real-time",
+    "ui",
+    "components",
+    "typescript",
+    "tailwind"
+  ],
+  "dependencies": {
+    "@saigontechnology/firebase-chat-shared": "workspace:*",
+    "@saigontechnology/chat-storage-providers": "workspace:*",
+    "clsx": "^2.1.1",
+    "date-fns": "^2.30.0"
+  },
+  "peerDependencies": {
+    "firebase": ">=10",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "framer-motion": { "optional": true },
+    "react-hot-toast": { "optional": true },
+    "react-textarea-autosize": { "optional": true }
+  },
+  "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.1",
+    "@types/react": "~19.2.2",
+    "@types/react-dom": "^18.3.7",
+    "@tailwindcss/postcss": "^4",
+    "autoprefixer": "^10.4.16",
+    "firebase": "^10.14.1",
+    "framer-motion": "^11.18.2",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-textarea-autosize": "^8.5.9",
+    "release-it": "^19.0.3",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.8.3"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release react-firebase-chat ${version}",
+      "tagName": "react-firebase-chat-v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true,
+      "releaseName": "@saigontechnology/react-firebase-chat v${version}"
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular",
+        "infile": "CHANGELOG.md"
+      }
+    }
+  }
+}

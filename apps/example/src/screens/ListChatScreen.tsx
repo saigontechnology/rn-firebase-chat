@@ -32,10 +32,13 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId, currentUserName
   const handleItemPress = useCallback(
     (data: any) => {
       chatDispatch?.(setConversation(data));
+      const partnerId: string = data.members?.find((id: string) => id !== currentUserId) ?? '';
+      // names map: { [userId]: ownDisplayName } — look up the partner's entry for the title
+      const partnerName: string = (partnerId ? data.names?.[partnerId] : undefined) ?? '';
       navigation.navigate(RouteKey.ChatScreen, {
         conversationId: data.id,
-        name: data.names?.[currentUserId],
-        otherUserId: data.members?.find((id: string) => id !== currentUserId),
+        name: partnerName,
+        otherUserId: partnerId,
       });
     },
     [navigation, chatDispatch, currentUserId]
@@ -50,12 +53,12 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId, currentUserName
     const conversationId = [currentUserId, targetId].sort().join('_');
     navigation.navigate(RouteKey.ChatScreen, {
       conversationId,
-      name: targetId,
+      name: '',          // partner name unknown until they open the conversation
       otherUserId: targetId,
       memberIds: [targetId],
+      // Seed only our own name; partner's name is written by their setConversationInfo
       names: {
-        [currentUserId]: targetId,
-        [targetId]: currentUserName,
+        [currentUserId]: currentUserName,
       },
     });
   }, [otherUserId, currentUserId, currentUserName, navigation]);

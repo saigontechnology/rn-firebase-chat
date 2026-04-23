@@ -60,26 +60,18 @@ const formatMessageData = async (
 ): Promise<MessageProps> => {
   const formattedReply = message.replyMessage
     ? {
-        ...message.replyMessage,
-        _id: message.replyMessage.id || message.replyMessage._id,
+        _id: message.replyMessage.id,
+        messageId: message.replyMessage.id,
         text: await convertTextMessage(
-          message.replyMessage.text ?? '',
+          message.replyMessage.text,
           regexPattern,
           encryptKey,
           decryptMessageFunc
         ),
-        user: message.replyMessage.user
-          ? {
-              ...message.replyMessage.user,
-              _id:
-                (
-                  message.replyMessage.user as {
-                    id?: string;
-                    _id?: string | number;
-                  }
-                ).id || message.replyMessage.user._id,
-            }
-          : undefined,
+        user: {
+          _id: message.replyMessage.userId,
+          name: message.replyMessage.userName,
+        },
       }
     : undefined;
 

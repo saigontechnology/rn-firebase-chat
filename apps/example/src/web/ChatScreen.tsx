@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IUser, ChatScreen as LibChatScreen, WebChatProvider } from 'rn-firebase-chat/web';
+import { IUser, ChatScreen as LibChatScreen, WebChatProvider } from '@saigontechnology/react-firebase-chat';
 
 interface Props {
   currentUser: IUser;

@@ -49,6 +49,8 @@ export interface SendMessageProps {
   // Callers pass Date.now() or a Firestore FieldValue server timestamp
   createdAt?: number | object;
   replyMessage?: ReplyToMessage;
+  /** Size of the file in bytes. When provided, sendMessageWithFile enforces maxFileSizeBytes. */
+  fileSize?: number;
 }
 
 export type ImagePickerValue = {

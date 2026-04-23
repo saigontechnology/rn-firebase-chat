@@ -4,7 +4,9 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "rn-firebase-chat": ["../../packages/rn-firebase-chat/src/index"]
+      "rn-firebase-chat": ["../../packages/rn-firebase-chat/src/index"],
+      "@saigontechnology/react-firebase-chat": ["../../packages/react-firebase-chat/src/index"]
     }
-  }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "declarations.d.ts"]
 }

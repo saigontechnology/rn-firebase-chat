@@ -20,77 +20,15 @@ If you're using Expo, please follow the dedicated setup guide to configure `plug
 
 - See: [Expo Configuration Guide](./README.expo.md)
 
-## Web-only Installation
+## Web
 
-If you are using this library on **web only** (e.g. Next.js, Vite, CRA), you can skip all the React Native peer dependencies. The package ships a dedicated web entry point that bundles no React Native code.
-
-- Using [npm](https://www.npmjs.com/#getting-started):
+For web projects, use the dedicated web package instead:
 
 ```sh
-npm install rn-firebase-chat firebase react react-dom clsx framer-motion date-fns react-textarea-autosize
+npm install @saigontechnology/react-firebase-chat firebase react react-dom
 ```
 
-- Using [Yarn](https://yarnpkg.com/):
-
-```sh
-yarn add rn-firebase-chat firebase react react-dom clsx framer-motion date-fns react-textarea-autosize
-```
-
-All `react-native-*` and `@react-native-firebase/*` peer dependencies listed in the package are **mobile-only** and can be ignored on web.
-
-### Web usage
-
-Import from the `/web` subpath and include the bundled stylesheet:
-
-```javascript
-import { WebChatProvider, ChatScreen } from 'rn-firebase-chat/web';
-import 'rn-firebase-chat/web/styles.css';
-```
-
-Do **not** import from the root `rn-firebase-chat` entry point in a web project — it pulls in React Native dependencies.
-
-### Vite configuration
-
-Because the built package includes React Native camera addons (not used by the web entry point), Vite needs a small plugin to stub those imports so they do not cause parse errors. Add the following to your `vite.config.ts`:
-
-```typescript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import type { Plugin } from 'vite';
-
-function reactNativeStubPlugin(): Plugin {
-  const STUB_PATTERNS = [
-    /^react-native($|\/)/,
-    /^@react-native-firebase\//,
-    /^react-native-vision-camera/,
-    /^react-native-image-picker/,
-    /^react-native-aes-crypto/,
-  ];
-
-  return {
-    name: 'react-native-web-stub',
-    enforce: 'pre',
-    resolveId(id) {
-      if (STUB_PATTERNS.some((p) => p.test(id))) {
-        return { id: `\0rn-stub:${id}`, syntheticNamedExports: '__esModule' };
-      }
-      return null;
-    },
-    load(id) {
-      if (id.startsWith('\0rn-stub:')) {
-        return `export default {}; export const __esModule = {};`;
-      }
-      return null;
-    },
-  };
-}
-
-export default defineConfig({
-  plugins: [react(), reactNativeStubPlugin()],
-});
-```
-
-A working example is available in [`apps/web-vite/`](../../apps/web-vite/) in this repository.
+See the [@saigontechnology/react-firebase-chat README](../react-firebase-chat/README.md) for full web usage, Vite configuration, and a working example in [`apps/web-vite/`](../../apps/web-vite/).
 
 ## Usage
 
@@ -228,7 +166,3 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

@@ -111,10 +111,14 @@ export function useChatScreen<TMessage>({
   const [userUnreadMessage, setUserUnreadMessage] = useState(false);
 
   // Tracks the live conversation ID — may be set lazily on first send.
-  const [resolvedConversationId, setResolvedConversationId] = useState(conversationId);
+  const [resolvedConversationId, setResolvedConversationId] =
+    useState(conversationId);
 
   const isLoadingRef = useRef(false);
   const timeoutMessageRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set to true when sendMessage creates a new conversation so the initial-load
+  // effect skips the history fetch (messages are already in state optimistically).
+  const conversationCreatedInternally = useRef(false);
 
   // Keep resolvedConversationId in sync when the prop changes (e.g. navigating
   // to an existing conversation from the list).
@@ -149,8 +153,21 @@ export function useChatScreen<TMessage>({
       return;
     }
 
+    service.setConversationInfo(
+      resolvedConversationId,
+      memberIdsRef.current,
+      partnersRef.current
+    );
+
+    // When sendMessage creates a new conversation, messages are already in state
+    // via the optimistic update. Skip the history fetch to avoid overwriting them
+    // and showing a loading skeleton for a conversation the user just started.
+    if (conversationCreatedInternally.current) {
+      conversationCreatedInternally.current = false;
+      return;
+    }
+
     onStartLoadRef.current?.();
-    service.setConversationInfo(resolvedConversationId, memberIdsRef.current, partnersRef.current);
     setIsLoadingMessages(true);
 
     service
@@ -246,9 +263,11 @@ export function useChatScreen<TMessage>({
 
       // Create conversation on first message if needed
       if (!conversationIdRef.current) {
+        const isGroup = memberIdsRef.current.length > 1;
         const info = {
           id: '',
-          name: partnersRef.current[0]?.name,
+          // name is only meaningful for group conversations; 1:1 display uses the names map
+          name: isGroup ? partnersRef.current[0]?.name : undefined,
           image: partnersRef.current[0]?.avatar,
           ...(customConversationInfo ?? {}),
         };
@@ -265,7 +284,9 @@ export function useChatScreen<TMessage>({
           memberIdsRef.current,
           partnersRef.current
         );
-        // Trigger listeners by updating resolved state
+        // Signal the initial-load effect to skip the history fetch; listeners
+        // will be activated by their own effects reacting to resolvedConversationId.
+        conversationCreatedInternally.current = true;
         setResolvedConversationId(created.id);
       }
 

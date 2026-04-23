@@ -10,7 +10,7 @@
       ],
       "@saigontechnology/firebase-chat-shared/rnProvider": [
         "../../packages/shared/src/encryption/rnProvider"
-      ]
+      ],
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

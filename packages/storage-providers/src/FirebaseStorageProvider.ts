@@ -21,7 +21,11 @@ export class FirebaseStorageProvider implements StorageProvider {
 
   constructor() {
     try {
-      const storageModule = require('@react-native-firebase/storage');
+      // Indirection prevents bundlers (esbuild/Rollup) from statically resolving
+      // this RN-only package, which would break web builds.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const dynamicRequire = require;
+      const storageModule = dynamicRequire('@react-native-firebase/storage');
       this.storage = storageModule.default;
     } catch {
       throw new Error(
