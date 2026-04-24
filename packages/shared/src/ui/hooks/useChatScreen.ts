@@ -7,7 +7,7 @@ import { isOtherUserTyping } from '../../utils/misc';
 // ---------------------------------------------------------------------------
 
 export interface ChatScreenConversationData {
-  typing?: Record<string, boolean>;
+  typing?: Record<string, number>;
   unRead?: Record<string, number | string>;
 }
 
@@ -21,7 +21,8 @@ export interface ChatScreenService {
     id: string,
     memberIds: string[],
     name?: string,
-    image?: string
+    image?: string,
+    names?: Record<string, string>
   ): Promise<ConversationProps>;
   sendMessage(message: MessageProps, replyMessage?: MessageProps['replyMessage']): Promise<void>;
   updateMessage(message: MessageProps): Promise<void>;
@@ -60,6 +61,7 @@ export interface UseChatScreenReturn<TMessage> {
   messages: TMessage[];
   isLoadingMessages: boolean;
   hasMoreMessages: boolean;
+  isLoadingEarlier: boolean;
   isTyping: boolean;
   userUnreadMessage: boolean;
   /** Send a raw MessageProps — formats optimistically and writes to Firestore. */
@@ -89,15 +91,25 @@ export function useChatScreen<TMessage>({
   const [messages, setMessages] = useState<TMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [userUnreadMessage, setUserUnreadMessage] = useState(false);
+
+  // Tracks the live conversation ID — may be set lazily on first send.
+  const [resolvedConversationId, setResolvedConversationId] = useState(conversationId);
 
   const isLoadingRef = useRef(false);
   const timeoutMessageRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Keep resolvedConversationId in sync when the prop changes (e.g. navigating
+  // to an existing conversation from the list).
+  useEffect(() => {
+    setResolvedConversationId(conversationId);
+  }, [conversationId]);
+
   // Stable refs so callbacks can read current values without re-subscribing
-  const conversationIdRef = useRef(conversationId);
-  conversationIdRef.current = conversationId;
+  const conversationIdRef = useRef(resolvedConversationId);
+  conversationIdRef.current = resolvedConversationId;
   const memberIdsRef = useRef(memberIds);
   memberIdsRef.current = memberIds;
   const partnersRef = useRef(partners);
@@ -117,13 +129,13 @@ export function useChatScreen<TMessage>({
   // Initial load: set up conversation and fetch message history
   // ------------------------------------------------------------------
   useEffect(() => {
-    if (!conversationId) {
+    if (!resolvedConversationId) {
       setIsLoadingMessages(false);
       return;
     }
 
     onStartLoadRef.current?.();
-    service.setConversationInfo(conversationId, memberIdsRef.current, partnersRef.current);
+    service.setConversationInfo(resolvedConversationId, memberIdsRef.current, partnersRef.current);
     setIsLoadingMessages(true);
 
     service
@@ -145,7 +157,7 @@ export function useChatScreen<TMessage>({
         setIsLoadingMessages(false);
         onLoadEndRef.current?.();
       });
-  }, [conversationId, service]);
+  }, [resolvedConversationId, service]);
 
   // ------------------------------------------------------------------
   // Clean up when leaving the screen
@@ -161,14 +173,14 @@ export function useChatScreen<TMessage>({
   // Real-time conversation listener (typing, unread counts)
   // ------------------------------------------------------------------
   useEffect(() => {
-    if (!conversationId) return;
+    if (!resolvedConversationId) return;
 
     const unsubscribe = service.userConversationListener((data) => {
       const userId = userInfoRef.current?.id;
       if (!userId) return;
 
       const unReads = data?.unRead ?? {};
-      const myUnread = unReads[userId];
+      const myUnread = (unReads as Record<string, number | string>)[userId];
       const hasUnread = Object.entries(unReads).some(([, v]) => v !== myUnread);
       setUserUnreadMessage(hasUnread);
 
@@ -183,13 +195,13 @@ export function useChatScreen<TMessage>({
     });
 
     return () => unsubscribe?.();
-  }, [conversationId, service]);
+  }, [resolvedConversationId, service]);
 
   // ------------------------------------------------------------------
   // Real-time new-message listener
   // ------------------------------------------------------------------
   useEffect(() => {
-    if (!conversationId) return;
+    if (!resolvedConversationId) return;
 
     const unsubscribe = service.receiveMessageListener(async (raw) => {
       if (userInfoRef.current && raw.senderId === userInfoRef.current.id) return;
@@ -205,7 +217,7 @@ export function useChatScreen<TMessage>({
     });
 
     return () => unsubscribe();
-  }, [conversationId, service]);
+  }, [resolvedConversationId, service]);
 
   // ------------------------------------------------------------------
   // sendMessage
@@ -226,7 +238,8 @@ export function useChatScreen<TMessage>({
           info.id,
           memberIdsRef.current,
           info.name,
-          info.image
+          info.image,
+          info.names
         );
         conversationIdRef.current = created.id;
         service.setConversationInfo(
@@ -234,6 +247,8 @@ export function useChatScreen<TMessage>({
           memberIdsRef.current,
           partnersRef.current
         );
+        // Trigger listeners by updating resolved state
+        setResolvedConversationId(created.id);
       }
 
       // Optimistic update — format and prepend immediately
@@ -288,14 +303,17 @@ export function useChatScreen<TMessage>({
     if (isLoadingRef.current || !conversationIdRef.current) return;
 
     isLoadingRef.current = true;
+    setIsLoadingEarlier(true);
     try {
       const raw = await service.getMoreMessage(maxPageSizeRef.current);
       const formatted = await Promise.all(raw.map((m) => formatMessageRef.current(m)));
       setHasMoreMessages(raw.length === maxPageSizeRef.current);
-      isLoadingRef.current = raw.length !== maxPageSizeRef.current;
       setMessages((prev) => [...prev, ...formatted]);
     } catch {
+      // intentionally empty
+    } finally {
       isLoadingRef.current = false;
+      setIsLoadingEarlier(false);
     }
   }, [service]);
 
@@ -303,6 +321,7 @@ export function useChatScreen<TMessage>({
     messages,
     isLoadingMessages,
     hasMoreMessages,
+    isLoadingEarlier,
     isTyping,
     userUnreadMessage,
     sendMessage,

@@ -41,10 +41,12 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 }) => {
   const Avatar = CustomImage ?? Image;
 
+  const displayName = data.names?.[userInfo?.id ?? ''] ?? data.name ?? '';
+
   const backgroundColor = useMemo(() => {
-    if (!data.image) return randomColor(data.name || '');
+    if (!data.image) return randomColor(displayName);
     return undefined;
-  }, [data.image, data.name]);
+  }, [data.image, displayName]);
 
   const getInitialsChat = useCallback(
     (type: string | undefined): string => {
@@ -83,7 +85,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
       <View
         style={[styles.unReadWrapper, StyleSheet.flatten(unReadWrapperStyle)]}
       >
-        <Text style={[styles.unRead, StyleSheet.flatten(unReadStyle)]}>
+        <Text style={[styles.unReadText, StyleSheet.flatten(unReadStyle)]}>
           {label}
         </Text>
       </View>
@@ -101,7 +103,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
             {data.image ? (
               <Avatar style={styles.avatar} source={{ uri: data.image }} />
             ) : (
-              <Text style={styles.textAvatar}>{data.name?.[0]}</Text>
+              <Text style={styles.textAvatar}>{displayName[0]}</Text>
             )}
           </View>
         </View>
@@ -113,7 +115,7 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
               style={[styles.title, StyleSheet.flatten(titleStyle)]}
               numberOfLines={1}
             >
-              {data?.name}
+              {displayName}
             </Text>
             <Text
               style={[styles.message, StyleSheet.flatten(lastMessageStyle)]}
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  unRead: {
+  unReadText: {
     fontSize: 10,
     color: '#fff',
     fontWeight: '600',

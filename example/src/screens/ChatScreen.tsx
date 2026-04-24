@@ -9,7 +9,7 @@ type Route = RouteProp<RootStackParamList, typeof RouteKey.ChatScreen>;
 
 export const ChatScreen: React.FC = () => {
   const route = useRoute<Route>();
-  const { name, otherUserId } = route.params;
+  const { conversationId, otherUserId, memberIds, names, name } = route.params;
 
   const partner = {
     id: otherUserId ?? '',
@@ -17,10 +17,16 @@ export const ChatScreen: React.FC = () => {
     avatar: 'https://i.pravatar.cc/150?img=2',
   };
 
+  const resolvedMemberIds = memberIds ?? (partner.id ? [partner.id] : []);
+
   return (
     <BaseChatScreen
-      memberIds={[partner.id]}
+      memberIds={resolvedMemberIds}
       partners={[partner]}
+      customConversationInfo={{
+        id: conversationId ?? '',
+        names,
+      }}
     />
   );
 };

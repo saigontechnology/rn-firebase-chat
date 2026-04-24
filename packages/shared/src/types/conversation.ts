@@ -24,6 +24,7 @@ export interface CustomConversationInfo {
   id: string;
   name?: string;
   image?: string;
+  names?: Record<string, string>;
 }
 
 export interface ConversationProps extends BaseEntity {
@@ -32,14 +33,15 @@ export interface ConversationProps extends BaseEntity {
   updatedAt: number | object;
   members: string[];
   name?: string;
+  names?: Record<string, string>;
   image?: string;
-  typing?: Record<string, boolean>;
-  unRead?: Record<string, string | number>;
+  typing?: Record<string, number>;
+  unRead?: Record<string, number | string>;
 }
 
 export interface ConversationData {
-  unRead?: Record<string, string | number>;
-  typing?: Record<string, boolean>;
+  unRead?: Record<string, number | string>;
+  typing?: Record<string, number>;
 }
 
 export interface MediaFile {

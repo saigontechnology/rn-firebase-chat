@@ -8,3 +8,4 @@ export const IV_LENGTH = 32;
 // UI timing
 export const DEFAULT_CLEAR_SEND_NOTIFICATION = 3000; // ms
 export const DEFAULT_TYPING_TIMEOUT_MS = 3000; // ms
+export const TYPING_EXPIRY_MS = 7000; // ms — treat typing as stale after this long

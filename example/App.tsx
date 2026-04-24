@@ -6,11 +6,18 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  LogBox,
 } from 'react-native';
+
+// iOS UIKit internal warning because new React Native architecture (Fabric/JSI) on iOS
+LogBox.ignoreLogs([
+  '[UIKitCore] RCTScrollViewComponentView',
+]);
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ChatProvider } from 'rn-firebase-chat';
-import auth from '@react-native-firebase/auth';
+import { getAuth, signInAnonymously } from '@react-native-firebase/auth';
 import { ListChatScreen } from './src/screens/ListChatScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import type { RootStackParamList } from './src/navigation/RouteKey';
@@ -28,12 +35,11 @@ export default function App() {
   } | null>(null);
 
   useEffect(() => {
-    auth()
-      .signInAnonymously()
+    signInAnonymously(getAuth())
       .then((credential) => {
         setUid(credential.user.uid);
       })
-      .catch((e) => console.error('Auth failed:', e));
+      .catch((e: unknown) => console.error('Auth failed:', e));
   }, []);
 
   const handleJoin = () => {
@@ -80,7 +86,7 @@ export default function App() {
             name={RouteKey.ListChatScreen}
             options={{ title: "Chats" }}
           >
-            {() => <ListChatScreen currentUserId={userInfo.id} />}
+            {() => <ListChatScreen currentUserId={userInfo.id} currentUserName={userInfo.name} />}
           </Stack.Screen>
           <Stack.Screen
             name={RouteKey.ChatScreen}

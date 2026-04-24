@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import {
   ListConversationScreen,
-  FirestoreServices,
   setConversation,
   useChatContext,
 } from 'rn-firebase-chat';
@@ -22,9 +21,10 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 interface Props {
   currentUserId: string;
+  currentUserName: string;
 }
 
-export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
+export const ListChatScreen: React.FC<Props> = ({ currentUserId, currentUserName }) => {
   const navigation = useNavigation<Nav>();
   const { chatDispatch } = useChatContext();
   const [otherUserId, setOtherUserId] = useState('');
@@ -41,33 +41,24 @@ export const ListChatScreen: React.FC<Props> = ({ currentUserId }) => {
     [navigation, chatDispatch, currentUserId]
   );
 
-  const handleStartChat = useCallback(async () => {
+  const handleStartChat = useCallback(() => {
     const targetId = otherUserId.trim();
     if (!targetId) {
       Alert.alert('Enter the other user\'s UID first');
       return;
     }
-    try {
-      const firestoreServices = FirestoreServices.getInstance();
-      const conversationId = [currentUserId, targetId].sort().join('_');
-      const conversation = await firestoreServices.createConversation(
-        conversationId,
-        [targetId],
-        'Chat'
-      );
-      chatDispatch?.(setConversation(conversation));
-      navigation.navigate(RouteKey.ChatScreen, {
-        conversationId,
-        name: 'Chat',
-        otherUserId: targetId,
-      });
-    } catch {
-      Alert.alert(
-        'Error',
-        'Could not start chat. Please check your connection and try again.'
-      );
-    }
-  }, [otherUserId, currentUserId, navigation, chatDispatch]);
+    const conversationId = [currentUserId, targetId].sort().join('_');
+    navigation.navigate(RouteKey.ChatScreen, {
+      conversationId,
+      name: targetId,
+      otherUserId: targetId,
+      memberIds: [targetId],
+      names: {
+        [currentUserId]: targetId,
+        [targetId]: currentUserName,
+      },
+    });
+  }, [otherUserId, currentUserId, currentUserName, navigation]);
 
   return (
     <View style={styles.container}>

@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ChatContext } from './chat';
+import { ChatContext } from './chat/ChatProvider';
 import { FirestoreServices } from './services/firebase';
 import type { ChatState } from './reducer';
 

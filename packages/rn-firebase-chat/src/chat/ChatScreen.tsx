@@ -111,11 +111,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const messagesContainerRef = useRef<{
     scrollToIndex?: (params: { index: number }) => void;
   } | null>(null);
+  const messagesRef = useRef<MessageProps[]>([]);
 
   const scrollToMessage = useCallback((messageId: string | number) => {
-    // Basic implementation: find index and scroll
-    // GiftedChat FlatList can be accessed via ref
-    //console.log('Scroll to message:', messageId);
+    const index = messagesRef.current.findIndex((m) => m._id === messageId);
+    if (index >= 0) {
+      messagesContainerRef.current?.scrollToIndex?.({ index });
+    }
   }, []);
 
   /** RN-specific formatMessage: decrypts + adds GiftedChat fields (_id, user, createdAt). */
@@ -142,6 +144,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     messages,
     isLoadingMessages,
     hasMoreMessages,
+    isLoadingEarlier,
     isTyping,
     userUnreadMessage,
     sendMessage,
@@ -159,6 +162,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     onStartLoad,
     onLoadEnd,
   });
+
+  messagesRef.current = messages;
 
   // Clean up on unmount
   useEffect(() => {
@@ -360,14 +365,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           ...props.keyboardAvoidingViewProps,
         }}
         loadEarlierMessagesProps={{
-          isAvailable: true,
-          isLoading: hasMoreMessages,
+          isAvailable: hasMoreMessages,
+          isLoading: isLoadingEarlier,
           onPress: loadEarlier,
         }}
         renderComposer={inputToolbar}
         isTyping={isTyping}
         {...props}
         isScrollToBottomEnabled
+        scrollToBottomComponent={() => (
+          <View style={styles.scrollToBottomBtn}>
+            <View style={styles.scrollToBottomIcon} />
+          </View>
+        )}
         renderBubble={
           renderBubble as unknown as React.ComponentProps<
             typeof GiftedChat
@@ -490,5 +500,27 @@ const styles = StyleSheet.create({
     color: '#222222',
     fontSize: 13,
     lineHeight: 18,
+  },
+  scrollToBottomBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  scrollToBottomIcon: {
+    width: 10,
+    height: 10,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#007AFF',
+    transform: [{ rotate: '45deg' }],
+    marginTop: -4,
   },
 });
