@@ -2,7 +2,11 @@
  * Web Crypto API implementation of ICryptoProvider.
  * For use in react-firebase-chat (browser environment).
  */
-import { DEFAULT_ITERATIONS, DEFAULT_KEY_LENGTH, IV_LENGTH } from '../constants';
+import {
+  DEFAULT_ITERATIONS,
+  DEFAULT_KEY_LENGTH,
+  IV_LENGTH,
+} from '../constants';
 import type { EncryptionOptions } from '../types';
 import type { ICryptoProvider } from './types';
 

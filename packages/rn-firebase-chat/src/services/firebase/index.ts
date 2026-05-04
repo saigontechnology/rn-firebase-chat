@@ -1,4 +1,4 @@
-export * from './storage';
 export * from './user';
 export * from './firestore';
-export { FirebaseStorageProvider } from './firebaseStorageProvider';
+export { createRNFirestoreClient } from './rn-adapter';
+export { FirebaseStorageProvider } from '@saigontechnology/chat-storage-providers';

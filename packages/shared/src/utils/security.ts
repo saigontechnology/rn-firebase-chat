@@ -27,9 +27,7 @@ export const validateFilePath = (filePath: string): boolean => {
   ];
 
   const normalizedPath = filePath.toLowerCase();
-  return !dangerousPatterns.some((pattern) =>
-    normalizedPath.includes(pattern)
-  );
+  return !dangerousPatterns.some((pattern) => normalizedPath.includes(pattern));
 };
 
 export const validateEncryptionKey = (
@@ -86,9 +84,7 @@ export const validateUserId = (userId: string): boolean => {
   }
 
   const validPattern = /^[a-zA-Z0-9_-]+$/;
-  return (
-    validPattern.test(userId) && userId.length >= 3 && userId.length <= 50
-  );
+  return validPattern.test(userId) && userId.length >= 3 && userId.length <= 50;
 };
 
 export class RateLimiter {
