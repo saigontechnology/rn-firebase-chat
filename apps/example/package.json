@@ -25,7 +25,6 @@
     "expo-build-properties": "^55.0.12",
     "expo-status-bar": "~55.0.4",
     "firebase": "^10.14.1",
-    "randomcolor": "^0.6.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.4",

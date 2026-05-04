@@ -9,7 +9,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   GiftedChat,
   type ComposerProps,
@@ -341,20 +340,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   if (isLoadingMessages) {
     return (
-      <SafeAreaView
-        style={[styles.container, StyleSheet.flatten(style)]}
-        edges={['bottom']}
-      >
+      <View style={[styles.container, StyleSheet.flatten(style)]}>
         <MessageSkeleton />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, StyleSheet.flatten(style)]}
-      edges={['bottom']}
-    >
+    <View style={[styles.container, StyleSheet.flatten(style)]}>
       <GiftedChat
         messagesContainerStyle={styles.messagesContainer}
         messages={messages as unknown as IMessage[]}
@@ -424,7 +417,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onClose={() => setImgVideoUrl('')}
       />
       {children?.({ onSend })}
-    </SafeAreaView>
+    </View>
   );
 };
 

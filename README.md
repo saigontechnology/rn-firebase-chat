@@ -151,6 +151,47 @@ See [`apps/web-vite/`](./apps/web-vite/) for a working example.
 - Conversation name sync — each user writes their own display name into `names[userId]`
 - Bad-word filtering via configurable word list
 
+## Firebase Deployment
+
+Deploy Firestore security rules and indexes from the monorepo root:
+
+```bash
+# Deploy both rules and indexes
+firebase deploy --only firestore --project <your-project-id>
+
+# Deploy rules only
+firebase deploy --only firestore:rules --project <your-project-id>
+
+# Deploy indexes only
+firebase deploy --only firestore:indexes --project <your-project-id>
+```
+
+The `firebase.json` at the repo root points to:
+- Rules: `packages/rn-firebase-chat/firestore.rules`
+- Indexes: `packages/rn-firebase-chat/firestore.indexes.json`
+
+## Publishing to npm
+
+Only `rn-firebase-chat` and `@saigontechnology/react-firebase-chat` are published. The shared and storage-providers packages are bundled inside via `bundledDependencies`.
+
+```bash
+# Build all packages first
+pnpm build
+
+# Publish React Native package
+cd packages/rn-firebase-chat && pnpm publish
+
+# Publish Web package
+cd packages/react-firebase-chat && pnpm publish --access public
+```
+
+To preview a tarball without publishing:
+
+```bash
+cd packages/rn-firebase-chat && pnpm pack
+cd packages/react-firebase-chat && pnpm pack
+```
+
 ## Contributing
 
 See the [contributing guide](./packages/rn-firebase-chat/CONTRIBUTING.md).

@@ -64,6 +64,10 @@
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0"
   },
+  "bundledDependencies": [
+    "@saigontechnology/firebase-chat-shared",
+    "@saigontechnology/chat-storage-providers"
+  ],
   "peerDependencies": {
     "firebase": ">=10",
     "react": ">=18",
