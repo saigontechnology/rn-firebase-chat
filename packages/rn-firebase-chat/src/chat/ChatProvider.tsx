@@ -57,42 +57,44 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      createUserProfile(userInfo.id, userInfo.name, userInfo.avatar)
-        .then(() => {
-          firestoreServices.getListConversation().then((res) => {
-            dispatch(setListConversation(res));
+      const init = async () => {
+        if (encryptionFuncProps) {
+          firestoreServices.createEncryptionsFunction(encryptionFuncProps);
+        }
+        if (enableEncrypt && encryptKey && encryptionOptions) {
+          await firestoreServices.configurationEncryption({
+            encryptKey,
+            enableEncrypt: enableEncrypt as true,
+            encryptionOptions,
           });
-          unsubscribeListener = firestoreServices.listenConversationUpdate(
-            (data) => {
-              dispatch(updateConversation(data));
-            }
-          );
-        })
-        .catch((error) => {
-          console.error('Failed to initialize chat:', error);
-        });
+        }
+
+        await createUserProfile(userInfo.id, userInfo.name, userInfo.avatar);
+
+        const res = await firestoreServices.getListConversation();
+        dispatch(setListConversation(res));
+
+        unsubscribeListener = firestoreServices.listenConversationUpdate(
+          (data) => {
+            dispatch(updateConversation(data));
+          }
+        );
+      };
+
+      init().catch((error) => {
+        console.error('Failed to initialize chat:', error);
+      });
     }
     return () => {
       unsubscribeListener();
     };
-  }, [userInfo]);
-
-  useEffect(() => {
-    if (encryptionFuncProps) {
-      firestoreServices.createEncryptionsFunction(encryptionFuncProps);
-    }
-    if (enableEncrypt && encryptKey && encryptionOptions) {
-      firestoreServices
-        .configurationEncryption({
-          encryptKey,
-          enableEncrypt: enableEncrypt as true,
-          encryptionOptions,
-        })
-        .catch((error) => {
-          console.error('Failed to configure encryption:', error);
-        });
-    }
-  }, [enableEncrypt, encryptKey, encryptionOptions, encryptionFuncProps]);
+  }, [
+    userInfo,
+    enableEncrypt,
+    encryptKey,
+    encryptionOptions,
+    encryptionFuncProps,
+  ]);
 
   useEffect(() => {
     firestoreServices.configuration({ blackListWords });
