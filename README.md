@@ -138,6 +138,10 @@ function App() {
 
 See [`apps/web-vite/`](./apps/web-vite/) for a working example.
 
+## Running the Example App
+
+See the [Getting Started guide](./apps/example/GETTING_STARTED.md) for step-by-step instructions on running the mobile example app on iOS and Android.
+
 ## Features
 
 - Real-time messaging via Firestore `onSnapshot`
