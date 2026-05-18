@@ -190,18 +190,21 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       const partnerIds = conversation.members.filter(
         (m: string) => m !== `${currentUser?.id}`
       );
+      const isGroup = partnerIds.length > 1;
+      const getPartnerName = (pid: string) =>
+        isGroup
+          ? conversation.name
+          : (conversation.names?.[pid] ?? conversation.name);
 
       if (conversation.image) {
-        // Conversation has avatar image — use it directly, no async needed
         setSelectedPartners(
           partnerIds.map((m: string) => ({
             id: m,
-            name: conversation.name,
+            name: getPartnerName(m),
             avatar: conversation.image,
           }))
         );
       } else if (partnerIds.length > 0) {
-        // No image — look up user docs (single setState to avoid flicker)
         const userService = UserService.getInstance();
         Promise.all(partnerIds.map((pid) => userService.getUserById(pid))).then(
           (users) => {
@@ -211,11 +214,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             if (resolved.length > 0) {
               setSelectedPartners(resolved);
             } else {
-              // Fallback: use conversation data if user lookup returned nothing
               setSelectedPartners(
                 partnerIds.map((m: string) => ({
                   id: m,
-                  name: conversation.name,
+                  name: getPartnerName(m),
                   avatar: undefined,
                 }))
               );
@@ -311,14 +313,31 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     return conversations.find((c) => c.id === convId)?.typing;
   }, [conversations, selectedConversationId, effectiveConversationId]);
 
-  // uid → display name — used by useTyping to show real names instead of UIDs
+  // uid → display name — used by useTyping to show real names instead of UIDs.
+  // Prefer the conversation's `names` map (already correct for 1:1 chats) and
+  // fall back to selectedPartners so the indicator works even before resolvePartners completes.
   const partnerNames = useMemo(() => {
+    const convId = selectedConversationId || effectiveConversationId;
+    const conv = convId
+      ? conversations.find((c) => c.id === convId)
+      : undefined;
     const map: Record<string, string> = {};
+    if (conv?.names) {
+      Object.entries(conv.names).forEach(([uid, name]) => {
+        if (uid !== `${currentUser.id}` && name) map[uid] = name;
+      });
+    }
     selectedPartners.forEach((p) => {
-      if (p.name) map[p.id] = p.name;
+      if (p.name && !map[p.id]) map[p.id] = p.name;
     });
     return map;
-  }, [selectedPartners]);
+  }, [
+    selectedPartners,
+    conversations,
+    selectedConversationId,
+    effectiveConversationId,
+    currentUser.id,
+  ]);
 
   // Typing hook — write side only; read side comes from subscribeToUserConversations
   const { typingUsers, setTyping } = useTyping(

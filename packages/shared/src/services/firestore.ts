@@ -926,8 +926,17 @@ export class FirestoreServices {
                 ...change.doc.data(),
                 id: change.doc.id,
               };
+              const rawTs = data.updatedAt as
+                | { toMillis?: () => number }
+                | number
+                | undefined;
+              const updatedAt =
+                typeof rawTs === 'number'
+                  ? rawTs
+                  : (rawTs?.toMillis?.() ?? Date.now());
               return {
                 ...data,
+                updatedAt,
                 latestMessage: data.latestMessage
                   ? await formatMessageText(
                       data?.latestMessage,
