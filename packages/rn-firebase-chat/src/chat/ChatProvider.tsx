@@ -10,6 +10,7 @@ import { FirestoreServices, createUserProfile } from '../services/firebase';
 import { createRNFirestoreClient } from '../services/firebase/rn-adapter';
 import Aes from 'react-native-aes-crypto';
 import { RNAesCryptoProvider } from '@saigontechnology/firebase-chat-shared/rnProvider';
+import { DEFAULT_ENCRYPTION_OPTIONS } from '@saigontechnology/firebase-chat-shared';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
@@ -39,7 +40,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   CustomImageComponent,
   enableEncrypt = true,
   encryptKey = 'saigontechnology@2026',
-  encryptionOptions = { salt: 'saigontechnology@2026' },
+  encryptionOptions = DEFAULT_ENCRYPTION_OPTIONS,
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});

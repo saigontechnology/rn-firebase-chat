@@ -7,7 +7,10 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { FirestoreServices } from '@saigontechnology/firebase-chat-shared';
+import {
+  DEFAULT_ENCRYPTION_OPTIONS,
+  FirestoreServices,
+} from '@saigontechnology/firebase-chat-shared';
 import { initializeFirebase, firebaseService } from '../services/firebase';
 import {
   FirebaseConfig,
@@ -62,7 +65,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   firebaseConfig,
   encryptionKey,
   enableEncrypt = true,
-  encryptionOptions = { salt: 'saigontechnology@2026' },
+  encryptionOptions = DEFAULT_ENCRYPTION_OPTIONS,
   encryptionFuncProps,
   blackListWords,
   storageProvider,
