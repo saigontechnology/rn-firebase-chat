@@ -138,6 +138,11 @@ function App() {
 
 See [`apps/web-vite/`](./apps/web-vite/) for a working example.
 
+## Running the Example Apps
+
+- **Mobile (iOS / Android):** [Getting Started — Mobile](./apps/example/GETTING_STARTED.md)
+- **Web (Vite + React):** [Getting Started — Web](./apps/web-vite/GETTING_STARTED.md)
+
 ## Features
 
 - Real-time messaging via Firestore `onSnapshot`

@@ -5,17 +5,19 @@ import {
   ChatScreen,
   FirestoreServices,
   UserService,
-  CloudinaryStorageProvider,
+  // CloudinaryStorageProvider,
+  // FirebaseStorageProvider,
   type IUser,
 } from '@saigontechnology/react-firebase-chat';
 
-const cloudinaryProvider = new CloudinaryStorageProvider({
-  cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ?? '',
-  uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ?? '',
-  folder: import.meta.env.VITE_CLOUDINARY_FOLDER ?? 'chat',
-  apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY ?? '',
-  apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET ?? '',
-});
+// const cloudinaryProvider = new CloudinaryStorageProvider({
+//   cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ?? '',
+//   uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ?? '',
+//   folder: import.meta.env.VITE_CLOUDINARY_FOLDER ?? 'chat',
+//   apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY ?? '',
+//   apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET ?? '',
+// });
+// const firebaseStorageProvider = new FirebaseStorageProvider();
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
@@ -61,7 +63,7 @@ export default function App() {
     <div style={styles.root}>
       <WebChatProvider
         currentUser={currentUser}
-        storageProvider={cloudinaryProvider}
+        // storageProvider={serviceProvider}
         encryptionKey={import.meta.env.VITE_ENCRYPTION_KEY}
         enableEncrypt={import.meta.env.VITE_ENABLE_ENCRYPT !== 'false'}
         prefix={import.meta.env.VITE_FIREBASE_PREFIX ?? ''}

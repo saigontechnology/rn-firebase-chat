@@ -7,6 +7,7 @@ export { WebCryptoProvider } from '@saigontechnology/firebase-chat-shared';
 export {
   WebFirebaseStorageProvider,
   CloudinaryStorageProvider,
+  FirebaseStorageProvider,
 } from '@saigontechnology/chat-storage-providers';
 export * from './components/ChatScreen';
 export * from './components/ChatHeader';
