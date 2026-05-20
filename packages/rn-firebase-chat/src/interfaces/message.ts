@@ -6,6 +6,7 @@ import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { IMessage } from 'react-native-gifted-chat';
 import type { BaseEntity } from './base';
 import { type MessageStatus, MessageTypes } from './conversation';
+import type { ReplyToMessage } from '@saigontechnology/firebase-chat-shared';
 
 type TimestampField = number | FirebaseFirestoreTypes.FieldValue;
 
@@ -22,7 +23,7 @@ interface LatestMessageProps {
   extension?: string;
 }
 
-interface MessageProps extends BaseEntity, IMessage {
+interface MessageProps extends BaseEntity, Omit<IMessage, 'replyMessage'> {
   text: string;
   senderId: string;
   readBy: {
@@ -33,11 +34,7 @@ interface MessageProps extends BaseEntity, IMessage {
   path?: string;
   extension?: string;
   createdAt: Date | number;
-  replyMessage?: Partial<IMessage> & {
-    id?: string;
-    userId?: string;
-    userName?: string;
-  };
+  replyMessage?: ReplyToMessage;
   isEdited?: boolean;
 }
 
@@ -52,7 +49,9 @@ interface SendMessageProps {
   type?: MediaType;
   path?: string;
   extension?: string;
-  replyMessage?: MessageProps['replyMessage'];
+  /** Size of the file in bytes. When provided, sendMessageWithFile enforces maxFileSizeBytes. */
+  fileSize?: number;
+  replyMessage?: ReplyToMessage;
 }
 
 type MediaType = 'image' | 'video' | 'text' | 'voice' | undefined;

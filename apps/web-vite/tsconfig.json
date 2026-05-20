@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "types": ["vite/client"],
+    "paths": {
+      "rn-firebase-chat/web": ["../../packages/rn-firebase-chat/lib/typescript/rn-firebase-chat/src/web.d.ts"],
+      "rn-firebase-chat": ["../../packages/rn-firebase-chat/lib/typescript/rn-firebase-chat/src/index.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

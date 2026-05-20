@@ -1,0 +1,6 @@
+{
+  "firestore": {
+    "rules": "packages/rn-firebase-chat/firestore.rules",
+    "indexes": "packages/rn-firebase-chat/firestore.indexes.json"
+  }
+}

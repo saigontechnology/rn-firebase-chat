@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,25 @@ import { LazyVideo } from '../LazyVideo';
 import { MessageTypes, type MessageProps } from '../../../interfaces';
 import Images from '../../../asset';
 import { CustomImage } from '../CustomImage';
+
+const MAX_IMAGE_WIDTH = 240;
+const MAX_IMAGE_HEIGHT = 320;
+
+/**
+ * Scale (w, h) into a bounding box (maxW, maxH) preserving aspect ratio.
+ * Matches the iMessage/WhatsApp behavior: portrait images stay portrait,
+ * landscape stay landscape, and both are capped to the same envelope.
+ */
+const fitInBox = (
+  w: number,
+  h: number,
+  maxW: number,
+  maxH: number
+): { width: number; height: number } => {
+  if (w <= 0 || h <= 0) return { width: maxW, height: maxW };
+  const scale = Math.min(maxW / w, maxH / h, 1);
+  return { width: Math.round(w * scale), height: Math.round(h * scale) };
+};
 
 export interface CustomImageVideoBubbleProps {
   message: MessageProps;
@@ -40,7 +59,30 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   playIconStyle,
 }) => {
   const [isPauseVideo, setIsPauseVideo] = useState(true);
+  const [imageSize, setImageSize] = useState<{ width: number; height: number }>(
+    { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_WIDTH }
+  );
   const videoRefs = useRef<{ seek: (time: number) => void } | null>(null);
+
+  // Fetch the image's intrinsic dimensions, then scale into the bubble envelope
+  // so portrait/landscape both display naturally without center-cropping.
+  useEffect(() => {
+    if (!message.path || message.type !== MessageTypes.image) return;
+    let cancelled = false;
+    Image.getSize(
+      message.path,
+      (w, h) => {
+        if (cancelled) return;
+        setImageSize(fitInBox(w, h, MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT));
+      },
+      () => {
+        // Fallback to square on load failure — same behavior as before.
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [message.path, message.type]);
 
   const handleImagePress = () => {
     if (message.path && message.type === MessageTypes.image) {
@@ -62,8 +104,8 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
   const renderImage = () => (
     <CustomImage
       source={{ uri: message.path }}
-      style={[styles.image, imageStyle]}
-      resizeMode="cover"
+      style={[imageSize, imageStyle]}
+      resizeMode="contain"
     />
   );
 
@@ -108,7 +150,6 @@ export const CustomImageVideoBubble: React.FC<CustomImageVideoBubbleProps> = ({
 
 const styles = StyleSheet.create({
   bubble: {
-    maxWidth: '70%',
     backgroundColor: '#e1ffc7',
     borderRadius: 20,
     overflow: 'hidden',
@@ -119,28 +160,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: 5,
   },
-  image: {
-    width: 200,
-    height: 200,
-  },
   videoContainer: {
-    width: 200,
-    height: 200,
+    width: 240,
+    height: 240,
     backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   video: {
-    width: 200,
-    height: 200,
+    width: 240,
+    height: 240,
   },
   playIcon: {
     width: 50,
     height: 50,
     position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -25 }],
     resizeMode: 'contain',
-    right: 105,
-    top: 75,
     zIndex: 1,
   },
   flexEnd: {

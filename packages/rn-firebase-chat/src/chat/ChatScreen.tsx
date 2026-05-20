@@ -9,7 +9,6 @@ import {
   Pressable,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   GiftedChat,
   type ComposerProps,
@@ -22,6 +21,7 @@ import MessageStatusView from './components/MessageStatus';
 import { FirestoreServices } from '../services/firebase';
 import type {
   CustomConversationInfo,
+  ImagePickerValue,
   IUserInfo,
   MessageProps,
 } from '../interfaces';
@@ -173,9 +173,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   }, [chatDispatch]);
 
   const onSend = useCallback(
-    async (message: MessageProps) => {
+    async (message: MessageProps | ImagePickerValue) => {
+      const msg = message as MessageProps;
       if (editingMessage) {
-        await updateMessage({ ...editingMessage, text: message.text });
+        await updateMessage({ ...editingMessage, text: msg.text });
         setEditingMessage(null);
       } else {
         const replyMsg = replyMessage
@@ -191,7 +192,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             }
           : undefined;
 
-        await sendMessage(message, replyMsg);
+        await sendMessage(msg, replyMsg);
         setReplyMessage(null);
       }
       setInputText('');
@@ -213,11 +214,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const changeUserConversationTyping = useCallback(
     (value: boolean, callback?: () => void) => {
-      if (conversation?.id) {
+      if (firebaseInstance.conversationId) {
         firebaseInstance.setUserConversationTyping(value)?.then(callback);
       }
     },
-    [firebaseInstance, conversation?.id]
+    [firebaseInstance]
   );
 
   const { handleTextChange } = useTypingIndicator(
@@ -279,6 +280,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onSelectedMessage={() => {
           //TODO: handle image/video press
         }}
+        onSelectImgVideoUrl={setImgVideoUrl}
         customImageVideoBubbleProps={customImageVideoBubbleProps}
         position={bubble.position}
         userUnreadMessage={userUnreadMessage}
@@ -338,23 +340,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   if (isLoadingMessages) {
     return (
-      <SafeAreaView
-        style={[styles.container, StyleSheet.flatten(style)]}
-        edges={['bottom']}
-      >
+      <View style={[styles.container, StyleSheet.flatten(style)]}>
         <MessageSkeleton />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, StyleSheet.flatten(style)]}
-      edges={['bottom']}
-    >
+    <View style={[styles.container, StyleSheet.flatten(style)]}>
       <GiftedChat
         messagesContainerStyle={styles.messagesContainer}
-        messages={messages}
+        messages={messages as unknown as IMessage[]}
         onSend={(msgs) => onSend(msgs[0] as MessageProps)}
         user={{
           _id: userInfo?.id || '',
@@ -421,7 +417,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onClose={() => setImgVideoUrl('')}
       />
       {children?.({ onSend })}
-    </SafeAreaView>
+    </View>
   );
 };
 

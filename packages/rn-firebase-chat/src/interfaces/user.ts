@@ -8,10 +8,10 @@ import type { ConversationProps } from './conversation';
 export type { UserStatus } from '@saigontechnology/firebase-chat-shared';
 
 export interface UserProfileProps extends BaseEntity {
-  created?: number;
+  created?: number | object;
   name: string;
   status: 'online' | 'offline';
-  updated?: number;
+  updated?: number | object;
   /** RN-specific: Firestore collection reference for the user's conversations. */
   conversations?: FirebaseFirestoreTypes.CollectionReference<ConversationProps>;
 }

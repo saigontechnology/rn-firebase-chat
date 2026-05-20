@@ -11,8 +11,9 @@
     "release": "pnpm --filter=rn-firebase-chat release",
     "release:ci": "pnpm --filter=rn-firebase-chat release:ci",
     "release:check": "pnpm --filter=rn-firebase-chat release:check",
-    "example": "pnpm -C example",
-    "bootstrap": "pnpm install && pnpm -C example"
+    "example": "pnpm -C apps/example",
+    "example:web": "pnpm --filter=web-vite-example dev",
+    "bootstrap": "pnpm install && pnpm -C apps/example"
   },
   "devDependencies": {
     "turbo": "^2.5.4"

@@ -7,6 +7,10 @@ import React, {
   useReducer,
 } from 'react';
 import { FirestoreServices, createUserProfile } from '../services/firebase';
+import { createRNFirestoreClient } from '../services/firebase/rn-adapter';
+import Aes from 'react-native-aes-crypto';
+import { RNAesCryptoProvider } from '@saigontechnology/firebase-chat-shared/rnProvider';
+import { DEFAULT_ENCRYPTION_OPTIONS } from '@saigontechnology/firebase-chat-shared';
 import type { IChatContext } from '../interfaces';
 import {
   chatReducer,
@@ -17,6 +21,8 @@ import {
 } from '../reducer';
 
 const firestoreServices = FirestoreServices.getInstance();
+firestoreServices.setFirestoreClient(createRNFirestoreClient());
+firestoreServices.setCryptoProvider(new RNAesCryptoProvider(Aes));
 
 type ChatProviderProps = Omit<IChatContext, 'chatState' | 'chatDispatch'> & {
   chatState?: ChatState;
@@ -34,7 +40,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   CustomImageComponent,
   enableEncrypt = true,
   encryptKey = 'saigontechnology@2026',
-  encryptionOptions = { salt: 'saigontechnology@2026' },
+  encryptionOptions = DEFAULT_ENCRYPTION_OPTIONS,
   ...props
 }) => {
   const [state, dispatch] = useReducer(chatReducer, {});
@@ -52,42 +58,44 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   useEffect(() => {
     let unsubscribeListener = () => {};
     if (userInfo?.id) {
-      createUserProfile(userInfo.id, userInfo.name)
-        .then(() => {
-          firestoreServices.getListConversation().then((res) => {
-            dispatch(setListConversation(res));
+      const init = async () => {
+        if (encryptionFuncProps) {
+          firestoreServices.createEncryptionsFunction(encryptionFuncProps);
+        }
+        if (enableEncrypt && encryptKey && encryptionOptions) {
+          await firestoreServices.configurationEncryption({
+            encryptKey,
+            enableEncrypt: enableEncrypt as true,
+            encryptionOptions,
           });
-          unsubscribeListener = firestoreServices.listenConversationUpdate(
-            (data) => {
-              dispatch(updateConversation(data));
-            }
-          );
-        })
-        .catch((error) => {
-          console.error('Failed to initialize chat:', error);
-        });
+        }
+
+        await createUserProfile(userInfo.id, userInfo.name, userInfo.avatar);
+
+        const res = await firestoreServices.getListConversation();
+        dispatch(setListConversation(res));
+
+        unsubscribeListener = firestoreServices.listenConversationUpdate(
+          (data) => {
+            dispatch(updateConversation(data));
+          }
+        );
+      };
+
+      init().catch((error) => {
+        console.error('Failed to initialize chat:', error);
+      });
     }
     return () => {
       unsubscribeListener();
     };
-  }, [userInfo]);
-
-  useEffect(() => {
-    if (encryptionFuncProps) {
-      firestoreServices.createEncryptionsFunction(encryptionFuncProps);
-    }
-    if (enableEncrypt && encryptKey && encryptionOptions) {
-      firestoreServices
-        .configurationEncryption({
-          encryptKey,
-          enableEncrypt: enableEncrypt as true,
-          encryptionOptions,
-        })
-        .catch((error) => {
-          console.error('Failed to configure encryption:', error);
-        });
-    }
-  }, [enableEncrypt, encryptKey, encryptionOptions, encryptionFuncProps]);
+  }, [
+    userInfo,
+    enableEncrypt,
+    encryptKey,
+    encryptionOptions,
+    encryptionFuncProps,
+  ]);
 
   useEffect(() => {
     firestoreServices.configuration({ blackListWords });

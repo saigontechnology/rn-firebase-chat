@@ -41,7 +41,13 @@ export const ConversationItem: React.FC<IConversationItemProps> = ({
 }) => {
   const Avatar = CustomImage ?? Image;
 
-  const displayName = data.names?.[userInfo?.id ?? ''] ?? data.name ?? '';
+  const isGroup = (data.members ?? []).length > 2;
+  const partnerId = isGroup
+    ? ''
+    : ((data.members ?? []).find((m) => m !== userInfo?.id) ?? '');
+  const displayName = isGroup
+    ? (data.name ?? '')
+    : (data.names?.[partnerId] ?? '');
 
   const backgroundColor = useMemo(() => {
     if (!data.image) return randomColor(displayName);

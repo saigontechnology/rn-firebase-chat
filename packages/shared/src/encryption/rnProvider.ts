@@ -4,7 +4,11 @@
  *
  * Requires peer dependency: react-native-aes-crypto
  */
-import { DEFAULT_ITERATIONS, DEFAULT_KEY_LENGTH, IV_LENGTH } from '../constants';
+import {
+  DEFAULT_ITERATIONS,
+  DEFAULT_KEY_LENGTH,
+  IV_LENGTH,
+} from '../constants';
 import type { EncryptionOptions } from '../types';
 import type { ICryptoProvider } from './types';
 
@@ -48,7 +52,13 @@ export class RNAesCryptoProvider implements ICryptoProvider {
     }
 
     try {
-      return await this.Aes.pbkdf2(password, salt, iterations, keyLength, 'sha256');
+      return await this.Aes.pbkdf2(
+        password,
+        salt,
+        iterations,
+        keyLength,
+        'sha256'
+      );
     } catch (error) {
       console.error('Error generating encryption key:', error);
       throw error;

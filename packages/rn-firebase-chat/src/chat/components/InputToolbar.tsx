@@ -12,6 +12,7 @@ import {
   InputToolbarProps,
   SendProps,
   type ComposerProps,
+  type IMessage,
 } from 'react-native-gifted-chat';
 import { PressableIcon } from './PressableIcon';
 import type { ImagePickerValue, MessageProps } from '../../interfaces';
@@ -24,9 +25,13 @@ const ImageURL = {
 
 export interface IInputToolbar
   extends
-    InputToolbarProps<MessageProps>,
-    SendProps<MessageProps>,
+    Omit<InputToolbarProps<IMessage>, 'onSend'>,
+    Omit<SendProps<IMessage>, 'onSend'>,
     Pick<ComposerProps, 'textInputProps'> {
+  onSend?: (
+    message: MessageProps | ImagePickerValue,
+    sendImmediately?: boolean
+  ) => void | Promise<void>;
   hasCamera?: boolean;
   hasGallery?: boolean;
   onPressCamera?: () => void;
@@ -116,7 +121,7 @@ const InputToolbar: React.FC<IInputToolbar> = ({
       {!!text && (
         <PressableIcon
           iconStyle={flattenedIconStyle}
-          onPress={() => onSend?.({ text: text }, true)}
+          onPress={() => onSend?.({ text: text } as MessageProps, true)}
           icon={iconSend}
         />
       )}

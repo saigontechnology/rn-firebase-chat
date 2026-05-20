@@ -6,7 +6,9 @@ import { useDebounce } from '../../hooks/useDebounce';
 // Service interface — implemented by each platform's FirestoreServices
 // ---------------------------------------------------------------------------
 
-export interface ListConversationService<TConversation extends ConversationProps = ConversationProps> {
+export interface ListConversationService<
+  TConversation extends ConversationProps = ConversationProps,
+> {
   searchConversations(text: string): Promise<TConversation[]>;
 }
 
@@ -14,7 +16,9 @@ export interface ListConversationService<TConversation extends ConversationProps
 // Hook params & return
 // ---------------------------------------------------------------------------
 
-export interface UseListConversationParams<TConversation extends ConversationProps = ConversationProps> {
+export interface UseListConversationParams<
+  TConversation extends ConversationProps = ConversationProps,
+> {
   listConversation: TConversation[];
   service: ListConversationService<TConversation>;
   hasSearchBar?: boolean;
@@ -22,7 +26,9 @@ export interface UseListConversationParams<TConversation extends ConversationPro
   onSelect?: (conversation: TConversation) => void;
 }
 
-export interface UseListConversationReturn<TConversation extends ConversationProps = ConversationProps> {
+export interface UseListConversationReturn<
+  TConversation extends ConversationProps = ConversationProps,
+> {
   data: TConversation[];
   searchText: string;
   setSearchText: (text: string) => void;
@@ -34,7 +40,9 @@ export interface UseListConversationReturn<TConversation extends ConversationPro
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useListConversation<TConversation extends ConversationProps = ConversationProps>({
+export function useListConversation<
+  TConversation extends ConversationProps = ConversationProps,
+>({
   listConversation,
   service,
   hasSearchBar = false,

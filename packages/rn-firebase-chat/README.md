@@ -20,6 +20,16 @@ If you're using Expo, please follow the dedicated setup guide to configure `plug
 
 - See: [Expo Configuration Guide](./README.expo.md)
 
+## Web
+
+For web projects, use the dedicated web package instead:
+
+```sh
+npm install @saigontechnology/react-firebase-chat firebase react react-dom
+```
+
+See the [@saigontechnology/react-firebase-chat README](../react-firebase-chat/README.md) for full web usage, Vite configuration, and a working example in [`apps/web-vite/`](../../apps/web-vite/).
+
 ## Usage
 
 ### 1. Wrap your app with `ChatProvider`
@@ -156,7 +166,3 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

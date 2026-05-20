@@ -16,7 +16,8 @@ export interface IUser {
 
 export interface UserProfileProps extends BaseEntity {
   name: string;
+  avatar?: string;
   status: UserStatus;
-  created?: number;
-  updated?: number;
+  created?: number | object;
+  updated?: number | object;
 }

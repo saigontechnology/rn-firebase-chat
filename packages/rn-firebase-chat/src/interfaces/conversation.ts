@@ -2,7 +2,6 @@
  * Created by NL on 6/27/23.
  */
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-import type { FieldValue } from '@react-native-firebase/firestore';
 import type { BaseEntity } from './base';
 import type { LatestMessageProps, MessageProps } from './message';
 
@@ -18,9 +17,10 @@ export interface MemberProps {
   [userId: string]: FirebaseFirestoreTypes.DocumentReference;
 }
 
+/** updatedAt is either a resolved ms timestamp or an opaque server-timestamp sentinel. */
 export interface ConversationProps extends BaseEntity {
   latestMessage?: LatestMessageProps;
-  updatedAt: number | FieldValue;
+  updatedAt: number | object;
   members: string[];
   name?: string;
   names?: Record<string, string>;
